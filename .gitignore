@@ -1,0 +1,7 @@
+# Book PDFs are copyrighted; never commit them
+*.pdf
+
+node_modules/
+.DS_Store
+Thumbs.db
+desktop.ini

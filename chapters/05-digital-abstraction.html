@@ -1,0 +1,2027 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ch 5 · The Digital Abstraction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: a chapter map (hub) that opens one part at a time; each part is a rail of single-card steps on graph paper. */
+:root {
+  --paper: #eaf0f4;
+  --grid: rgba(40, 90, 140, 0.08);
+  --card: #ffffff;
+  --ink: #142238;
+  --muted: #56677d;
+  --line: #d2dce6;
+  --accent: #e39a0b;
+  --accent-soft: #fdf1d8;
+  --accent-ink: #7a4d00;
+  --cool: #2b67a3;
+  --cool-soft: #e1ecf7;
+  --good: #1d8656;
+  --good-soft: #def4e9;
+  --bad: #c2412a;
+  --bad-soft: #fbe5e0;
+  --on-accent: #1b1300;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1520; --grid: rgba(120, 170, 220, 0.07); --card: #16212f; --ink: #e5edf6; --muted: #98a8bc;
+    --line: #2a3a4e; --accent: #f3b53c; --accent-soft: #3a2d10; --accent-ink: #f8d68f; --cool: #7db3ea;
+    --cool-soft: #15283d; --good: #43c88d; --good-soft: #123426; --bad: #f2735a; --bad-soft: #3d1c16;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1520; --grid: rgba(120, 170, 220, 0.07); --card: #16212f; --ink: #e5edf6; --muted: #98a8bc;
+  --line: #2a3a4e; --accent: #f3b53c; --accent-soft: #3a2d10; --accent-ink: #f8d68f; --cool: #7db3ea;
+  --cool-soft: #15283d; --good: #43c88d; --good-soft: #123426; --bad: #f2735a; --bad-soft: #3d1c16;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 700px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 56px;
+  display: grid; gap: 16px;
+}
+header.top { display: grid; gap: 10px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.eyebrow button { font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--cool); background: none; border: 0; padding: 0; cursor: pointer; }
+.eyebrow a.book-link { color: var(--cool); text-decoration: none; }
+.eyebrow a.book-link:hover, .eyebrow a.book-link:focus-visible { text-decoration: underline; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(28px, 6.5vw, 40px); line-height: 1.05; margin: 0; text-wrap: balance; }
+.rail { display: flex; gap: 5px; align-items: center; }
+.rail button { flex: 1; height: 8px; border-radius: 4px; border: 0; padding: 0; cursor: pointer; background: var(--line); }
+.rail button.done { background: var(--accent); opacity: 0.5; }
+.rail button.now { background: var(--accent); }
+.rail button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.where { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.where b { color: var(--ink); }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px; display: grid; gap: 16px; min-width: 0; }
+.card > * { min-width: 0; }
+.card h2 { font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1.18; margin: 0; text-wrap: balance; }
+.card h3 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 0; }
+.card p { margin: 0; max-width: 62ch; }
+.card ul, .card ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.tag { justify-self: start; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--ink); }
+.k-predict, .k-play { background: var(--accent-soft); color: var(--accent-ink); }
+.k-why, .k-math { background: var(--cool-soft); color: var(--cool); }
+.k-bug { background: var(--bad-soft); color: var(--bad); }
+.k-whatif, .k-check { background: var(--good-soft); color: var(--good); }
+.k-say { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+
+.mono, code { font-family: var(--mono); font-weight: 700; font-size: 0.92em; }
+.eq { font-family: var(--mono); font-weight: 700; font-size: clamp(20px, 5.4vw, 28px); text-align: center; padding: 8px 0; overflow-x: auto; }
+.eq .a { color: var(--accent); }
+.key { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 10px 10px 0; }
+.key b { color: var(--accent-ink); }
+.aside { font-size: 15px; color: var(--muted); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.two > * { min-width: 0; }
+.tile { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.tile h3 { font-size: 17px; }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; font-size: 16px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+.tbl th { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* controls */
+.btn { font: inherit; font-size: 16px; padding: 10px 16px; border-radius: 10px; cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+.btn.ghost { background: transparent; }
+.btn.small { font-size: 14px; padding: 6px 12px; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); font-weight: 700; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:focus-visible, input:focus-visible, textarea:focus-visible, .hit:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.choices { display: grid; gap: 8px; }
+.choice { text-align: left; width: 100%; }
+.choice.right { border-color: var(--good); background: var(--good-soft); }
+.choice.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.q { display: grid; gap: 10px; }
+.qq { font-weight: 700; }
+.feedback { border-radius: 10px; padding: 12px 14px; font-size: 16px; background: var(--paper); border: 1px solid var(--line); }
+.feedback.ok { background: var(--good-soft); border-color: var(--good); }
+.feedback.no { background: var(--bad-soft); border-color: var(--bad); }
+.num { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.num input { font: inherit; font-family: var(--mono); font-size: 19px; width: 8em; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+textarea { font: inherit; font-size: 17px; width: 100%; min-height: 96px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); resize: vertical; }
+select { font: inherit; font-family: var(--mono); font-size: 15px; max-width: 100%; padding: 8px 10px; margin: 4px 0 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+.model { border: 2px dashed var(--good); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; }
+.model .lbl { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--good); }
+.sort { display: grid; gap: 8px; }
+.sort-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.sort-item > span { min-width: 0; }
+.sort-item.right { border-color: var(--good); background: var(--good-soft); }
+.sort-item.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.sort-item .why { grid-column: 1 / -1; font-size: 15px; }
+@media (max-width: 480px) { .sort-item { grid-template-columns: 1fr; } }
+
+/* sliders + readouts */
+.sliders { display: grid; gap: 10px; }
+.sl { display: grid; gap: 2px; }
+.sl label { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; color: var(--muted); }
+.sl output { font-family: var(--mono); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.sl input[type="range"] { width: 100%; accent-color: var(--accent); }
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.readout > div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; background: var(--paper); min-width: 0; }
+.readout span { display: block; font-size: 13px; color: var(--muted); }
+.readout b { font-family: var(--mono); font-size: 19px; font-variant-numeric: tabular-nums; }
+.verdict { justify-self: start; font-weight: 700; font-size: 15px; padding: 4px 14px; border-radius: 999px; }
+.verdict.ok { background: var(--good-soft); color: var(--good); }
+.verdict.mid { background: var(--accent-soft); color: var(--accent-ink); }
+.verdict.no { background: var(--bad-soft); color: var(--bad); }
+
+/* schematics + plots */
+.fig { overflow-x: auto; }
+.sch, .plot { width: 100%; height: auto; display: block; margin: 0 auto; }
+.sch .w { stroke: var(--ink); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.sch .w.hl { stroke: var(--accent); stroke-width: 3.5; }
+.sch .w.dim { stroke: var(--line); }
+.sch .el { fill: var(--card); stroke: var(--ink); stroke-width: 2.5; }
+.sch .el.hl { stroke: var(--accent); stroke-width: 3.5; }
+.sch .nd { fill: var(--ink); }
+.sch text { fill: var(--ink); font-family: var(--mono); font-size: 14px; }
+.sch text.s { font-size: 12px; }
+.sch text.big { font-size: 18px; font-weight: 700; }
+.sch .m { fill: var(--muted); }
+.sch .a { fill: var(--accent-ink); }
+.sch .c { fill: var(--cool); }
+.sch .g { fill: var(--good); }
+.sch .b { fill: var(--bad); }
+.sch .cur { stroke: var(--cool); stroke-width: 2.2; fill: none; }
+.sch .curh { fill: var(--cool); }
+.sch .flow { stroke: var(--accent); stroke-width: 4; fill: none; stroke-dasharray: 3 13; stroke-linecap: round; animation: flow var(--dur, 1s) linear infinite; }
+.sch .zone { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.sch .box { fill: var(--paper); stroke: var(--ink); stroke-width: 2.5; }
+.sch .hit { cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 18; }
+@keyframes flow { to { stroke-dashoffset: -16; } }
+.plot .grid { stroke: var(--line); stroke-width: 1; }
+.plot .axis { stroke: var(--muted); stroke-width: 1.5; }
+.plot text { fill: var(--muted); font-family: var(--mono); font-size: 12px; }
+.plot text.lab { fill: var(--ink); font-size: 13px; font-weight: 700; }
+.plot .s1 { stroke: var(--accent); stroke-width: 3; fill: none; }
+.plot .s2 { stroke: var(--cool); stroke-width: 3; fill: none; }
+.plot .s3 { stroke: var(--good); stroke-width: 3; fill: none; }
+.plot .s4 { stroke: var(--bad); stroke-width: 2; fill: none; stroke-dasharray: 6 5; }
+.plot .s5 { stroke: var(--muted); stroke-width: 2; fill: none; stroke-dasharray: 4 4; }
+.plot .ar1 { fill: var(--accent); opacity: 0.22; }
+.plot .ar2 { fill: var(--cool); opacity: 0.18; }
+.plot .ar3 { fill: var(--good); opacity: 0.16; }
+.plot .mk { fill: var(--accent); stroke: var(--card); stroke-width: 2; }
+.plot .mk2 { fill: var(--cool); stroke: var(--card); stroke-width: 2; }
+.plot .mkb { fill: var(--bad); stroke: var(--card); stroke-width: 2; }
+
+/* hub */
+.parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.part-btn { width: 100%; text-align: left; display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.part-btn:hover { border-color: var(--ink); }
+.part-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.part-btn > span { min-width: 0; }
+.part-n { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; border: 2px solid var(--line); }
+.part-btn.done .part-n { background: var(--good); border-color: var(--good); color: var(--card); }
+.part-btn.next .part-n { border-color: var(--accent); color: var(--accent-ink); }
+.part-t { font-weight: 700; display: block; }
+.part-d { font-size: 15px; color: var(--muted); display: block; }
+.part-m { font-family: var(--mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+.after { border: 2px solid var(--ink); border-radius: 14px; padding: 16px 18px; display: grid; gap: 8px; background: var(--card); }
+
+nav.bottom { display: flex; justify-content: space-between; gap: 8px; }
+nav.bottom .btn { min-width: 120px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+.ov { text-decoration: overline; }
+.bits { display: flex; flex-wrap: wrap; gap: 6px; }
+.bits .btn { min-width: 44px; font-family: var(--mono); font-weight: 700; }
+
+/* code (HDL and assembly listings) */
+pre.code { font-family: var(--mono); font-size: 14px; line-height: 1.5; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 0; overflow-x: auto; white-space: pre; color: var(--ink); }
+pre.code .kw { color: var(--accent-ink); font-weight: 700; }
+pre.code .cm { color: var(--muted); font-style: italic; }
+pre.code .nm { color: var(--cool); }
+pre.code .hl { background: var(--accent-soft); border-radius: 4px; }
+code { font-family: var(--mono); font-size: .92em; background: var(--paper); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+window.BOOK_KEY = "6002";
+</script>
+<script>
+/* 6.002's table of contents. One entry per chapter of Agarwal & Lang.
+   `file` is set once a chapter's tutorial is built; `parts` must match that chapter's part count.
+   `pdf` is the page range in the per-chapter PDF file names; `probs` is the page of that file where the exercises start. */
+(window.BOOKS = window.BOOKS || {})["6002"] = {
+  key: "6002", short: "6.002", home: "6002.html", dir: "chapters",
+  title: "6.002 Circuit Tutorials",
+  pdfFolder: "book by chapters",
+  source: "Agarwal & Lang, Foundations of Analog and Digital Electronic Circuits (2005)",
+  pdfPrefix: "Agarwal - Foundations of Analog and Digital Electronic Circuits Elsevier 2005b-",
+  answers: { pdf: "984-995", label: "Answers to selected problems" },
+  groups: [
+    {
+      name: "Resistive circuits",
+      note: "Wires, resistors, sources, and the methods for solving any resistive network.",
+      items: [
+        { n: 1, id: "ch1", title: "The Circuit Abstraction", pdf: "26-75", probs: 48, file: "01-circuit-abstraction.html", parts: 7,
+          blurb: "Lumping, voltage and current, power, resistors, ideal elements, signals." },
+        { n: 2, id: "ch2", title: "Resistive Networks", pdf: "76-141", probs: 59, file: "02-resistive-networks.html", parts: 9,
+          blurb: "KCL, KVL, dividers, collapsing networks, dependent sources." },
+        { n: 3, id: "ch3", title: "Network Theorems", pdf: "142-215", probs: 62, file: "03-network-theorems.html", parts: 9,
+          blurb: "Node method, superposition, Thévenin and Norton." },
+        { n: 4, id: "ch4", title: "Analysis of Nonlinear Circuits", pdf: "216-266", probs: 40, file: "04-nonlinear-circuits.html", parts: 8,
+          blurb: "Graphical, piecewise-linear and incremental analysis." }
+      ]
+    },
+    {
+      name: "Digital logic and the MOSFET",
+      note: "From noise margins to switches, gates and amplifiers.",
+      items: [
+        { n: 5, id: "ch5", title: "The Digital Abstraction", pdf: "267-307", probs: 33, file: "05-digital-abstraction.html", parts: 7,
+          blurb: "Value discretization, noise margins, logic gates." },
+        { n: 6, id: "ch6", title: "The MOSFET Switch", pdf: "308-354", probs: 40, file: "06-mosfet-switch.html", parts: 8,
+          blurb: "S and SR models, gates built from switches, power in gates." },
+        { n: 7, id: "ch7", title: "The MOSFET Amplifier", pdf: "355-427", probs: 61, file: "07-mosfet-amplifier.html", parts: 9,
+          blurb: "Gain, the switch-current-source model, choosing an operating point." },
+        { n: 8, id: "ch8", title: "The Small-Signal Model", pdf: "428-479", probs: 45, file: "08-small-signal-model.html", parts: 7,
+          blurb: "Linearizing the amplifier around an operating point." }
+      ]
+    },
+    {
+      name: "Energy storage and time",
+      note: "Capacitors and inductors make circuits remember, so voltages change over time.",
+      items: [
+        { n: 9, id: "ch9", title: "Energy Storage Elements", pdf: "480-525", probs: 40, file: "09-energy-storage.html", parts: 7,
+          blurb: "Capacitors, inductors, and conservation of charge and flux." },
+        { n: 10, id: "ch10", title: "First-Order Transients in Linear Electrical Networks", pdf: "526-617", probs: 69, file: "10-first-order-transients.html", parts: 9,
+          blurb: "RC and RL circuits, propagation delay, state, digital memory." },
+        { n: 11, id: "ch11", title: "Energy and Power in Digital Circuits", pdf: "618-647", probs: 26, file: "11-energy-power-digital.html", parts: 6,
+          blurb: "Average power, NMOS and CMOS logic." },
+        { n: 12, id: "ch12", title: "Transients in Second-Order Circuits", pdf: "648-725", probs: 71, file: "12-second-order-transients.html", parts: 8,
+          blurb: "LC and RLC circuits, damping, state-space analysis." }
+      ]
+    },
+    {
+      name: "Frequency, op amps and diodes",
+      note: "Sinusoidal steady state, resonance, and two key devices.",
+      items: [
+        { n: 13, id: "ch13", title: "Sinusoidal Steady State: Impedance and Frequency Response", pdf: "726-799", probs: 67, file: "13-sinusoidal-steady-state.html", parts: 9,
+          blurb: "Impedance, frequency response, filters." },
+        { n: 14, id: "ch14", title: "Sinusoidal Steady State: Resonance", pdf: "800-859", probs: 49, file: "14-resonance.html", parts: 7,
+          blurb: "RLC frequency response, Q, Bode plots, stored energy." },
+        { n: 15, id: "ch15", title: "The Operational Amplifier Abstraction", pdf: "860-927", probs: 39, file: "15-op-amp.html", parts: 9,
+          blurb: "Ideal op amps, feedback, saturation, op amp RC circuits." },
+        { n: 16, id: "ch16", title: "Diodes", pdf: "928-949", probs: 18, file: "16-diodes.html", parts: 6,
+          blurb: "Diode characteristics and nonlinear analysis with RL and RC." }
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Math and physics background, each as a short interactive page. Use them whenever a chapter leans on the math.",
+      items: [
+        { n: "A", id: "appA", title: "Maxwell's Equations and the Lumped Matter Discipline", pdf: "950-965", file: "appA-lumped-matter.html", parts: 4,
+          blurb: "Why voltage and current make sense, and where KVL, KCL and R = ρl/a come from. Background for Chapter 1." },
+        { n: "B", id: "appB", title: "Trigonometric Functions and Identities", pdf: "966-969", file: "appB-trig.html", parts: 3,
+          blurb: "The unit circle, the identities circuits use, Taylor series and Euler. A refresher for Chapters 12–14." },
+        { n: "C", id: "appC", title: "Complex Numbers", pdf: "970-983", file: "appC-complex-numbers.html", parts: 5,
+          blurb: "Polar form, arithmetic, the conjugate and rotation. The toolkit for Chapters 12–15." },
+        { n: "D", id: "appD", title: "Solving Simultaneous Linear Equations", pdf: "970-983", file: "appD-linear-equations.html", parts: 2,
+          blurb: "The 2 × 2 formula and Cramer\'s rule, for node and mesh equations (Chapter 3). In the PDF after Appendix C." }
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Boylestad & Nashelsky's table of contents.
+   `pdf` is the range in the per-chapter PDF file names, `pages` the printed book pages,
+   `probs` the page of that PDF file where PROBLEMS start, `probsBook` the printed page number.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["edc"] = {
+  key: "edc", short: "Boylestad", home: "edc.html", dir: "edc",
+  title: "Electronic Devices Tutorials",
+  pdfFolder: "electroinc_devices_circuit_theory / ilovepdf_split-range",
+  source: "Boylestad & Nashelsky, Electronic Devices and Circuit Theory, 11th edition",
+  pdfPrefix: "Electronic Devices and Circuit Theory - 11th Edition-",
+  answers: { pdf: "914-921", label: "Appendix D: Solutions to selected odd-numbered problems" },
+  intro: `<p>This book assumes you already know circuit laws. 6.002 gave you those. Where a chapter overlaps 6.002, its tutorial starts with a short recap that links back, then spends the time on what's new.</p>
+    <p><b>Two notation traps:</b> here <b>V<sub>T</sub></b> in the diode chapters is the <i>thermal</i> voltage (≈ 26 mV), which 6.002 calls V<sub>TH</sub>. And the MOSFET law I<sub>D</sub> = <b>k</b>(V<sub>GS</sub> − V<sub>T</sub>)² uses k = K/2 from 6.002.</p>`,
+  groups: [
+    {
+      name: "Diodes",
+      note: "How semiconductors work, the diode, and the circuits built from it.",
+      items: [
+        { n: 1, id: "edc1", title: "Semiconductor Diodes", pdf: "22-75", pages: "1-54", probs: 51, probsBook: 51, file: "01-semiconductor-diodes.html", parts: 11,
+          blurb: "Semiconductor materials, the pn junction, diode models, Zener diodes and LEDs." },
+        { n: 2, id: "edc2", title: "Diode Applications", pdf: "76-149", pages: "55-128", probs: 65, probsBook: 119, file: "02-diode-applications.html", parts: 13,
+          blurb: "Load lines, diode networks, rectifiers, clippers, clampers, Zener regulators, multipliers." },
+      ]
+    },
+    {
+      name: "Bipolar junction transistors",
+      note: "The BJT: how it works, how to bias it, and how it amplifies.",
+      items: [
+        { n: 3, id: "edc3", title: "Bipolar Junction Transistors", pdf: "150-180", pages: "129-159", probs: 29, probsBook: 157, file: "03-bjts.html", parts: 10,
+          blurb: "Construction, operation, the three configurations, limits of operation." },
+        { n: 4, id: "edc4", title: "DC Biasing: BJTs", pdf: "181-273", pages: "160-252", probs: 79, probsBook: 238, file: "04-dc-biasing-bjts.html", parts: 15,
+          blurb: "Operating point, the classic bias circuits, current mirrors, switching, stability." },
+        { n: 5, id: "edc5", title: "BJT AC Analysis", pdf: "274-398", pages: "253-377", probs: 109, probsBook: 361, file: "05-bjt-ac-analysis.html", parts: 16,
+          blurb: "The r_e model, gain and impedances for each configuration, cascades, hybrid models." },
+      ]
+    },
+    {
+      name: "Field-effect transistors",
+      note: "JFETs and MOSFETs: characteristics, biasing and amplifiers.",
+      items: [
+        { n: 6, id: "edc6", title: "Field-Effect Transistors", pdf: "399-442", pages: "378-421", probs: 41, probsBook: 418, file: "06-fets.html", parts: 10,
+          blurb: "JFET construction and transfer curve, depletion and enhancement MOSFETs, CMOS." },
+        { n: 7, id: "edc7", title: "FET Biasing", pdf: "443-501", pages: "422-480", probs: 52, probsBook: 473, file: "07-fet-biasing.html", parts: 12,
+          blurb: "Fixed, self and voltage-divider bias, graphically and by formula." },
+        { n: 8, id: "edc8", title: "FET Amplifiers", pdf: "502-565", pages: "481-544", probs: 56, probsBook: 536, file: "08-fet-amplifiers.html", parts: 12,
+          blurb: "The FET small-signal model and the common-source, -gate and -drain amplifiers." },
+      ]
+    },
+    {
+      name: "Frequency response",
+      note: "What happens to gain at low and high frequencies.",
+      items: [
+        { n: 9, id: "edc9", title: "BJT and JFET Frequency Response", pdf: "566-627", pages: "545-606", probs: 57, probsBook: 601, file: "09-frequency-response.html", parts: 11,
+          blurb: "Decibels, Bode plots, low- and high-frequency cutoffs, the Miller effect." },
+      ]
+    },
+    {
+      name: "Op amps",
+      note: "Inside the op amp, its real-world limits, and the circuits built from it.",
+      items: [
+        { n: 10, id: "edc10", title: "Operational Amplifiers", pdf: "628-673", pages: "607-652", probs: 42, probsBook: 648, file: "10-op-amps.html", parts: 11,
+          blurb: "The differential amplifier, op-amp basics, offsets, slew rate, CMRR." },
+        { n: 11, id: "edc11", title: "Op-Amp Applications", pdf: "674-703", pages: "653-682", probs: 26, probsBook: 678, file: "11-op-amp-applications.html", parts: 6,
+          blurb: "Gain blocks, summers, buffers, controlled sources, instrumentation amps, active filters." },
+      ]
+    },
+    {
+      name: "Power, ICs and oscillators",
+      note: "Driving real loads, mixed analog-digital chips, feedback, and power supplies.",
+      items: [
+        { n: 12, id: "edc12", title: "Power Amplifiers", pdf: "704-742", pages: "683-721", probs: 37, probsBook: 719, file: "12-power-amplifiers.html", parts: 9,
+          blurb: "Class A, B, C and D, efficiency, distortion, heat sinking." },
+        { n: 13, id: "edc13", title: "Linear-Digital ICs", pdf: "743-771", pages: "722-750", probs: 27, probsBook: 748, file: "13-linear-digital-ics.html", parts: 8,
+          blurb: "Comparators, DACs and ADCs, the 555 timer, VCOs and phase-locked loops." },
+        { n: 14, id: "edc14", title: "Feedback and Oscillator Circuits", pdf: "772-803", pages: "751-782", probs: 32, probsBook: 782, file: "14-feedback-oscillators.html", parts: 10,
+          blurb: "Feedback types, phase-shift, Wien bridge, tuned and crystal oscillators." },
+        { n: 15, id: "edc15", title: "Power Supplies (Voltage Regulators)", pdf: "804-831", pages: "783-810", probs: 26, probsBook: 808, file: "15-power-supplies.html", parts: 8,
+          blurb: "Capacitor and RC filters, ripple, transistor and IC regulators." },
+      ]
+    },
+    {
+      name: "More devices",
+      note: "Special-purpose diodes, sensors and switching devices.",
+      items: [
+        { n: 16, id: "edc16", title: "Other Two-Terminal Devices", pdf: "832-861", pages: "811-840", probs: 28, probsBook: 838, file: "16-two-terminal-devices.html", parts: 8,
+          blurb: "Schottky, varactor, solar cells, photodiodes, thermistors, tunnel diodes." },
+        { n: 17, id: "edc17", title: "pnpn and Other Devices", pdf: "862-899", pages: "841-878", probs: 35, probsBook: 875, file: "17-pnpn-devices.html", parts: 9,
+          blurb: "SCRs, triacs and other switching devices." },
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Reference material. The tutorials pull from these where a chapter needs them.",
+      items: [
+        { n: "A", id: "edcA", title: "Hybrid Parameters: Graphical Determinations and Conversions", pdf: "900-905", pages: "879-884", file: "appA-hybrid-parameters.html", parts: 3,
+          blurb: "Reading h-parameters off transistor curves. Used with Chapter 5." },
+        { n: "B", id: "edcB", title: "Ripple Factor and Voltage Calculations", pdf: "906-911", pages: "885-890", file: "appB-ripple.html", parts: 3,
+          blurb: "The math behind power-supply ripple. Used with Chapter 15." },
+        { n: "C", id: "edcC", title: "Charts and Tables", pdf: "912-913", pages: "891-892", file: "appC-tables.html", parts: 2,
+          blurb: "Greek letters and standard resistor values." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Patt & Patel's table of contents. One PDF for the whole book, so `pdf` is the PDF page range,
+   `pages` the printed pages (PDF page = printed page + 29), `probs` the PDF page where the exercises start.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["pp"] = {
+  key: "pp", short: "Patt & Patel", home: "pp.html", dir: "pp",
+  title: "Computing Systems Tutorials",
+  pdfFolder: "study / Digital Design",
+  pdfFile: "96a2b94d4be48285f2605d843a1e6db37da9a944.pdf",
+  source: "Patt & Patel, Introduction to Computing Systems: From Bits & Gates to C/C++ & Beyond, 3rd edition",
+  sub: "From transistors to a whole computer you can program, one level at a time. One tutorial per chapter; then the book's exercises.",
+  intro: `<p>This book climbs the levels of a computer: bits, transistors, gates, memory, a small computer called the <b>LC-3</b>, its machine language, assembly, and finally C. By the end you know what every level does and why.</p>
+    <p>It pairs with <b>Harris & Harris</b>: read Patt & Patel's chapter first for the idea, then Harris & Harris for the design detail. The library's suggested order says exactly when.</p>
+    <p class="aside">Chapters 11–20 teach programming in C. They're the software side: worth doing, but optional on the way to chip design.</p>`,
+  flow: [
+    ["Tutorial", "Do the parts in order. About 20 minutes each, with a break after every part."],
+    ["Book exercises", "Open the PDF at the page the tutorial gives and do the exercises at the end of the chapter. They're the real test."],
+    ["Check", "The book's answers to selected exercises are on its website (mhhe.com/patt3), not in the PDF. Commit to your answer first, or ask Claude to check your reasoning."],
+  ],
+  groups: [
+    {
+      name: "Bits and gates",
+      note: "What a computer is, how it stores information as bits, and the transistors and gates that do the work.",
+      items: [
+        { n: 1, id: "pp1", title: "Welcome Aboard", pdf: "30-53", pages: "1-24", probs: 49, probsBook: 20, file: "01-welcome-aboard.html", parts: 7,
+          blurb: "Levels of abstraction, hardware vs software, the two big ideas: universal computers and levels of transformation." },
+        { n: 2, id: "pp2", title: "Bits, Data Types, and Operations", pdf: "54-87", pages: "25-58", probs: 78, probsBook: 49, file: "02-bits-data-types.html", parts: 10,
+          blurb: "Unsigned and 2's complement integers, binary arithmetic, overflow, logic operations, hex, floating point, ASCII." },
+        { n: 3, id: "pp3", title: "Digital Logic Structures", pdf: "88-149", pages: "59-120", probs: 124, probsBook: 95, file: "03-digital-logic-structures.html", parts: 11,
+          blurb: "MOS transistors, gates, decoders, muxes, adders, latches, memory, finite state machines, a first data path." },
+      ]
+    },
+    {
+      name: "A whole computer: the LC-3",
+      note: "The von Neumann model, a real (small) instruction set, and your first programs in machine language.",
+      items: [
+        { n: 4, id: "pp4", title: "The von Neumann Model", pdf: "150-173", pages: "121-144", probs: 168, probsBook: 139, file: "04-von-neumann.html", parts: 8,
+          blurb: "Memory, processing unit, input/output, control unit; the instruction cycle; changing the flow with branches." },
+        { n: 5, id: "pp5", title: "The LC-3", pdf: "174-231", pages: "145-202", probs: 206, probsBook: 177, file: "05-lc3.html", parts: 9,
+          blurb: "The LC-3's ISA: operate, data movement and control instructions, addressing modes, condition codes, the data path." },
+        { n: 6, id: "pp6", title: "Programming", pdf: "232-259", pages: "203-230", probs: 249, probsBook: 220, file: "06-programming.html", parts: 6,
+          blurb: "Systematic decomposition into sequence, decision and loop; debugging with breakpoints and single-stepping." },
+      ]
+    },
+    {
+      name: "Assembly, data structures and I/O",
+      note: "Writing real programs for the LC-3: assembly language, subroutines, stacks, input/output and interrupts.",
+      items: [
+        { n: 7, id: "pp7", title: "Assembly Language", pdf: "260-291", pages: "231-262", probs: 274, probsBook: 245, file: "07-assembly.html", parts: 6,
+          blurb: "Opcodes and labels, pseudo-ops, the two-pass assembler, the symbol table, linking multiple files." },
+        { n: 8, id: "pp8", title: "Data Structures", pdf: "292-341", pages: "263-312", probs: 333, probsBook: 304, file: "08-data-structures.html", parts: 8,
+          blurb: "Subroutines and JSR/RET, the stack, recursion, queues, character strings." },
+        { n: 9, id: "pp9", title: "I/O", pdf: "342-407", pages: "313-378", probs: 381, probsBook: 352, file: "09-io.html", parts: 9,
+          blurb: "Privilege and priority, device registers, polling, TRAP routines, interrupts, the supervisor stack." },
+        { n: 10, id: "pp10", title: "A Calculator", pdf: "408-433", pages: "379-404", probs: 431, probsBook: 402, file: "10-calculator.html", parts: 7,
+          blurb: "ASCII-to-binary conversion and back, arithmetic using a stack, a complete calculator program." },
+      ]
+    },
+    {
+      name: "Programming in C",
+      note: "The same machine one level up: how C is compiled down to the LC-3. Optional on the way to chip design.",
+      items: [
+        { n: 11, id: "pp11", title: "Introduction to C/C++", pdf: "434-453", pages: "405-424", probs: 451, probsBook: 422, file: "11-intro-c.html", parts: 7,
+          blurb: "Bridging from assembly to a high-level language: compilers vs interpreters, the compilation process, a first program." },
+        { n: 12, id: "pp12", title: "Variables and Operators", pdf: "454-485", pages: "425-456", probs: 482, probsBook: 453, file: "12-variables-operators.html", parts: 10,
+          blurb: "Types, scope, storage; operators, precedence; how variables live in memory and on the run-time stack." },
+        { n: 13, id: "pp13", title: "Control Structures", pdf: "486-519", pages: "457-490", probs: 513, probsBook: 484, file: "13-control-structures.html", parts: 8,
+          blurb: "if, if-else, while, for, do-while, switch, break and continue, and the LC-3 code each becomes." },
+        { n: 14, id: "pp14", title: "Functions", pdf: "520-545", pages: "491-516", probs: 540, probsBook: 511, file: "14-functions.html", parts: 6,
+          blurb: "Arguments and return values, the run-time stack and activation records, caller and callee." },
+        { n: 15, id: "pp15", title: "Testing and Debugging", pdf: "546-565", pages: "517-536", probs: 561, probsBook: 532, file: "15-testing-debugging.html", parts: 5,
+          blurb: "Syntactic, semantic and algorithmic errors; black-box and white-box testing; debuggers; defensive programming." },
+      ]
+    },
+    {
+      name: "C in depth",
+      note: "Pointers, arrays, recursion, I/O, dynamic data structures and a first look at C++.",
+      items: [
+        { n: 16, id: "pp16", title: "Pointers and Arrays", pdf: "566-597", pages: "537-568", probs: 592, probsBook: 563, file: "16-pointers-arrays.html", parts: 8,
+          blurb: "Addresses and pointers, pass by reference, arrays, strings, the link between arrays and pointers." },
+        { n: 17, id: "pp17", title: "Recursion", pdf: "598-621", pages: "569-592", probs: 616, probsBook: 587, file: "17-recursion.html", parts: 6,
+          blurb: "Recursion vs iteration, Towers of Hanoi, Fibonacci, binary search, escaping a maze, and the stack under it all." },
+        { n: 18, id: "pp18", title: "I/O in C", pdf: "622-635", pages: "593-606", probs: 634, probsBook: 605, file: "18-io-in-c.html", parts: 5,
+          blurb: "Streams, putchar and getchar, buffering, printf and scanf, files." },
+        { n: 19, id: "pp19", title: "Dynamic Data Structures in C", pdf: "636-661", pages: "607-632", probs: 658, probsBook: 629, file: "19-dynamic-data.html", parts: 6,
+          blurb: "Structures, typedef, the heap, malloc and free, linked lists." },
+        { n: 20, id: "pp20", title: "Introduction to C++", pdf: "662-681", pages: "633-652", probs: 679, probsBook: 650, file: "20-intro-cpp.html", parts: 6,
+          blurb: "Namespaces, references, overloading, classes, constructors, vectors and templates." },
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Appendix C, the LC-3's microarchitecture, is the bridge to Harris & Harris Chapter 7. The others are references.",
+      items: [
+        { n: "A", id: "ppA", title: "The LC-3 ISA", pdf: "682-707", pages: "653-678", file: "appA-lc3-isa.html", parts: 5,
+          blurb: "Every LC-3 instruction defined precisely, plus interrupt and exception processing." },
+        { n: "B", id: "ppB", title: "From LC-3 to x86", pdf: "708-727", pages: "679-698", file: "appB-lc3-to-x86.html", parts: 7,
+          blurb: "How a real, much bigger ISA compares: instruction formats, memory, internal state." },
+        { n: "C", id: "ppC", title: "The Microarchitecture of the LC-3", pdf: "728-749", pages: "699-720", file: "appC-lc3-microarchitecture.html", parts: 5,
+          blurb: "The state machine, data path and microprogrammed control that execute every LC-3 instruction." },
+        { n: "D", id: "ppD", title: "The C Programming Language", pdf: "750-781", pages: "721-752", file: "appD-c-language.html", parts: 8,
+          blurb: "A C reference manual: conventions, types, operators, control, the preprocessor, the standard library." },
+        { n: "E", id: "ppE", title: "Useful Tables", pdf: "782-785", pages: "753-756", file: "appE-tables.html", parts: 3,
+          blurb: "Prefixes, ASCII codes, powers of 2." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Harris & Harris's table of contents (2nd edition). `pdf` is the range in the per-chapter PDF file names,
+   `pages` the printed pages (PDF page = printed page + 25), `probs` the page of that PDF file where the exercises start.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["hh"] = {
+  key: "hh", short: "Harris & Harris", home: "hh.html", dir: "hh",
+  title: "Digital Design Tutorials",
+  pdfFolder: "electroinc_devices_circuit_theory / digital_design",
+  pdfPrefix: "Digital Design and Computer Architecture (Harris, Sarah, Harris, David) (Z-Library)-",
+  source: "Harris & Harris, Digital Design and Computer Architecture, 2nd edition",
+  sub: "Logic design from gates to a pipelined MIPS processor, the way it's done in industry. One tutorial per chapter; then the book's exercises.",
+  intro: `<p>This book takes you from a single gate to a working processor: Boolean logic, sequential circuits, hardware description languages, arithmetic blocks, the MIPS instruction set, and three ways to build the processor that runs it.</p>
+    <p>It pairs with <b>Patt & Patel</b> (the ideas, a level at a time) and leads into <b>CMOS VLSI Design</b> (how each gate becomes transistors and wires). The library's suggested order says when to read which.</p>
+    <p class="aside">The book shows every HDL example in both SystemVerilog and VHDL. The tutorials use SystemVerilog, which the CMOS VLSI book and most chip companies use.</p>`,
+  flow: [
+    ["Tutorial", "Do the parts in order. About 20 minutes each, with a break after every part."],
+    ["Book exercises", "Open the PDF at the page the tutorial gives and do the exercises. The interview questions after them are a good final test."],
+    ["Check", "The PDF has no answers. Commit to your answer, then ask Claude to check your reasoning. You'll get a guiding question first, not the answer."],
+  ],
+  groups: [
+    {
+      name: "Digital logic",
+      note: "Bits and gates, combinational logic, and circuits with memory.",
+      items: [
+        { n: 1, id: "hh1", title: "From Zero to One", pdf: "1-79", pages: "3-54", probs: 62, probsBook: 37, file: "01-zero-to-one.html", parts: 10,
+          blurb: "Abstraction, number systems, logic gates, logic levels and noise margins, CMOS transistors, power." },
+        { n: 2, id: "hh2", title: "Combinational Logic Design", pdf: "80-133", pages: "55-108", probs: 122, probsBook: 97, file: "02-combinational-logic.html", parts: 10,
+          blurb: "Boolean equations and algebra, bubble pushing, X and Z, Karnaugh maps, muxes and decoders, timing and glitches." },
+        { n: 3, id: "hh3", title: "Sequential Logic Design", pdf: "134-197", pages: "109-172", probs: 187, probsBook: 162, file: "03-sequential-logic.html", parts: 11,
+          blurb: "Latches and flip-flops, synchronous design, finite state machines, setup and hold, skew, metastability, parallelism." },
+      ]
+    },
+    {
+      name: "Describing and building hardware",
+      note: "Writing hardware as code, then the standard blocks every chip is built from.",
+      items: [
+        { n: 4, id: "hh4", title: "Hardware Description Languages", pdf: "198-263", pages: "173-238", probs: 251, probsBook: 226, file: "04-hdl.html", parts: 10,
+          blurb: "SystemVerilog modules, operators, structural models, registers, case and if, blocking vs nonblocking, FSMs, testbenches." },
+        { n: 5, id: "hh5", title: "Digital Building Blocks", pdf: "264-319", pages: "239-294", probs: 307, probsBook: 282, file: "05-building-blocks.html", parts: 9,
+          blurb: "Adders, subtractors, comparators, ALUs, shifters, multipliers, fixed and floating point, counters, memories, FPGAs." },
+      ]
+    },
+    {
+      name: "Computer architecture",
+      note: "The MIPS instruction set, the processors that run it, and the memory system that feeds them.",
+      items: [
+        { n: 6, id: "hh6", title: "Architecture", pdf: "320-395", pages: "295-370", probs: 382, probsBook: 357, file: "06-architecture.html", parts: 11,
+          blurb: "MIPS assembly and machine language, programming, addressing modes, compiling, assembling and loading, a look at x86." },
+        { n: 7, id: "hh7", title: "Microarchitecture", pdf: "396-499", pages: "371-474", probs: 492, probsBook: 467, file: "07-microarchitecture.html", parts: 13,
+          blurb: "Performance, single-cycle, multicycle and pipelined MIPS processors, hazards, exceptions, advanced techniques." },
+        { n: 8, id: "hh8", title: "Memory and I/O Systems", pdf: "500-607", pages: "475-582", probs: 595, probsBook: 570, file: "08-memory-systems.html", parts: 13,
+          blurb: "Locality, caches, virtual memory, memory-mapped I/O, embedded I/O on a real microcontroller, PC I/O." },
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Appendix A shows how designs become real hardware. B is a reference table; C is a C primer (Patt & Patel teaches C in more depth).",
+      items: [
+        { n: "A", id: "hhA", title: "Digital System Implementation", pdf: "608-699", pages: "583-618", file: "appA-implementation.html", parts: 13,
+          blurb: "74xx logic, FPGAs, ASICs, data sheets, logic families, packaging, transmission lines, economics." },
+        { n: "B", id: "hhB", title: "MIPS Instructions", pdf: "608-699", pages: "619-622", file: "appB-mips-instructions.html", parts: 3,
+          blurb: "Opcode and funct tables for every MIPS instruction in the book." },
+        { n: "C", id: "hhC", title: "C Programming", pdf: "608-699", pages: "623-674", file: "appC-c-programming.html", parts: 9,
+          blurb: "C for hardware people: variables, operators, functions, control flow, pointers, structures, libraries." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Weste & Harris's table of contents. `pdf` is the range in the per-chapter PDF file names,
+   `pages` the printed pages (PDF page = printed page + 27), `probs` the page of that PDF file where the exercises start.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["vlsi"] = {
+  key: "vlsi", short: "CMOS VLSI", home: "vlsi.html", dir: "vlsi",
+  title: "CMOS VLSI Tutorials",
+  pdfFolder: "electroinc_devices_circuit_theory / cmos_vlsi",
+  source: "Weste & Harris, CMOS VLSI Design: A Circuits and Systems Perspective, 4th edition",
+  pdfPrefix: "CMOS VLSI Design A Circuits and Systems Perspective (4th Edition) by Neil H. E. Weste, David Money Harris (z-lib.org)-",
+  sub: "How logic becomes transistors, wires and silicon, and how to make it fast, low-power and reliable. One tutorial per chapter; then the book's exercises.",
+  intro: `<p>This is the chip designer's book. Every gate from Harris & Harris becomes transistors you size, wires you route, and delay, power and variation you budget.</p>
+    <p>It builds on three things in this library: the <b>MOSFET</b> (Boylestad Chapter 6, 6.002 Chapters 6–7), <b>digital logic</b> (Harris & Harris 1–5) and the <b>chip-design math</b> (Math 24–39). Each chapter page says which ones it uses.</p>
+    <p class="aside">The book marks some sections “Optional” or puts them on its website. The tutorials skip the web-only sections and keep optional ones short.</p>`,
+  flow: [
+    ["Tutorial", "Do the parts in order. About 20 minutes each, with a break after every part."],
+    ["Book exercises", "Open that chapter's PDF and do the exercises at the end. They're the real test, and many are small design problems."],
+    ["Check", "The PDFs have no answers. Commit to your answer, then ask Claude to check your reasoning. You'll get a guiding question first, not the answer."],
+  ],
+  groups: [
+    {
+      name: "Foundations",
+      note: "The whole field in one chapter, then the transistor model and how chips are made.",
+      items: [
+        { n: 1, id: "vlsi1", title: "Introduction", pdf: "1-87", pages: "1-60", probs: 84, probsBook: 57, file: "01-introduction.html", parts: 11,
+          blurb: "Transistors as switches, CMOS gates, layout, design partitioning, and an 8-bit MIPS processor from logic to silicon." },
+        { n: 2, id: "vlsi2", title: "MOS Transistor Theory", pdf: "88-125", pages: "61-98", probs: 122, probsBook: 95, file: "02-mos-transistor.html", parts: 10,
+          blurb: "Long-channel I-V, capacitances, velocity saturation, leakage, body effect, and the inverter's DC transfer curve." },
+        { n: 3, id: "vlsi3", title: "CMOS Processing Technology", pdf: "126-167", pages: "99-140", probs: 166, probsBook: 139, file: "03-processing.html", parts: 10,
+          blurb: "Wafers, wells, oxides, lithography, metal layers, design rules, process enhancements, manufacturing issues." },
+      ]
+    },
+    {
+      name: "Delay, power, wires and robustness",
+      note: "The four things every chip designer budgets. This is the heart of the book.",
+      items: [
+        { n: 4, id: "vlsi4", title: "Delay", pdf: "168-207", pages: "141-180", probs: 203, probsBook: 176, file: "04-delay.html", parts: 10,
+          blurb: "Transient response, the RC delay model, Elmore delay, the linear delay model, logical effort of paths." },
+        { n: 5, id: "vlsi5", title: "Power", pdf: "208-237", pages: "181-210", probs: 236, probsBook: 209, file: "05-power.html", parts: 9,
+          blurb: "Dynamic power, activity factor, static leakage, energy-delay trade-offs, low-power architectures." },
+        { n: 6, id: "vlsi6", title: "Interconnect", pdf: "238-267", pages: "211-240", probs: 265, probsBook: 238, file: "06-interconnect.html", parts: 9,
+          blurb: "Wire resistance and capacitance, wire delay, crosstalk, repeaters, logical effort with wires." },
+        { n: 7, id: "vlsi7", title: "Robustness", pdf: "268-313", pages: "241-286", probs: 311, probsBook: 284, file: "07-robustness.html", parts: 9,
+          blurb: "Process, voltage and temperature variation, reliability, scaling, statistical analysis, variation-tolerant design." },
+      ]
+    },
+    {
+      name: "Simulation and circuit design",
+      note: "SPICE, then how real gates and flip-flops are built.",
+      items: [
+        { n: 8, id: "vlsi8", title: "Circuit Simulation", pdf: "314-353", pages: "287-326", probs: 351, probsBook: 324, file: "08-simulation.html", parts: 8,
+          blurb: "A SPICE tutorial, device models, characterizing transistors and gates, interconnect simulation." },
+        { n: 9, id: "vlsi9", title: "Combinational Circuit Design", pdf: "354-402", pages: "327-375", probs: 397, probsBook: 370, file: "09-combinational.html", parts: 11,
+          blurb: "Static CMOS, ratioed, dynamic and pass-transistor circuits; circuit pitfalls; SOI and subthreshold design." },
+        { n: 10, id: "vlsi10", title: "Sequential Circuit Design", pdf: "403-455", pages: "376-428", probs: 452, probsBook: 425, file: "10-sequential.html", parts: 11,
+          blurb: "Sequencing methods, timing constraints, latch and flip-flop circuits, synchronizers." },
+      ]
+    },
+    {
+      name: "Subsystems",
+      note: "The big blocks of a chip: arithmetic, memories, and the circuits around them.",
+      items: [
+        { n: 11, id: "vlsi11", title: "Datapath Subsystems", pdf: "456-523", pages: "429-496", probs: 521, probsBook: 494, file: "11-datapath.html", parts: 12,
+          blurb: "Adders (ripple, carry-lookahead, prefix), comparators, counters, shifters, multipliers." },
+        { n: 12, id: "vlsi12", title: "Array Subsystems", pdf: "524-575", pages: "497-548", probs: 573, probsBook: 546, file: "12-arrays.html", parts: 10,
+          blurb: "SRAM cells and periphery, DRAM, ROM, CAMs, PLAs, robust memory design." },
+        { n: 13, id: "vlsi13", title: "Special-Purpose Subsystems", pdf: "576-641", pages: "549-614", probs: 641, probsBook: 614, file: "13-special-purpose.html", parts: 11,
+          blurb: "Packaging and cooling, power distribution, clocks, PLLs and DLLs, I/O, high-speed links." },
+      ]
+    },
+    {
+      name: "Methodology and test",
+      note: "How real chips are designed in teams, and how you know they work.",
+      items: [
+        { n: 14, id: "vlsi14", title: "Design Methodology and Tools", pdf: "642-685", pages: "615-658", probs: 684, probsBook: 657, file: "14-methodology.html", parts: 9,
+          blurb: "Structured design, design methods, design flows from RTL to GDS, design economics." },
+        { n: 15, id: "vlsi15", title: "Testing, Debugging, and Verification", pdf: "686-725", pages: "659-698", probs: 724, probsBook: 697, file: "15-testing.html", parts: 9,
+          blurb: "Testers, logic verification, silicon debug, manufacturing test, fault models, design for testability." },
+      ]
+    },
+    {
+      name: "Appendix",
+      note: "An HDL reference by the same author as Harris & Harris Chapter 4.",
+      items: [
+        { n: "A", id: "vlsiA", title: "Hardware Description Languages", pdf: "726-811", pages: "699-784", probs: 803, probsBook: 776, file: "appA-hdl.html", parts: 8,
+          blurb: "SystemVerilog and VHDL side by side: combinational and sequential logic, FSMs, parameterized modules, testbenches." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Math Toolkit: the math both books lean on, one module per tool.
+   No PDF: modules are original. `needs` lists the chapter ids (6.002 "chN"/"appX", Boylestad "edcN") that use the tool,
+   so a module can say where it's used and each chapter page can list the math it needs.
+   Items with `ref` are already taught by a 6.002 appendix: `file` points at that page and `id` is its id, so progress is shared. */
+(window.BOOKS = window.BOOKS || {})["math"] = {
+  key: "math", short: "Math Toolkit", home: "math.html", dir: "math", unit: "Module", noPdf: true,
+  title: "Math Toolkit",
+  source: "The math behind both books and chip design, one tool at a time",
+  sub: "Every math tool the two books use, then the math a chip designer needs, all taught with circuits. Do a module just before the chapter that needs it, or work through the chip-design track in order.",
+  intro: `<p>Each module says which chapters use it, and each chapter page lists the modules it needs (look for “Math you'll use”).</p>
+    <p>Nothing here assumes you remember school algebra. Each module starts from the basics and goes only as far as the circuits need.</p>
+    <p>Modules 24–39 are the <b>chip-design track</b>: linear algebra, calculus for design, signals, probability and noise, feedback, and fields. Each ends with a “Master it” part of harder mixed problems, because these topics have no book problems to fall back on.</p>`,
+  flow: [
+    ["Pick a module", "Either the next one in order or one a chapter page points you to. Each part takes 10–20 minutes."],
+    ["Practise", "Every part ends with questions using circuit numbers. Work them on paper first, then type the answer."],
+    ["Use it", "Go back to the chapter. The module's “Used in” line links straight there."],
+  ],
+  groups: [
+    {
+      name: "Numbers and algebra",
+      note: "The everyday tools: every chapter uses these.",
+      items: [
+        { n: 1, id: "m1", title: "Numbers, Prefixes and Units", file: "01-numbers-units.html", parts: 3,
+          needs: ["ch1", "ch2", "edc1", "edc3"],
+          blurb: "Powers of ten, k/m/µ/n/p, units that check your answer, and quick estimates." },
+        { n: 2, id: "m2", title: "Rearranging Formulas", file: "02-rearranging.html", parts: 4,
+          needs: ["ch1", "ch2", "ch3", "edc3", "edc4"],
+          blurb: "Get any letter on its own, the balance-scale way. Squares, roots, reciprocals and exponent rules." },
+        { n: 3, id: "m3", title: "Fractions, Ratios and Percent", file: "03-ratios-percent.html", parts: 3,
+          needs: ["ch2", "ch3", "edc2", "edc4", "edc5", "edc12", "edc15"],
+          blurb: "Parallel resistors, divider ratios, percent error, regulation and efficiency." },
+        { n: 4, id: "m4", title: "Approximations", file: "04-approximations.html", parts: 3,
+          needs: ["ch8", "ch15", "edc4", "edc5", "edc8", "edc10", "edc14"],
+          blurb: "When ≫ lets you drop a term, the 10× rule, and how much error that costs." },
+      ]
+    },
+    {
+      name: "Graphs and equations",
+      note: "Reading and solving: load lines, node equations, square laws.",
+      items: [
+        { n: 5, id: "m5", title: "Lines, Graphs and Load Lines", file: "05-lines.html", parts: 3,
+          needs: ["ch3", "ch4", "ch7", "ch16", "edc2", "edc4", "edc7"],
+          blurb: "Slope and intercept, drawing a line from two points, where two curves cross." },
+        { n: 6, id: "appD", ref: "6002", title: "Simultaneous Equations", file: "../chapters/appD-linear-equations.html", parts: 2,
+          needs: ["ch2", "ch3", "edc4", "edcA"],
+          blurb: "Already in 6.002 Appendix D: two or three unknowns, elimination and Cramer's rule." },
+        { n: 7, id: "m7", title: "Quadratic Equations", file: "07-quadratics.html", parts: 3,
+          needs: ["ch7", "ch12", "edc6", "edc7"],
+          blurb: "Expand a square, use the formula, and pick the root that makes physical sense." },
+      ]
+    },
+    {
+      name: "Exponentials and logarithms",
+      note: "Diodes, time constants, decibels: anything that grows or decays.",
+      items: [
+        { n: 8, id: "m8", title: "Exponentials and Logarithms", file: "08-exp-log.html", parts: 3,
+          needs: ["ch4", "ch10", "ch16", "edc1", "edc13", "edc16", "edc17"],
+          blurb: "e^x and its shape, ln undoes it, the log rules, and solving for a time or a voltage." },
+        { n: 9, id: "m9", title: "Decibels and Log Scales", file: "09-decibels.html", parts: 3,
+          needs: ["ch13", "ch14", "edc9", "edc10", "edc11"],
+          blurb: "dB for power and voltage, why gains add in dB, decades, octaves and log axes." },
+      ]
+    },
+    {
+      name: "Waves and complex numbers",
+      note: "Everything ac: sine waves, phase, and the numbers that handle them.",
+      items: [
+        { n: 10, id: "m10", title: "Sinusoids", file: "10-sinusoids.html", parts: 3,
+          needs: ["ch12", "ch13", "edc2", "edc9", "edc12", "edc15"],
+          blurb: "Radians, amplitude, frequency, ω = 2πf, phase shift, and right triangles." },
+        { n: 11, id: "appB", ref: "6002", title: "Trig Identities and Taylor Series", file: "../chapters/appB-trig.html", parts: 3,
+          needs: ["ch12", "ch13"],
+          blurb: "Already in 6.002 Appendix B: sin and cos from a circle, the identities, Euler's formula." },
+        { n: 12, id: "appC", ref: "6002", title: "Complex Numbers", file: "../chapters/appC-complex-numbers.html", parts: 5,
+          needs: ["ch12", "ch13", "ch14", "edc9", "edc14"],
+          blurb: "Already in 6.002 Appendix C: points in a plane, polar form, multiply and divide, rotation." },
+      ]
+    },
+    {
+      name: "Calculus",
+      note: "Rates of change and areas: capacitors, inductors, small signals, transients.",
+      items: [
+        { n: 13, id: "m13", title: "Derivatives", file: "13-derivatives.html", parts: 5,
+          needs: ["ch4", "ch8", "ch9", "edc1", "edc4", "edc5", "edc8", "edc10"],
+          blurb: "Slope at a point, the rules (product, quotient, chain), tangent lines, and partial derivatives." },
+        { n: 14, id: "m14", title: "Integrals and Averages", file: "14-integrals.html", parts: 5,
+          needs: ["ch9", "ch11", "ch16", "edc2", "edc12", "edc15", "edcB"],
+          blurb: "Areas, averages and rms, then antiderivatives, substitution, integration by parts and ∫ to ∞." },
+        { n: 15, id: "m15", title: "Differential Equations", file: "15-diff-eqs.html", parts: 5,
+          needs: ["ch10", "ch11", "ch12"],
+          blurb: "First-order recipe, second order and damping, forced (sinusoidal) response, fitting initial conditions." },
+      ]
+    },
+    {
+      name: "Frequency response and logic",
+      note: "Two specialised tools: Bode plots and Boolean algebra.",
+      items: [
+        { n: 16, id: "m16", title: "Transfer Functions and Bode Plots", file: "16-bode.html", parts: 3,
+          needs: ["ch13", "ch14", "edc9", "edc11", "edc14"],
+          blurb: "H(jω) as a ratio, break frequencies, straight-line asymptotes and phase." },
+        { n: 17, id: "m17", title: "Binary and Boolean Algebra", file: "17-binary-boolean.html", parts: 3,
+          needs: ["ch5", "ch6", "edc13"],
+          blurb: "Counting in binary, 2^n levels, AND/OR/NOT algebra and De Morgan." },
+      ]
+    },
+    {
+      name: "Laplace transforms (optional track)",
+      note: "Neither book teaches these; both only mention them in passing. They turn differential equations into algebra and tie transients, impedance and Bode plots into one method. Do Modules 13–15 first.",
+      items: [
+        { n: 18, id: "m18", title: "Polynomials and Partial Fractions", file: "18-partial-fractions.html", parts: 4,
+          also: ["ch12", "ch13"],
+          blurb: "Roots and factors, completing the square, and splitting a fraction into simple pieces." },
+        { n: 19, id: "m19", title: "Laplace: the Idea and the Table", file: "19-laplace-intro.html", parts: 4,
+          also: ["ch10", "ch12", "ch13"],
+          blurb: "Why transform, the defining integral, building the table, and what pole positions mean." },
+        { n: 20, id: "m20", title: "Laplace Properties", file: "20-laplace-properties.html", parts: 4,
+          also: ["ch10", "ch12"],
+          blurb: "Derivatives become ×s, shifts and delays, ×t, and the initial and final value theorems." },
+        { n: 21, id: "m21", title: "Inverse Laplace Transforms", file: "21-inverse-laplace.html", parts: 4,
+          also: ["ch10", "ch12"],
+          blurb: "Back to time: real poles, repeated poles, complex poles, and checking your answer." },
+        { n: 22, id: "m22", title: "Solving Differential Equations with Laplace", file: "22-laplace-odes.html", parts: 4,
+          also: ["ch10", "ch12", "ch13"],
+          blurb: "Initial conditions built in: first order, second order, ringing, and a sinusoidal input." },
+        { n: 23, id: "m23", title: "Circuits in the s-Domain", file: "23-s-domain.html", parts: 4,
+          also: ["ch10", "ch12", "ch13", "ch14", "edc9", "edc10", "edc11", "edc14"],
+          blurb: "Impedances in s, transfer functions, poles and zeros, impulse response and stability." },
+      ]
+    },
+    {
+      name: "Chip design 1: linear algebra",
+      note: "Beyond both books: the start of the chip-design track. Every simulator turns a schematic into a matrix, and eigenvalues are a circuit's natural frequencies. Do Module 6 first.",
+      items: [
+        { n: 24, id: "m24", title: "Vectors and Matrices", file: "24-matrices.html", parts: 6,
+          also: ["ch2", "ch3", "appD"],
+          blurb: "Vectors and the dot product, a matrix as a machine, products, determinants and the inverse, with pictures first." },
+        { n: 25, id: "m25", title: "Solving Circuits with Matrices", file: "25-circuit-matrices.html", parts: 6,
+          also: ["ch3", "ch8", "edc5"],
+          blurb: "Build G by inspection, Gaussian elimination, LU and sparsity, Modified Nodal Analysis, transistors as matrix stamps: what SPICE does." },
+        { n: 26, id: "m26", title: "Eigenvalues and Eigenvectors", file: "26-eigenvalues.html", parts: 6,
+          also: ["ch10", "ch12", "ch13"],
+          blurb: "Directions a matrix doesn't turn, det(A − λI) = 0, complex eigenvalues as rotation, x′ = Ax, modes and on-chip wire delay." },
+      ]
+    },
+    {
+      name: "Chip design 2: calculus for real design",
+      note: "Real chips vary, real circuits are nonlinear, and simulators approximate. These modules make that precise. Do Modules 13–15 first.",
+      items: [
+        { n: 27, id: "m27", title: "Sensitivity and Error Budgets", file: "27-sensitivity.html", parts: 6,
+          also: ["ch8", "edc4", "edc7", "edc10"],
+          blurb: "Partial derivatives as knobs, percent-per-percent sensitivity, small-signal models as total differentials, worst case vs RSS, optimal sizing." },
+        { n: 28, id: "m28", title: "Numerical Methods: How Simulators Think", file: "28-numerical-methods.html", parts: 6,
+          also: ["ch4", "ch10", "ch16"],
+          blurb: "Bisection, Newton's method, companion models and convergence, Euler and trapezoidal time-stepping, error and step control." },
+        { n: 29, id: "m29", title: "Series and Approximations", file: "29-series.html", parts: 6,
+          also: ["ch8", "appB", "edc5", "edc10"],
+          blurb: "Taylor series, how small ‘small signal’ is, harmonic distortion from device curves, geometric series in DACs and feedback, limits." },
+      ]
+    },
+    {
+      name: "Chip design 3: signals and spectra",
+      note: "How signals look in frequency, and what happens when a chip samples them. Do Modules 10, 12 and 16 first.",
+      items: [
+        { n: 30, id: "m30", title: "Fourier Series", file: "30-fourier-series.html", parts: 6,
+          also: ["ch13", "edc12", "edc15"],
+          blurb: "Any periodic wave as a sum of sines: harmonics, finding coefficients, symmetry, power per harmonic and THD." },
+        { n: 31, id: "m31", title: "The Fourier Transform and Spectra", file: "31-fourier-transform.html", parts: 6,
+          also: ["ch13", "ch14", "edc9"],
+          blurb: "From series to transform, pulse and sinc, time–bandwidth trade-off, convolution and filtering, the link to Laplace." },
+        { n: 32, id: "m32", title: "Sampling, Aliasing and Quantization", file: "32-sampling.html", parts: 6,
+          also: ["edc13"],
+          blurb: "Sampling and Nyquist, aliasing, sample-and-hold, quantization noise, SNR = 6.02N + 1.76 dB, and the DFT." },
+        { n: 33, id: "m33", title: "Discrete-Time Systems and the z-Transform", file: "33-z-transform.html", parts: 6,
+          also: ["edc13"],
+          blurb: "Difference equations, z⁻¹ as a delay, poles inside the unit circle, FIR and IIR filters, and switched-capacitor circuits." },
+      ]
+    },
+    {
+      name: "Chip design 4: probability, statistics and noise",
+      note: "Every chip is a random sample from a process, and every signal carries noise. These modules make randomness something you can design with.",
+      items: [
+        { n: 34, id: "m34", title: "Probability and Random Variables", file: "34-probability.html", parts: 6,
+          also: [],
+          blurb: "Probability rules, distributions, mean and variance, and why independent variances add." },
+        { n: 35, id: "m35", title: "The Normal Distribution, Mismatch and Yield", file: "35-normal-yield.html", parts: 6,
+          also: ["edc10"],
+          blurb: "The bell curve and why it appears, σ and yield, Pelgrom's mismatch law, Monte Carlo, process corners." },
+        { n: 36, id: "m36", title: "Random Signals and Noise", file: "36-noise.html", parts: 6,
+          also: ["edc9", "edc10"],
+          blurb: "Noise spectral density, thermal, shot and 1/f noise, kT/C, noise bandwidth, input-referred noise and SNR." },
+      ]
+    },
+    {
+      name: "Chip design 5: feedback and stability",
+      note: "The math behind every op amp, regulator and PLL on a chip. Do Modules 16 and 23 first.",
+      items: [
+        { n: 37, id: "m37", title: "Feedback Systems", file: "37-feedback.html", parts: 6,
+          also: ["ch15", "edc10", "edc14"],
+          blurb: "Loop gain, desensitisation, bandwidth and distortion with feedback, impedances, and the four feedback types." },
+        { n: 38, id: "m38", title: "Stability and Compensation", file: "38-stability.html", parts: 6,
+          also: ["edc10", "edc14"],
+          blurb: "When 1 + T = 0, phase and gain margin, overshoot and peaking, root locus, dominant-pole and Miller compensation." },
+      ]
+    },
+    {
+      name: "Chip design 6: fields for device physics",
+      note: "What happens inside a transistor: fields, charge and diffusion. The math for semiconductor physics.",
+      items: [
+        { n: 39, id: "m39", title: "Fields, Flux and Diffusion", file: "39-fields.html", parts: 6,
+          also: ["edc1", "ch16", "appA"],
+          blurb: "Field as slope of potential, Gauss's law, Poisson's equation and the depletion region, current density, diffusion." },
+      ]
+    },
+  ],
+};
+</script>
+<script>
+/* Library registry. Each book manifest adds itself to window.BOOKS; this file (loaded after them)
+   adds the shared helpers and sets window.BOOK to the book this page belongs to (window.BOOK_KEY). */
+(function () {
+  const all = window.BOOKS || {};
+  Object.values(all).forEach((B) => {
+    B.all = () => B.groups.flatMap((g) => g.items);
+    B.chapters = () => B.all().filter((c) => typeof c.n === "number");
+    B.find = (id) => B.all().find((c) => c.id === id);
+    B.pdfName = (c) => B.pdfFile || B.pdfPrefix + c.pdf + ".pdf"; /* one-file books name the whole PDF */
+    /* "pp. 26–75" for books whose file names are PDF pages, "pp. 1–54" (printed pages) when a chapter lists `pages`. */
+    B.pagesLabel = (c) => (c.pages ? "book pp. " + c.pages : "pp. " + c.pdf).replace("-", "–") + (B.pdfFile && c.pages ? ", PDF pp. " + c.pdf.replace("-", "–") : "");
+    B.probsLabel = (c) => (c.probs ? `page ${c.probs} of that PDF${c.probsBook && c.probsBook !== c.probs ? ` (book page ${c.probsBook})` : ""}` : "");
+  });
+  window.BOOK = all[window.BOOK_KEY] || null;
+})();
+</script>
+<script>
+/* Progress store shared by the contents page and every chapter page.
+   Each chapter's state is { done: {p1: true}, last: {part, step} | null, say: {key: text}, t: ms }.
+   It lives in two places:
+     - localStorage "course-<id>": instant first paint, and the fallback when nothing else works.
+     - the artifact's db, at data/users/<viewer id>/<chapter id>: private to the viewer, follows them
+       across browsers and sessions. Only available when the page runs inside the claude.ai viewer. */
+window.Progress = (function () {
+  const LKEY = (id) => "course-" + id;
+  const local = {
+    get(id) { try { const v = localStorage.getItem(LKEY(id)); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+    set(id, v) { try { localStorage.setItem(LKEY(id), JSON.stringify(v)); } catch (e) {} },
+  };
+  const blank = () => ({ done: {}, last: null, say: {}, t: 0 });
+  const norm = (s) => Object.assign(blank(), s || {}, { done: Object.assign({}, s && s.done), say: Object.assign({}, s && s.say) });
+
+  /* Combine two copies: parts finished anywhere stay finished; the newer copy wins for position and text. */
+  function merge(a, b) {
+    a = norm(a); b = norm(b);
+    const [old, neu] = a.t >= b.t ? [b, a] : [a, b];
+    return { done: Object.assign({}, old.done, neu.done), last: neu.last, say: Object.assign({}, old.say, neu.say), t: neu.t };
+  }
+  const same = (a, b) => JSON.stringify(norm(a)) === JSON.stringify(norm(b));
+
+  /* ---------- cloud ---------- */
+  let status = "local"; // "local" | "cloud"
+  const statusFns = [];
+  const setStatus = (s) => { status = s; statusFns.forEach((f) => f(s)); };
+  const cloud = (async () => {
+    try {
+      if (!window.claude || !window.claude.use) return null;
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      if (!db || !user) return null;
+      const uid = await user.id();
+      if (!uid) return null;
+      const col = db.collection("data/users/" + uid);
+      await col.limit(1).get(); // proves the store answers before we claim "saved to your account"
+      setStatus("cloud");
+      return col;
+    } catch (e) { return null; }
+  })();
+
+  /* One write in flight per chapter; bursts collapse into the latest state. */
+  const pending = {}, busy = {};
+  async function flush(id) {
+    const col = await cloud;
+    if (!col || busy[id] || !pending[id]) return;
+    busy[id] = true;
+    const body = pending[id]; pending[id] = null;
+    try { await col.doc(id).set(body); }
+    catch (e) {
+      if (e && e.code === "unavailable") { pending[id] = pending[id] || body; setTimeout(() => flush(id), 1500 + Math.random() * 1500); }
+      else if (e && (e.code === "invalid_argument" || e.code === "revoked" || e.code === "not_granted")) setStatus("local");
+    }
+    busy[id] = false;
+    if (pending[id]) flush(id);
+  }
+  const timers = {};
+  function push(id, state, delay) {
+    pending[id] = JSON.parse(JSON.stringify(norm(state)));
+    clearTimeout(timers[id]);
+    timers[id] = setTimeout(() => flush(id), delay);
+  }
+
+  return {
+    /* Synchronous best guess from this browser. */
+    load(id) { return norm(local.get(id)); },
+    /* Save locally now, to the account shortly after. `delay` batches typing. */
+    save(id, state, delay = 400) {
+      state.t = Date.now();
+      local.set(id, state);
+      push(id, state, delay);
+    },
+    /* Once the account copy arrives, merge it into `state` (mutating it) and call onChange if anything moved. */
+    async sync(id, state, onChange) {
+      const col = await cloud;
+      if (!col) return;
+      let remote = null;
+      try { const snap = await col.doc(id).get(); remote = snap.exists ? snap.data() : null; } catch (e) { return; }
+      const m = merge(state, remote);
+      const changed = !same(m, state);
+      Object.keys(state).forEach((k) => delete state[k]);
+      Object.assign(state, m);
+      local.set(id, state);
+      if (!same(m, remote)) push(id, state, 0); // this browser had something the account didn't
+      if (changed && onChange) onChange();
+    },
+    /* Contents page: every chapter's state, local first, then merged with the account. */
+    async all(ids, onReady) {
+      const out = {};
+      ids.forEach((id) => (out[id] = norm(local.get(id))));
+      onReady(out);
+      const col = await cloud;
+      if (!col) return;
+      let snap;
+      try { snap = await col.get(); } catch (e) { return; }
+      const remote = {};
+      snap.docs.forEach((d) => (remote[d.id] = d.data()));
+      let changed = false;
+      ids.forEach((id) => {
+        const m = merge(out[id], remote[id]);
+        if (!same(m, out[id])) { changed = true; out[id] = m; local.set(id, m); }
+        if (!same(m, remote[id]) && (m.t || Object.keys(m.done).length)) push(id, m, 0);
+      });
+      if (changed) onReady(out);
+    },
+    status: () => status,
+    onStatus(fn) { statusFns.push(fn); fn(status); },
+  };
+})();
+</script>
+<script>
+/* Course engine: chapter map -> parts -> one-card steps. Content files call Course.start(CHAPTER). */
+window.Course = (function () {
+  const reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  };
+  const el = (html) => { const t = document.createElement("template"); t.innerHTML = String(html).trim(); return t.content.firstElementChild; };
+
+  /* ---------- number formatting ---------- */
+  function fmt(n, d = 3) {
+    if (n === Infinity) return "∞";
+    if (n === -Infinity) return "−∞";
+    if (!isFinite(n)) return "—";
+    const a = Math.abs(n);
+    let s = a !== 0 && (a < 1e-3 || a >= 1e6) ? n.toExponential(2) : String(+n.toPrecision(d));
+    return s.replace("-", "−");
+  }
+  function si(n, unit, d = 3) {
+    if (!isFinite(n)) return (n < 0 ? "−∞ " : "∞ ") + unit;
+    if (n === 0) return "0 " + unit;
+    const P = [[1e9, "G"], [1e6, "M"], [1e3, "k"], [1, ""], [1e-3, "m"], [1e-6, "µ"], [1e-9, "n"], [1e-12, "p"]];
+    const a = Math.abs(n);
+    for (const [v, p] of P) if (a >= v * 0.99995) return fmt(n / v, d) + " " + p + unit;
+    return fmt(n / 1e-12, d) + " p" + unit;
+  }
+
+  /* ---------- schematic drawing helpers (SVG strings) ---------- */
+  const S = {
+    svg(w, h, inner, o = {}) {
+      return `<svg class="sch" viewBox="0 0 ${w} ${h}" style="max-width:${o.max || w}px" role="img" aria-label="${o.label || "Circuit diagram"}">${inner}</svg>`;
+    },
+    wire(...pts) { return `<polyline class="w${pts.cls ? " " + pts.cls : ""}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`; },
+    wc(cls, ...pts) { return `<polyline class="w ${cls}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`; },
+    res(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, L = horiz ? x2 - x1 : y2 - y1, s = Math.sign(L) || 1, AL = Math.abs(L);
+      const body = Math.min(40, AL - 8), a = (AL - body) / 2;
+      const P = (t, off) => (horiz ? [x1 + s * t, y1 + off] : [x1 + off, y1 + s * t]);
+      const pts = [P(0, 0), P(a, 0)];
+      for (let k = 0; k < 6; k++) pts.push(P(a + (body * (k + 0.5)) / 6, (k % 2 ? -1 : 1) * 7));
+      pts.push(P(a + body, 0), P(AL, 0));
+      let out = `<path class="w${o.cls ? " " + o.cls : ""}" d="M${pts.map((p) => p.join(" ")).join(" L")}"/>`;
+      if (label) {
+        const m = P(AL / 2, 0);
+        let lx, ly, an;
+        if (horiz) { lx = m[0]; ly = o.side === "below" ? m[1] + 26 : m[1] - 14; an = "middle"; }
+        else { lx = o.side === "left" ? m[0] - 14 : m[0] + 14; ly = m[1] + 5; an = o.side === "left" ? "end" : "start"; }
+        out += `<text x="${lx}" y="${ly}" text-anchor="${an}" class="${o.tcls || ""}">${label}</text>`;
+      }
+      return out;
+    },
+    vsrc(cx, cy, label, o = {}) {
+      const top = o.flip ? "−" : "+", bot = o.flip ? "+" : "−";
+      let out = `<circle class="el${o.cls ? " " + o.cls : ""}" cx="${cx}" cy="${cy}" r="18"/>`;
+      out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="s">${top}</text><text x="${cx}" y="${cy + 13}" text-anchor="middle" class="s">${bot}</text>`;
+      if (label) out += `<text x="${o.side === "right" ? cx + 26 : cx - 26}" y="${cy + 5}" text-anchor="${o.side === "right" ? "start" : "end"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    isrc(cx, cy, label, o = {}) {
+      const d = o.down ? 1 : -1;
+      let out = `<circle class="el${o.cls ? " " + o.cls : ""}" cx="${cx}" cy="${cy}" r="18"/>`;
+      out += `<line class="w" x1="${cx}" y1="${cy - d * 10}" x2="${cx}" y2="${cy + d * 6}"/><polygon class="nd" points="${cx - 5},${cy + d * 4} ${cx + 5},${cy + d * 4} ${cx},${cy + d * 11}"/>`;
+      if (label) out += `<text x="${o.side === "right" ? cx + 26 : cx - 26}" y="${cy + 5}" text-anchor="${o.side === "right" ? "start" : "end"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    dep(cx, cy, label, o = {}) {
+      let out = `<polygon class="el${o.cls ? " " + o.cls : ""}" points="${cx},${cy - 22} ${cx + 17},${cy} ${cx},${cy + 22} ${cx - 17},${cy}"/>`;
+      if (o.kind === "v") out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="s">+</text><text x="${cx}" y="${cy + 13}" text-anchor="middle" class="s">−</text>`;
+      else {
+        const d = o.down ? 1 : -1;
+        out += `<line class="w" x1="${cx}" y1="${cy - d * 10}" x2="${cx}" y2="${cy + d * 6}"/><polygon class="nd" points="${cx - 5},${cy + d * 4} ${cx + 5},${cy + d * 4} ${cx},${cy + d * 11}"/>`;
+      }
+      if (label) out += `<text x="${o.side === "left" ? cx - 26 : cx + 26}" y="${cy + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    // Capacitor between two points on a horizontal or vertical line: two plates in the middle.
+    cap(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, m = horiz ? (x1 + x2) / 2 : (y1 + y2) / 2, s = Math.sign(horiz ? x2 - x1 : y2 - y1) || 1, g = 5, c = o.cls ? " " + o.cls : "";
+      let out = horiz
+        ? `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${m - s * g}" y2="${y1}"/><line class="w${c}" x1="${m + s * g}" y1="${y1}" x2="${x2}" y2="${y1}"/><line class="w${c}" x1="${m - g}" y1="${y1 - 16}" x2="${m - g}" y2="${y1 + 16}" style="stroke-width:3.5"/><line class="w${c}" x1="${m + g}" y1="${y1 - 16}" x2="${m + g}" y2="${y1 + 16}" style="stroke-width:3.5"/>`
+        : `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${x1}" y2="${m - s * g}"/><line class="w${c}" x1="${x1}" y1="${m + s * g}" x2="${x1}" y2="${y2}"/><line class="w${c}" x1="${x1 - 16}" y1="${m - g}" x2="${x1 + 16}" y2="${m - g}" style="stroke-width:3.5"/><line class="w${c}" x1="${x1 - 16}" y1="${m + g}" x2="${x1 + 16}" y2="${m + g}" style="stroke-width:3.5"/>`;
+      if (label) out += horiz ? `<text x="${m}" y="${o.side === "below" ? y1 + 34 : y1 - 22}" text-anchor="middle" class="${o.tcls || ""}">${label}</text>` : `<text x="${o.side === "left" ? x1 - 24 : x1 + 24}" y="${m + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    // Inductor: four humps between two points on a horizontal or vertical line.
+    ind(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, L = horiz ? x2 - x1 : y2 - y1, s = Math.sign(L) || 1, AL = Math.abs(L), body = Math.min(48, AL - 8), a = (AL - body) / 2, r = body / 8, c = o.cls ? " " + o.cls : "";
+      let d;
+      if (horiz) { d = `M${x1} ${y1} H${x1 + s * a}`; for (let k = 0; k < 4; k++) d += ` a${r} ${r} 0 0 ${s > 0 ? 1 : 0} ${s * 2 * r} 0`; d += ` H${x2}`; }
+      else { d = `M${x1} ${y1} V${y1 + s * a}`; for (let k = 0; k < 4; k++) d += ` a${r} ${r} 0 0 ${s > 0 ? 1 : 0} 0 ${s * 2 * r}`; d += ` V${y2}`; }
+      let out = `<path class="w${c}" d="${d}"/>`;
+      const mx = horiz ? (x1 + x2) / 2 : x1, my = horiz ? y1 : (y1 + y2) / 2;
+      if (label) out += horiz ? `<text x="${mx}" y="${o.side === "below" ? my + 30 : my - 16}" text-anchor="middle" class="${o.tcls || ""}">${label}</text>` : `<text x="${o.side === "left" ? mx - 18 : mx + 18}" y="${my + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    // Diode from (x1,y1) [anode] to (x2,y2) [cathode]; horizontal or vertical. The triangle points along the forward current.
+    diode(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, s = Math.sign(horiz ? x2 - x1 : y2 - y1) || 1, m = horiz ? (x1 + x2) / 2 : (y1 + y2) / 2, c = o.cls ? " " + o.cls : "";
+      let out;
+      if (horiz) out = `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${m - s * 9}" y2="${y1}"/><line class="w${c}" x1="${m + s * 9}" y1="${y1}" x2="${x2}" y2="${y1}"/><polygon class="el${c}" points="${m - s * 9},${y1 - 10} ${m - s * 9},${y1 + 10} ${m + s * 9},${y1}"/><line class="w${c}" x1="${m + s * 9}" y1="${y1 - 11}" x2="${m + s * 9}" y2="${y1 + 11}"/>`;
+      else out = `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${x1}" y2="${m - s * 9}"/><line class="w${c}" x1="${x1}" y1="${m + s * 9}" x2="${x1}" y2="${y2}"/><polygon class="el${c}" points="${x1 - 10},${m - s * 9} ${x1 + 10},${m - s * 9} ${x1},${m + s * 9}"/><line class="w${c}" x1="${x1 - 11}" y1="${m + s * 9}" x2="${x1 + 11}" y2="${m + s * 9}"/>`;
+      if (label) {
+        if (horiz) out += `<text x="${m}" y="${o.side === "below" ? y1 + 30 : y1 - 16}" text-anchor="middle">${label}</text>`;
+        else out += `<text x="${o.side === "left" ? x1 - 18 : x1 + 18}" y="${m + 5}" text-anchor="${o.side === "left" ? "end" : "start"}">${label}</text>`;
+      }
+      return out;
+    },
+    // Logic gate with its left edge at x and vertical center y. kind: and|or|not|buf|nand|nor. Output tip at S.gateOut(kind, x).
+    gate(kind, x, y, o = {}) {
+      const c = o.cls ? " " + o.cls : "";
+      let body;
+      if (kind === "and" || kind === "nand") body = `<path class="el${c}" d="M${x} ${y - 20} H${x + 25} A20 20 0 0 1 ${x + 25} ${y + 20} H${x} Z"/>`;
+      else if (kind === "or" || kind === "nor") body = `<path class="el${c}" d="M${x} ${y - 20} Q${x + 38} ${y - 20} ${x + 55} ${y} Q${x + 38} ${y + 20} ${x} ${y + 20} Q${x + 12} ${y} ${x} ${y - 20} Z"/>`;
+      else body = `<path class="el${c}" d="M${x} ${y - 18} L${x + 40} ${y} L${x} ${y + 18} Z"/>`;
+      const tip = { and: 45, nand: 45, or: 55, nor: 55, not: 40, buf: 40 }[kind];
+      if (kind === "nand" || kind === "nor" || kind === "not") body += `<circle class="el${c}" cx="${x + tip + 5}" cy="${y}" r="5"/>`;
+      if (o.label) body += `<text x="${x + 20}" y="${y + 5}" text-anchor="middle" class="s m">${o.label}</text>`;
+      return body;
+    },
+    // n-channel MOSFET. Terminals: G (x-30, y), D (x+14, y-40), S (x+14, y+40). o.p = true draws a p-channel (bubble on the gate).
+    nmos(x, y, o = {}) {
+      const c = o.cls ? " " + o.cls : "";
+      let s = `<line class="w${c}" x1="${x - 30}" y1="${y}" x2="${x - (o.p ? 20 : 10)}" y2="${y}"/>` + (o.p ? `<circle class="el${c}" cx="${x - 15}" cy="${y}" r="5"/>` : "") +
+        `<line class="w${c}" x1="${x - 10}" y1="${y - 18}" x2="${x - 10}" y2="${y + 18}"/><line class="w${c}" x1="${x - 3}" y1="${y - 22}" x2="${x - 3}" y2="${y + 22}" style="stroke-width:3.5"/>` +
+        `<polyline class="w${c}" points="${x - 3},${y - 14} ${x + 14},${y - 14} ${x + 14},${y - 40}"/><polyline class="w${c}" points="${x - 3},${y + 14} ${x + 14},${y + 14} ${x + 14},${y + 40}"/>`;
+      if (o.labels) s += `<text x="${x + 22}" y="${y - 26}" class="s m">D</text><text x="${x + 22}" y="${y + 34}" class="s m">S</text><text x="${x - 28}" y="${y - 8}" class="s m">G</text>`;
+      if (o.label) s += `<text x="${x + 22}" y="${y + 5}" class="${o.tcls || ""}">${o.label}</text>`;
+      return s;
+    },
+    // Vertical switch from (x,y1) down to (x,y2). closed = true draws the blade shut.
+    sw(x, y1, y2, closed, o = {}) {
+      const c = o.cls ? " " + o.cls : "", a = y1 + 14, b = y2 - 14;
+      let s = `<line class="w${c}" x1="${x}" y1="${y1}" x2="${x}" y2="${a}"/><line class="w${c}" x1="${x}" y1="${b}" x2="${x}" y2="${y2}"/>`;
+      s += closed ? `<line class="w${c}" x1="${x}" y1="${b}" x2="${x}" y2="${a}"/>` : `<line class="w${c}" x1="${x}" y1="${b}" x2="${x + 18}" y2="${a + 4}"/>`;
+      s += `<circle class="el" cx="${x}" cy="${a}" r="3.5"/><circle class="el" cx="${x}" cy="${b}" r="3.5"/>`;
+      if (o.label) s += `<text x="${x + (o.side === "left" ? -14 : 26)}" y="${(a + b) / 2 + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${o.label}</text>`;
+      return s;
+    },
+    gateOut(kind, x) { return x + { and: 45, nand: 55, or: 55, nor: 65, not: 50, buf: 40 }[kind]; },
+    dot(x, y) { return `<circle class="nd" cx="${x}" cy="${y}" r="4"/>`; },
+    t(x, y, s, o = {}) { return `<text x="${x}" y="${y}" text-anchor="${o.a || "middle"}" class="${o.cls || ""}">${s}</text>`; },
+    pm(x, y, top = "+", gap = 34) { return `<text x="${x}" y="${y}" text-anchor="middle" class="big">${top}</text><text x="${x}" y="${y + gap}" text-anchor="middle" class="big">${top === "+" ? "−" : "+"}</text>`; },
+    arrow(x1, y1, x2, y2, label, o = {}) {
+      const ang = Math.atan2(y2 - y1, x2 - x1), h = 9, w = 5;
+      const bx = x2 - h * Math.cos(ang), by = y2 - h * Math.sin(ang);
+      const p1 = [bx + w * Math.sin(ang), by - w * Math.cos(ang)], p2 = [bx - w * Math.sin(ang), by + w * Math.cos(ang)];
+      let out = `<line class="cur" x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}"/><polygon class="curh" points="${x2},${y2} ${p1.join(",")} ${p2.join(",")}"/>`;
+      if (label) out += `<text x="${o.lx != null ? o.lx : (x1 + x2) / 2}" y="${o.ly != null ? o.ly : (y1 + y2) / 2 - 8}" text-anchor="${o.a || "middle"}" class="c">${label}</text>`;
+      return out;
+    },
+    flow(pts, amps, k = 1, width) {
+      if (reduce || !amps || !isFinite(amps)) return "";
+      const dur = Math.max(0.18, Math.min(4, k / Math.abs(amps)));
+      return `<polyline class="flow" style="--dur:${dur.toFixed(2)}s${amps < 0 ? ";animation-direction:reverse" : ""}${width ? ";stroke-width:" + width.toFixed(1) : ""}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`;
+    },
+    gnd(x, y) { return `<line class="w" x1="${x}" y1="${y}" x2="${x}" y2="${y + 10}"/><line class="w" x1="${x - 14}" y1="${y + 10}" x2="${x + 14}" y2="${y + 10}"/><line class="w" x1="${x - 9}" y1="${y + 16}" x2="${x + 9}" y2="${y + 16}"/><line class="w" x1="${x - 4}" y1="${y + 22}" x2="${x + 4}" y2="${y + 22}"/>`; },
+    supply(x, y, label) { return `<line class="w" x1="${x}" y1="${y}" x2="${x}" y2="${y - 22}"/><polygon class="nd" points="${x - 7},${y - 18} ${x + 7},${y - 18} ${x},${y - 30}"/><text x="${x + 12}" y="${y - 20}" text-anchor="start">${label}</text>`; },
+    box(x, y, w, h, label, o = {}) { return `<rect class="box${o.cls ? " " + o.cls : ""}" x="${x}" y="${y}" width="${w}" height="${h}" rx="8"/>${label ? `<text x="${x + w / 2}" y="${y + h / 2 + 5}" text-anchor="middle">${label}</text>` : ""}`; },
+    bulb(cx, cy, glow = 0) {
+      return `<circle cx="${cx}" cy="${cy}" r="22" style="fill:var(--accent);opacity:${Math.min(0.85, glow).toFixed(2)}"/><circle class="el" cx="${cx}" cy="${cy}" r="18" style="fill:none"/><path class="w" d="M${cx - 8} ${cy + 18} L${cx - 8} ${cy} Q${cx - 4} ${cy - 10} ${cx} ${cy} Q${cx + 4} ${cy - 10} ${cx + 8} ${cy} L${cx + 8} ${cy + 18}"/>`;
+    },
+  };
+
+  /* ---------- simple x-y plot (SVG string) ---------- */
+  let clipN = 0;
+  function plot(o) {
+    const W = o.w || 520, H = o.h || 290, L = o.padL || 54, R = 14, T = 14, B = 40;
+    const [x0, x1] = o.x, [y0, y1] = o.y;
+    const X = (x) => L + ((x - x0) / (x1 - x0)) * (W - L - R);
+    const Y = (y) => T + ((y1 - y) / (y1 - y0)) * (H - T - B);
+    let s = "";
+    (o.xt || []).forEach((v) => { s += `<line class="grid" x1="${X(v)}" y1="${T}" x2="${X(v)}" y2="${H - B}"/><text x="${X(v)}" y="${H - B + 16}" text-anchor="middle">${o.xtf ? o.xtf(v) : fmt(v)}</text>`; });
+    (o.yt || []).forEach((v) => { s += `<line class="grid" x1="${L}" y1="${Y(v)}" x2="${W - R}" y2="${Y(v)}"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${o.ytf ? o.ytf(v) : fmt(v)}</text>`; });
+    const ay = y0 <= 0 && y1 >= 0 ? Y(0) : H - B, ax = x0 <= 0 && x1 >= 0 ? X(0) : L;
+    s += `<line class="axis" x1="${L}" y1="${ay}" x2="${W - R}" y2="${ay}"/><line class="axis" x1="${ax}" y1="${T}" x2="${ax}" y2="${H - B}"/>`;
+    if (o.xl) s += `<text class="lab" x="${W - R}" y="${H - 6}" text-anchor="end">${o.xl}</text>`;
+    if (o.yl) s += `<text class="lab" x="${L + 6}" y="${T + 12}" text-anchor="start">${o.yl}</text>`;
+    const cid = "clip" + ++clipN;
+    s += `<clipPath id="${cid}"><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}"/></clipPath><g clip-path="url(#${cid})">`;
+    const sample = (f, a, b, n) => { const pts = []; for (let i = 0; i <= n; i++) { const x = a + ((b - a) * i) / n; const y = f(x); if (isFinite(y)) pts.push([X(x), Y(Math.max(y0 - (y1 - y0), Math.min(y1 + (y1 - y0), y)))]); } return pts; };
+    (o.areas || []).forEach((ar) => {
+      const a = ar.from != null ? ar.from : x0, b = ar.to != null ? ar.to : x1;
+      const pts = sample(ar.f, a, b, ar.n || 240), base = ar.base != null ? ar.base : 0;
+      s += `<polygon class="${ar.cls || "ar1"}" points="${X(a)},${Y(base)} ${pts.map((p) => p.join(",")).join(" ")} ${X(b)},${Y(base)}"/>`;
+    });
+    (o.series || []).forEach((se) => {
+      const pts = se.pts ? se.pts.map(([x, y]) => [X(x), Y(y)]) : sample(se.f, se.from != null ? se.from : x0, se.to != null ? se.to : x1, se.n || 300);
+      if (pts.length) s += `<polyline class="${se.cls || "s1"}" points="${pts.map((p) => p.map((v) => v.toFixed(1)).join(",")).join(" ")}"/>`;
+    });
+    s += "</g>";
+    (o.marks || []).forEach((m) => {
+      if (m.x < x0 || m.x > x1 || m.y < y0 || m.y > y1) return;
+      s += `<circle class="${m.cls || "mk"}" cx="${X(m.x)}" cy="${Y(m.y)}" r="${m.r || 6}"/>`;
+      if (m.label) s += `<text class="lab" x="${X(m.x) + (m.dx || 10)}" y="${Y(m.y) + (m.dy || -10)}" text-anchor="${m.a || "start"}">${m.label}</text>`;
+    });
+    (o.texts || []).forEach((tx) => { s += `<text class="lab" x="${X(tx.x)}" y="${Y(tx.y)}" text-anchor="${tx.a || "start"}">${tx.s}</text>`; });
+    return `<svg class="plot" viewBox="0 0 ${W} ${H}" style="max-width:${W}px" role="img" aria-label="${o.label || "Graph"}">${s}</svg>`;
+  }
+
+  /* ---------- UI helpers for widgets ---------- */
+  function slider(o, onChange) {
+    const wrap = el(`<div class="sl"><label for="${o.id}"><span>${o.label}</span><output></output></label><input type="range" id="${o.id}"></div>`);
+    const inp = wrap.querySelector("input"), out = wrap.querySelector("output");
+    if (o.log) { inp.min = 0; inp.max = 1000; inp.step = 1; }
+    else { inp.min = o.min; inp.max = o.max; inp.step = o.step || (o.max - o.min) / 100; }
+    const toT = (v) => (1000 * Math.log(v / o.min)) / Math.log(o.max / o.min);
+    const get = () => (o.log ? o.min * Math.pow(o.max / o.min, inp.value / 1000) : +inp.value);
+    const show = () => { out.textContent = o.show ? o.show(get()) : fmt(get()); };
+    inp.value = o.log ? toT(o.value) : o.value;
+    show();
+    inp.addEventListener("input", () => { show(); onChange && onChange(get()); });
+    return { el: wrap, get, set(v) { inp.value = o.log ? toT(v) : v; show(); onChange && onChange(get()); } };
+  }
+  function toggle(labels, onPick, start = 0) {
+    const r = el(`<div class="row" role="group"></div>`);
+    labels.forEach((lab, i) => {
+      const b = el(`<button type="button" class="btn small" aria-pressed="${i === start}">${lab}</button>`);
+      b.addEventListener("click", () => { r.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); onPick(i); });
+      r.appendChild(b);
+    });
+    return r;
+  }
+  const readout = (pairs) => `<div class="readout">${pairs.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>`;
+
+  /* ---------- blocks ---------- */
+  function mcq(b) {
+    const n = el(`<div class="q">${b.q ? `<p class="qq">${b.q}</p>` : ""}${b.fig || ""}<div class="choices"></div><div class="feedback" aria-live="polite" hidden></div></div>`);
+    const ch = n.querySelector(".choices"), fb = n.querySelector(".feedback");
+    b.opts.forEach(([txt, ok, why]) => {
+      const btn = el(`<button type="button" class="btn choice">${txt}</button>`);
+      btn.addEventListener("click", () => {
+        fb.hidden = false;
+        fb.className = "feedback " + (ok ? "ok" : "no");
+        fb.innerHTML = (ok ? "<b>Yes.</b> " : "<b>Not this one.</b> ") + (why || "");
+        btn.classList.add(ok ? "right" : "wrong");
+        if (ok) ch.querySelectorAll("button").forEach((x) => (x.disabled = x !== btn));
+      });
+      ch.appendChild(btn);
+    });
+    return n;
+  }
+  function num(b, id) {
+    const n = el(`<div class="q"><p class="qq">${b.q}</p>${b.fig || ""}<form class="num" novalidate><input id="${id}" inputmode="decimal" autocomplete="off" aria-label="Your answer"><span class="mono">${b.unit || ""}</span><button class="btn primary" type="submit">Check</button></form><div class="feedback" aria-live="polite" hidden></div></div>`);
+    const fb = n.querySelector(".feedback"), inp = n.querySelector("input");
+    let tries = 0;
+    n.querySelector("form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = parseFloat(String(inp.value).replace(",", ".").replace("−", "-"));
+      fb.hidden = false;
+      if (isNaN(v)) { fb.className = "feedback"; fb.textContent = "Type a number first."; return; }
+      const tol = b.tol != null ? b.tol : 0.02;
+      const ok = b.a === 0 ? Math.abs(v) < 1e-9 : Math.abs(v - b.a) <= Math.abs(b.a) * tol;
+      tries++;
+      if (ok) { fb.className = "feedback ok"; fb.innerHTML = "<b>Yes.</b> " + (b.why || ""); }
+      else { fb.className = "feedback no"; fb.innerHTML = "<b>Not yet.</b> " + (tries >= 2 && b.hint2 ? b.hint2 : b.hint || "Check your units and signs."); }
+    });
+    return n;
+  }
+  /* Say-it-back answers live in the chapter's progress state; start() points this at it. */
+  let says = { get: (k) => store.get(k, ""), set: (k, v) => store.set(k, v) };
+  function say(b, id, key) {
+    const n = el(`<div class="q"><p class="qq">${b.q}</p><textarea id="${id}" placeholder="Type your answer in your own words. Rough is fine."></textarea><div class="row"><button type="button" class="btn primary">Compare with mine</button></div><div class="model" hidden><span class="lbl">One good answer</span><div>${b.model}</div><p class="aside">Did yours get the same core idea? Wording doesn't matter. If you're unsure, paste yours into the chat and ask for feedback.</p></div></div>`);
+    const ta = n.querySelector("textarea");
+    ta.value = says.get(key);
+    ta.addEventListener("input", () => says.set(key, ta.value));
+    n.querySelector("button").addEventListener("click", () => { n.querySelector(".model").hidden = false; });
+    return n;
+  }
+  function sort(b) {
+    const n = el(`<div class="q">${b.q ? `<p class="qq">${b.q}</p>` : ""}<div class="sort"></div><div class="row"><button type="button" class="btn primary sort-check">Check my sorting</button></div><div class="feedback" aria-live="polite" hidden></div></div>`);
+    const box = n.querySelector(".sort"), picks = [];
+    b.items.forEach(([label], i) => {
+      const it = el(`<div class="sort-item"><span>${label}</span></div>`);
+      it.appendChild(toggle(b.bins, (k) => (picks[i] = k), -1));
+      it.appendChild(el(`<div class="why" hidden></div>`));
+      box.appendChild(it);
+    });
+    n.querySelector(".sort-check").addEventListener("click", () => {
+      let right = 0;
+      b.items.forEach(([, bin, why], i) => {
+        const it = box.children[i], ok = picks[i] === bin;
+        if (ok) right++;
+        it.classList.toggle("right", ok); it.classList.toggle("wrong", !ok);
+        const w = it.querySelector(".why"); w.hidden = false;
+        w.innerHTML = (picks[i] == null ? "<b>Not sorted yet.</b> " : "") + (ok ? "" : `<b>Belongs in “${b.bins[bin]}”.</b> `) + (why || "");
+      });
+      const fb = n.querySelector(".feedback"); fb.hidden = false;
+      fb.className = "feedback " + (right === b.items.length ? "ok" : "no");
+      fb.innerHTML = `<b>${right} of ${b.items.length}</b> sorted correctly. ${right === b.items.length ? "" : "Read the notes on the red ones."}`;
+    });
+    return n;
+  }
+  function reveal(b) {
+    const n = el(`<div class="q"><div class="row"><button type="button" class="btn">${b.label || "Show me"}</button></div><div hidden>${b.html}</div></div>`);
+    n.querySelector("button").addEventListener("click", (e) => { n.lastElementChild.hidden = false; e.currentTarget.disabled = true; });
+    return n;
+  }
+  function renderBlock(b, id, key) {
+    if (typeof b === "string") return el(`<div>${b}</div>`);
+    if (typeof b === "function") { const h = el(`<div class="widget" style="display:grid;gap:12px;min-width:0"></div>`); b(h, id); return h; }
+    if (b.t === "mcq") return mcq(b);
+    if (b.t === "num") return num(b, id);
+    if (b.t === "say") return say(b, id, key);
+    if (b.t === "sort") return sort(b);
+    if (b.t === "reveal") return reveal(b);
+    return el(`<div>${b.html || ""}</div>`);
+  }
+
+  /* ---------- subscripts: "v_TH" in any text renders as v<sub>TH</sub> (tspan inside SVG).
+     A subscript stops before a letter that starts the next subscripted name, so "g_mR_D" reads g<sub>m</sub>R<sub>D</sub>. ---------- */
+  const SUBRE = /([A-Za-zΔβμαθωφτγ′])_([A-Za-z0-9]+?)(?=[A-Za-zΔβμαθωφτγ′]_|[^A-Za-z0-9]|$)/g, SVGNS = "http://www.w3.org/2000/svg";
+  function subify(root) {
+    if (!root || !document.createTreeWalker) return;
+    const w = document.createTreeWalker(root, 4 /* text */), hits = [];
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      const p = n.parentNode;
+      if (n.nodeValue.indexOf("_") < 0 || !p || /^(script|style|textarea|sub|tspan|title|code|pre)$/i.test(p.nodeName) || (p.closest && p.closest("pre, code"))) continue;
+      SUBRE.lastIndex = 0;
+      if (SUBRE.test(n.nodeValue)) hits.push(n);
+    }
+    hits.forEach((n) => {
+      const svg = n.parentNode.namespaceURI === SVGNS, s = n.nodeValue, frag = document.createDocumentFragment();
+      let last = 0, m;
+      SUBRE.lastIndex = 0;
+      while ((m = SUBRE.exec(s))) {
+        frag.appendChild(document.createTextNode(s.slice(last, m.index) + m[1]));
+        const sub = svg ? document.createElementNS(SVGNS, "tspan") : document.createElement("sub");
+        if (svg) { sub.setAttribute("baseline-shift", "sub"); sub.setAttribute("font-size", "75%"); }
+        sub.textContent = m[2];
+        frag.appendChild(sub);
+        last = m.index + m[0].length;
+      }
+      frag.appendChild(document.createTextNode(s.slice(last)));
+      n.parentNode.replaceChild(frag, n);
+    });
+  }
+  function watchSubs(root) {
+    subify(root);
+    if (!window.MutationObserver) return;
+    new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((a) => subify(a.nodeType === 3 ? a.parentNode : a)))).observe(root, { childList: true, subtree: true });
+  }
+
+  /* ---------- app ---------- */
+  const KIND = { learn: "Learn", play: "Play", predict: "Predict first", why: "Why?", whatif: "What if…", bug: "Spot the mistake", check: "Quick check", say: "Say it back", math: "Math boost" };
+
+  function start(C) {
+    const KEY = "course-" + C.id, P = window.Progress;
+    const state = P ? P.load(C.id) : store.get(KEY, { done: {}, last: null, say: {} });
+    state.say = state.say || {};
+    const save = (delay) => (P ? P.save(C.id, state, delay) : store.set(KEY, state));
+    says = {
+      get: (k) => (k in state.say ? state.say[k] : store.get(k, "")), // older builds kept answers under their own keys
+      set: (k, v) => { state.say[k] = v; save(1500); },
+    };
+    const root = document.getElementById("app");
+    watchSubs(root);
+    let view = { part: null, step: 0 };
+
+    /* Book navigation: chapter pages sit in the book's folder, its contents page one level up. */
+    const B = window.BOOK;
+    const bookLink = () => (B ? `<a class="book-link" href="../${B.home}">← Contents</a> · ` : "");
+    /* Where this chapter lives in the real book, so the problems are easy to find afterwards. */
+    const U = (B && B.unit) || "Chapter", u = U.toLowerCase();
+    /* Cross-book links: a math module lists the chapters that use it; a chapter lists the math modules it needs. */
+    const BOOKS = Object.values(window.BOOKS || {});
+    function chapterRef(id) {
+      for (const K of BOOKS) {
+        if (K.key === "math" || !K.find) continue;
+        const c = K.find(id);
+        if (c && c.file) return `<a href="../${K.dir}/${c.file}" title="${c.title}">${K.short} ${typeof c.n === "number" ? "Ch" : "App"} ${c.n}</a>`;
+      }
+      return "";
+    }
+    function mathLinks() {
+      const M = window.BOOKS && window.BOOKS.math;
+      if (!M || !M.all || (B && B.key === "math")) return "";
+      const href = (m) => (m.file.startsWith("../") ? m.file : "../math/" + m.file);
+      const list = (key) => M.all().filter((m) => m.file && (m[key] || []).includes(C.id)).map((m) => `<a href="${href(m)}">${m.title}</a>`).join(" · ");
+      const need = list("needs"), also = list("also");
+      return (need ? `<p class="aside where-book">Math you'll use: ${need}</p>` : "") + (also ? `<p class="aside where-book">Going further (optional): ${also}</p>` : "");
+    }
+    function whereInBook() {
+      const me = B && B.find(C.id);
+      if (me && B.noPdf) {
+        const used = (me.needs || []).map(chapterRef).filter(Boolean), pairs = (me.also || []).map(chapterRef).filter(Boolean);
+        return (used.length ? `<p class="aside where-book">Used in: ${used.join(" · ")}</p>` : "") + (pairs.length ? `<p class="aside where-book">Not in the books, but pairs with: ${pairs.join(" · ")}</p>` : "");
+      }
+      if (!me || !me.pdf) return mathLinks();
+      return `<p class="aside where-book">${B.short}, ${typeof me.n === "number" ? "Chapter" : "Appendix"} ${me.n} · ${B.pagesLabel(me)}${B.pdfFile ? "" : ` · PDF file ending “-${me.pdf}.pdf”`}${me.probs ? ` · problems from ${B.probsLabel(me)}` : ""}</p>` + mathLinks();
+    }
+    function problemsNote() {
+      const me = B && B.find(C.id);
+      if (!me || !me.probs) return "";
+      return `<div class="key"><b>Your book problems:</b> open <span class="mono">${B.pdfName(me)}</span> and go to ${B.probsLabel(me)}.</div>`;
+    }
+    const isAppPage = () => { const m = B && B.find(C.id); return !!m && typeof m.n !== "number"; };
+    function nextChapter() {
+      if (!B) return "";
+      const me = B.find(C.id), isApp = !!me && typeof me.n !== "number";
+      const list = isApp ? B.all().filter((c) => typeof c.n !== "number" && c.file) : B.chapters(), i = list.findIndex((c) => c.id === C.id), nx = list[i + 1];
+      const ans = B.answers && !isApp ? `<p class="aside">The book has short answers to some problems (${B.answers.label}, pages ${B.answers.pdf.replace("-", "–")}). Look only after you've committed to your own answer.</p>` : "";
+      if (!nx) return ans + `<p><a href="../${B.home}">← Back to the contents</a></p>`;
+      return ans + (nx.file
+        ? `<p>Then: <a href="${nx.file}">${isApp ? "Appendix" : U} ${nx.n} · ${nx.title} →</a></p>`
+        : `<p>Next up: ${U} ${nx.n} · ${nx.title}. Its tutorial isn't built yet. Ask Claude for it when you're ready.</p>`);
+    }
+
+    function hub() {
+      view = { part: null, step: 0 };
+      const firstOpen = C.parts.findIndex((p) => !state.done[p.id]);
+      const node = el(`<div class="wrap">
+        <header class="top"><div class="eyebrow">${bookLink()}${C.eyebrow}</div><h1>${C.title}</h1>${whereInBook()}</header>
+        <section class="card"><span class="tag">How this ${isAppPage() ? "appendix" : u} works</span>${C.intro}</section>
+        <ol class="parts" aria-label="Parts of this ${u}"></ol>
+        <section class="after"><h3 style="font-family:var(--display);margin:0">After the last part</h3>${problemsNote()}${C.after}${nextChapter()}</section>
+        <p class="aside save-note"></p>
+      </div>`);
+      if (P) P.onStatus((s) => { const n = node.querySelector(".save-note"); if (n) n.textContent = s === "cloud" ? "Progress saves to your Claude account, so it follows you to any browser." : "Progress saves in this browser only."; });
+      const list = node.querySelector(".parts");
+      C.parts.forEach((p, i) => {
+        const done = !!state.done[p.id];
+        const cls = done ? "done" : i === firstOpen ? "next" : "";
+        const b = el(`<li><button type="button" class="part-btn ${cls}"><span class="part-n">${done ? "✓" : i + 1}</span><span><span class="part-t">${p.title}</span><span class="part-d">${p.blurb}</span></span><span class="part-m">${p.mins} min</span></button></li>`);
+        b.querySelector("button").addEventListener("click", () => openPart(i, state.last && state.last.part === i ? state.last.step : 0));
+        list.appendChild(b);
+      });
+      const sum = el(`<li><button type="button" class="part-btn"><span class="part-n">Σ</span><span><span class="part-t">${U} summary</span><span class="part-d">Every key idea and formula on one page. Keep it open while you do the problems.</span></span><span class="part-m">ref</span></button></li>`);
+      sum.querySelector("button").addEventListener("click", summary);
+      list.appendChild(sum);
+      if (state.last && state.last.part != null && C.parts[state.last.part]) {
+        const p = C.parts[state.last.part];
+        const cont = el(`<div class="row"><button type="button" class="btn primary">Continue: Part ${state.last.part + 1}, step ${state.last.step + 1}</button><span class="aside">${p.title}</span></div>`);
+        cont.querySelector("button").addEventListener("click", () => openPart(state.last.part, state.last.step));
+        node.querySelector(".card").after(cont);
+      }
+      root.replaceChildren(node);
+      window.scrollTo(0, 0);
+    }
+
+    function summary() {
+      view = { part: null, step: 0 };
+      const node = el(`<div class="wrap"><header class="top"><div class="eyebrow"><button type="button">← ${C.eyebrow}</button></div><h1>${U} summary</h1></header><section class="card">${C.summary}</section><nav class="bottom"><button type="button" class="btn ghost">← ${U} map</button><span></span></nav></div>`);
+      node.querySelectorAll(".eyebrow button, nav .btn").forEach((b) => b.addEventListener("click", hub));
+      root.replaceChildren(node);
+      window.scrollTo(0, 0);
+    }
+
+    function openPart(pi, si0 = 0) {
+      const P = C.parts[pi];
+      const node = el(`<div class="wrap">
+        <header class="top"><div class="eyebrow"><button type="button">← ${C.eyebrow}</button> · Part ${pi + 1} of ${C.parts.length}</div><h1>${P.title}</h1>
+        <div class="rail" aria-label="Steps"></div><div class="where"></div></header>
+        <main></main>
+        <nav class="bottom"><button type="button" class="btn ghost" data-back>← Back</button><button type="button" class="btn primary" data-next>Next →</button></nav></div>`);
+      node.querySelector(".eyebrow button").addEventListener("click", hub);
+      root.replaceChildren(node);
+      const rail = node.querySelector(".rail"), where = node.querySelector(".where"), main = node.querySelector("main");
+      const back = node.querySelector("[data-back]"), next = node.querySelector("[data-next]");
+      const N = P.steps.length;
+
+      function show(i) {
+        i = Math.max(0, Math.min(N, i));
+        view = { part: pi, step: i };
+        if (i === N) return finish();
+        state.last = { part: pi, step: i }; save();
+        const st = P.steps[i];
+        const card = el(`<section class="card"><span class="tag k-${st.k}">${KIND[st.k] || st.k}</span>${st.title ? `<h2>${st.title}</h2>` : ""}</section>`);
+        (st.b || []).forEach((b, j) => card.appendChild(renderBlock(b, `${C.id}-${P.id}-s${i}-b${j}`, `${KEY}-say-${P.id}-${i}-${j}`)));
+        main.replaceChildren(card);
+        rail.innerHTML = P.steps.map((s, k) => `<button type="button" class="${k < i ? "done" : k === i ? "now" : ""}" aria-label="Step ${k + 1}" ${k === i ? 'aria-current="step"' : ""} data-i="${k}"></button>`).join("");
+        rail.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => show(+b.dataset.i)));
+        where.innerHTML = `Step <b>${i + 1}</b> of ${N} · ${KIND[st.k] || st.k}`;
+        back.disabled = i === 0;
+        next.hidden = false;
+        next.textContent = i === N - 1 ? "Finish part ✓" : "Next →";
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+      }
+      function finish() {
+        state.done[P.id] = true;
+        state.last = pi + 1 < C.parts.length ? { part: pi + 1, step: 0 } : null;
+        save();
+        const hasNext = pi + 1 < C.parts.length;
+        const card = el(`<section class="card"><span class="tag k-check">Part ${pi + 1} complete</span><h2>Your takeaway</h2><div class="key">${P.takeaway}</div>
+          <p class="aside">Good moment for a short break. Stand up, drink some water, then come back.</p>
+          <div class="row">${hasNext ? `<button type="button" class="btn primary" data-np>Part ${pi + 2}: ${C.parts[pi + 1].title} →</button>` : `<button type="button" class="btn primary" data-sum>Open the ${u} summary</button>`}<button type="button" class="btn ghost" data-hub>Chapter map</button></div></section>`);
+        main.replaceChildren(card);
+        rail.querySelectorAll("button").forEach((b) => (b.className = "done"));
+        where.innerHTML = `<b>Done</b> · ${N} steps`;
+        back.disabled = false;
+        next.hidden = true;
+        card.querySelector("[data-hub]").addEventListener("click", hub);
+        if (hasNext) card.querySelector("[data-np]").addEventListener("click", () => openPart(pi + 1, 0));
+        else card.querySelector("[data-sum]").addEventListener("click", summary);
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+      }
+      back.addEventListener("click", () => show(view.step - 1));
+      next.addEventListener("click", () => show(view.step + 1));
+      show(si0);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (view.part == null) return;
+      if (e.target.closest && e.target.closest("input, textarea, select")) return;
+      const nb = document.querySelector("[data-next]"), bb = document.querySelector("[data-back]");
+      if (e.key === "ArrowRight" && nb && !nb.hidden) nb.click();
+      if (e.key === "ArrowLeft" && bb && !bb.disabled) bb.click();
+    });
+
+    const m = /^#p(\d+)$/.exec(location.hash || "");
+    /* #resume (from the library's Resume card): the saved step, else the first unfinished part, else the map. */
+    const L = state.last, todo = C.parts.findIndex((p) => !state.done[p.id]);
+    if (m && C.parts[+m[1] - 1]) openPart(+m[1] - 1, 0);
+    else if (location.hash === "#resume" && L && C.parts[L.part]) openPart(L.part, L.step);
+    else if (location.hash === "#resume" && todo >= 0) openPart(todo, 0);
+    else hub();
+    if (P) P.sync(C.id, state, () => { if (view.part == null) hub(); });
+  }
+
+  return { start, S, plot, slider, toggle, readout, fmt, si, el, reduce, store };
+})();
+</script>
+<script>
+(function () {
+  const { S, plot, slider, toggle, readout, fmt, si, el } = Course;
+  const fig = (svg) => `<div class="fig">${svg}</div>`;
+  const nb = (s) => `<span class="ov">${s}</span>`;
+  const ob = (s) => `<tspan text-decoration="overline">${s}</tspan>`;
+
+  // Deterministic pseudo-random numbers so pictures don't jump around.
+  function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+  /* ---------- static-discipline ladder: sender column and receiver column ---------- */
+  function ladderFig(VOL, VIL, VIH, VOH, extra = "") {
+    const Y = (v) => 200 - v * 36, band = (x, a, b, fill, lab) => `<rect x="${x}" y="${Y(b)}" width="80" height="${Math.max(0, Y(a) - Y(b))}" style="fill:${fill};stroke:var(--line)"/>` + (lab && Y(a) - Y(b) > 16 ? S.t(x + 40, (Y(a) + Y(b)) / 2 + 5, lab, { cls: "s" }) : "");
+    let s = S.t(110, 14, "sender (out)", { cls: "s m" }) + S.t(290, 14, "receiver (in)", { cls: "s m" });
+    s += band(70, VOH, 5, "var(--good-soft)", "send 1") + band(70, VOL, VOH, "var(--line)", "never") + band(70, 0, VOL, "var(--good-soft)", "send 0");
+    s += band(250, VIH, 5, "var(--good-soft)", "read 1") + band(250, VIL, VIH, "var(--bad-soft)", "forbidden") + band(250, 0, VIL, "var(--good-soft)", "read 0");
+    [[VOL, "V_OL", 70], [VOH, "V_OH", 70]].forEach(([v, l, x]) => { s += S.t(x - 6, Y(v) + 4, l + " " + fmt(v), { a: "end", cls: "s" }); });
+    [[VIL, "V_IL", 330], [VIH, "V_IH", 330]].forEach(([v, l, x]) => { s += S.t(x + 6, Y(v) + 4, l + " " + fmt(v), { a: "start", cls: "s" }); });
+    // noise-margin brackets
+    const br = (a, b, lab) => `<line x1="200" y1="${Y(a)}" x2="200" y2="${Y(b)}" class="cur"/><line x1="160" y1="${Y(a)}" x2="240" y2="${Y(a)}" class="w dim"/><line x1="160" y1="${Y(b)}" x2="240" y2="${Y(b)}" class="w dim"/>` + S.t(206, (Y(a) + Y(b)) / 2 + 4, lab, { a: "start", cls: "s c" });
+    if (VIL > VOL) s += br(VOL, VIL, "NM₀");
+    if (VOH > VIH) s += br(VIH, VOH, "NM₁");
+    return S.svg(420, 212, s + extra, { max: 420, label: "Sender output ranges and receiver input ranges side by side" });
+  }
+
+  /* ---------- gate playground: Y = A·B + not C ---------- */
+  function gateFig(A, B, C) {
+    const w = (on, ...pts) => S.wc(on ? "hl" : "", ...pts);
+    const ab = A && B, nc = !C, y = ab || nc;
+    let s = w(A, [40, 40], [90, 40], [90, 50], [110, 50]) + w(B, [40, 80], [90, 80], [90, 70], [110, 70]) + w(C, [40, 160], [110, 160]) +
+      S.gate("and", 110, 60) + S.gate("not", 110, 160) +
+      w(ab, [155, 60], [200, 60], [200, 100], [234, 100]) + w(nc, [160, 160], [200, 160], [200, 120], [234, 120]) +
+      S.gate("or", 230, 110) + w(y, [285, 110], [330, 110]);
+    s += S.t(30, 45, "A=" + (A ? 1 : 0), { a: "end", cls: A ? "a" : "" }) + S.t(30, 85, "B=" + (B ? 1 : 0), { a: "end", cls: B ? "a" : "" }) + S.t(30, 165, "C=" + (C ? 1 : 0), { a: "end", cls: C ? "a" : "" }) +
+      S.t(338, 115, "Y = " + (y ? 1 : 0), { a: "start", cls: "big " + (y ? "a" : "") }) + S.t(178, 52, ab ? "1" : "0", { cls: "s m" }) + S.t(178, 152, nc ? "1" : "0", { cls: "s m" });
+    return S.svg(420, 200, s, { max: 420, label: "AND of A and B, NOT of C, both into an OR gate giving Y" });
+  }
+
+  /* =============== PART 1 =============== */
+  const p1 = {
+    id: "p1", title: "Why go digital?", mins: 20,
+    blurb: "Lump many voltages into two values, and noise stops mattering.",
+    takeaway: "Digital = value discretization: every voltage in a range means the same symbol. You give up precision, and in return small noise changes nothing.",
+    steps: [
+      { k: "learn", title: "Lumping values", b: [
+        `<p>Chapter 1 lumped <b>space</b> (elements are points). The digital abstraction lumps <b>values</b>:</p>`,
+        `<div class="two"><div class="tile"><h3>Analog</h3><p>Every voltage is a different value. 2.40 V and 2.41 V mean different things.</p></div><div class="tile"><h3>Digital (two levels)</h3><p>Anything 0–2.5 V means <b>"0"</b>. Anything 2.5–5 V means <b>"1"</b>. Send 1.25 V for a 0 and 3.75 V for a 1.</p></div></div>`,
+      ]},
+      { k: "play", title: "Send through noise", b: [
+        `<p>Same wire, same noise. Top: an analog value, 2.4 V. Bottom: the bits 0 1 0 1 1 0 sent as 1.25 V / 3.75 V. Turn up the noise.</p>`,
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          const bits = [0, 1, 0, 1, 1, 0];
+          let amp = 0.6;
+          function draw() {
+            const r = rng(7), N = 300, noise = [];
+            for (let k = 0; k <= N; k++) noise.push((r() * 2 - 1) * amp);
+            const nz = (t) => noise[Math.min(N, Math.round((t / 6) * N))];
+            const sig = (t) => (bits[Math.min(5, Math.floor(t))] ? 3.75 : 1.25) + nz(t);
+            let errs = 0; const got = bits.map((b, k) => { let lo = 0, hi = 0; for (let j = 1; j < 10; j++) { const v = sig(k + j / 10); if (v > 2.5) hi++; else lo++; } const g = hi > lo ? 1 : 0; if (g !== b) errs++; return (hi && lo) ? "?" : g; });
+            const amax = Math.max(...noise.slice(0, 50).map(Math.abs));
+            f.innerHTML = plot({ x: [0, 6], y: [0, 5.5], xt: [0, 1, 2, 3, 4, 5, 6], yt: [0, 1.25, 2.5, 3.75, 5], xl: "bit slot", yl: "volts", series: [{ f: () => 2.5, cls: "s4" }, { f: sig, cls: "s1", n: N }], label: "Digital bits with noise and the 2.5 V threshold" });
+            ro.innerHTML = readout([["analog: sent", "2.4 V"], ["analog: received", "2.4 ± " + fmt(amp, 2) + " V"], ["bits sent", bits.join(" ")], ["bits read", got.join(" ")]]) +
+              `<span class="verdict ${got.every((g, k) => g === bits[k]) ? "ok" : "no"}">${got.every((g, k) => g === bits[k]) ? "Every bit read correctly, even though the voltages are wrong" : "Noise pushed some samples across 2.5 V: errors"}</span>`;
+          }
+          host.append(f, slider({ id: id + "-n", label: "Noise (peak)", min: 0, max: 2, step: 0.05, value: amp, show: (x) => fmt(x, 2) + " V" }, (x) => { amp = x; draw(); }).el, ro);
+          draw();
+        },
+        `<p class="aside">The analog value is wrong as soon as there's any noise at all. The bits survive until the noise reaches 1.25 V.</p>`,
+      ]},
+      { k: "check", title: "How much noise is OK?", b: [
+        { t: "num", q: "With levels 1.25 V (for 0) and 3.75 V (for 1) and a 2.5 V threshold, how big can noise get (in either direction) before a bit can be misread?", a: 1.25, unit: "V", hint: "How far is each level from the threshold?", why: "2.5 − 1.25 = 1.25 V. Any noise smaller than that is completely harmless." },
+      ]},
+      { k: "why", title: "What's the price?", b: [
+        { t: "mcq", q: "Digital throws away information. Which?", opts: [
+          ["Precision: a wire now carries one of 2 values instead of any value", true, "To send numbers bigger than 0 or 1 you need several bits (several wires, or several time slots). Part 7 does exactly that."],
+          ["Speed: digital signals are always slower", false, "Not part of the abstraction. Speed comes later (Chapter 10)."],
+          ["Energy: digital uses no energy", false, "Digital circuits use plenty of energy (Chapter 11)."],
+        ]},
+      ]},
+      { k: "check", title: "Which are valid binary codes?", b: [
+        `<p>The symbols "true/false" can be carried by almost any physical quantity, as long as everyone agrees on the mapping.</p>`,
+        { t: "sort", q: "Which of these could serve as a two-level (binary) representation?", bins: ["Works", "Doesn't"], items: [
+          ["true = 0 V, false = 5 V", 0, "Unusual, but fine. The mapping is just an agreement."],
+          ["true = 2 µA, false = 0 µA", 0, "Current works as well as voltage."],
+          ["true = 0–1 V, false = 4–5 V", 0, "Ranges are what the digital abstraction is about."],
+          ["true = 2.5 V exactly, false = anything else", 1, "No noise immunity: any tiny noise turns a true into a false."],
+        ]},
+        `<p class="aside">This book's convention: 1 = TRUE = HIGH, 0 = FALSE = LOW.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why is a digital signal more robust to noise than an analog one?", model: "In analog, every voltage means something different, so any noise changes the message. In digital, a whole range of voltages means the same symbol. Noise that moves the voltage around inside its range changes nothing; only noise big enough to cross into the other range causes an error." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 2 =============== */
+  const p2 = {
+    id: "p2", title: "Thresholds and the forbidden region", mins: 15,
+    blurb: "Why we need a no-man's-land between 0 and 1.",
+    takeaway: "A forbidden region between V_L and V_H removes the ambiguity at a single threshold. But if senders may output right at V_L or V_H, there's still zero room for noise.",
+    steps: [
+      { k: "predict", title: "Exactly 2.5 V?", b: [
+        { t: "mcq", q: "With the single 2.5 V threshold, a receiver sees exactly 2.5 V. What does it mean?", opts: [
+          ["Nobody can say. A single threshold leaves an ambiguous point", true, "Real circuits near a threshold behave unpredictably. The fix: a forbidden region that no valid signal is allowed to occupy."],
+          ["It's a 1", false, "Neither interpretation is safe. Two receivers could disagree."],
+          ["It's a 0", false, "Neither interpretation is safe."],
+        ]},
+      ]},
+      { k: "learn", title: "A forbidden region", b: [
+        `<div class="tbl"><table><tbody>
+          <tr><td>Logic 0</td><td class="mono">0 V ≤ v ≤ V<sub>L</sub> (e.g. 2 V)</td></tr>
+          <tr><td>forbidden</td><td class="mono">V<sub>L</sub> < v < V<sub>H</sub></td></tr>
+          <tr><td>Logic 1</td><td class="mono">V<sub>H</sub> (e.g. 3 V) ≤ v ≤ 5 V</td></tr></tbody></table></div>`,
+        `<p>A receiver may do <b>anything</b> with a forbidden voltage. A sender must <b>never</b> output one. (We also assume receivers cope with values a bit beyond 0 V or 5 V.)</p>`,
+      ]},
+      { k: "bug", title: "Still a problem", b: [
+        `<p>V<sub>L</sub> = 2 V, V<sub>H</sub> = 3 V. A sender sends a 0 by outputting exactly 2.0 V, which is allowed.</p>`,
+        { t: "mcq", q: "What happens if the wire picks up +0.05 V of noise?", opts: [
+          ["The signal lands in the forbidden region. This scheme has zero noise margin", true, "The sender used the whole range the receiver accepts, leaving no spare room. The fix (next part): make senders stricter than receivers."],
+          ["Nothing: it's still a valid 0", false, "2.05 V > V_L = 2 V, so it's forbidden."],
+          ["It becomes a 1", false, "It's below 3 V, so it's in no-man's-land, not a 1."],
+        ]},
+      ]},
+      { k: "learn", title: "Common ground", b: [
+        `<p>Every voltage here is measured from a <b>ground</b> shared by sender and receiver. Forget to connect the grounds of two subsystems and "5 V" means nothing to the receiver. The book's warning: currents flow in loops, and ground is the return path.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "What job does the forbidden region do, and what doesn't it fix?", model: "It removes ambiguity: there's no single voltage that could be read either way, because valid signals stay clear of the middle band. But if senders may output right at the edge of a valid range, any noise at all pushes them into the forbidden band, so there's still no noise margin." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 3 =============== */
+  const p3 = {
+    id: "p3", title: "The static discipline and noise margins", mins: 25,
+    blurb: "Four thresholds that let any two chips talk safely.",
+    takeaway: "Senders promise strict outputs (below V_OL or above V_OH); receivers accept looser inputs (below V_IL or above V_IH). The gaps are the noise margins: NM₀ = V_IL − V_OL and NM₁ = V_OH − V_IH.",
+    steps: [
+      { k: "learn", title: "Strict senders, tolerant receivers", b: [
+        fig(ladderFig(0.5, 2, 3, 4.5)),
+        `<div class="tbl"><table><tbody>
+          <tr><td class="mono">V<sub>OL</sub></td><td>highest voltage a device may <b>output</b> for a 0</td></tr>
+          <tr><td class="mono">V<sub>OH</sub></td><td>lowest voltage a device may <b>output</b> for a 1</td></tr>
+          <tr><td class="mono">V<sub>IL</sub></td><td>highest <b>input</b> voltage a device must read as 0</td></tr>
+          <tr><td class="mono">V<sub>IH</sub></td><td>lowest <b>input</b> voltage a device must read as 1</td></tr></tbody></table></div>`,
+      ]},
+      { k: "learn", title: "Noise margins", b: [
+        `<div class="eq">NM₀ = V<sub>IL</sub> − V<sub>OL</sub>   NM₁ = V<sub>OH</sub> − V<sub>IH</sub></div>`,
+        `<p>NM₀ is how much positive noise a worst-case 0 can take before it stops being read as 0. NM₁ is the same for a 1, with negative noise. When they're equal, the margins are <b>symmetric</b>.</p>`,
+        { t: "num", q: "From the picture: V_OL = 0.5 V, V_IL = 2 V. NM₀ = ?", a: 1.5, unit: "V", why: "2 − 0.5 = 1.5 V." },
+      ]},
+      { k: "play", title: "Design a discipline", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          const v = { VOL: 0.5, VIL: 2, VIH: 3, VOH: 4.5 };
+          function draw() {
+            f.innerHTML = ladderFig(v.VOL, v.VIL, v.VIH, v.VOH);
+            const nm0 = v.VIL - v.VOL, nm1 = v.VOH - v.VIH, bad = nm0 <= 0 || nm1 <= 0 || v.VIL > v.VIH;
+            ro.innerHTML = readout([["NM₀", fmt(nm0, 2) + " V"], ["NM₁", fmt(nm1, 2) + " V"], ["usable margin", fmt(Math.min(nm0, nm1), 2) + " V"]]) +
+              `<span class="verdict ${bad ? "no" : Math.abs(nm0 - nm1) < 0.01 ? "ok" : "mid"}">${bad ? "Broken: a margin is zero or negative, or the input thresholds overlap" : Math.abs(nm0 - nm1) < 0.01 ? "Symmetric margins" : "Works, but lopsided: the smaller margin limits you"}</span>`;
+          }
+          const box = el(`<div class="sliders"></div>`);
+          [["VOL", "V_OL (max 0 out)", 0, 2.5], ["VIL", "V_IL (max 0 in)", 0.5, 2.5], ["VIH", "V_IH (min 1 in)", 2.5, 4.5], ["VOH", "V_OH (min 1 out)", 2.5, 5]].forEach(([k, lab, a, b]) =>
+            box.appendChild(slider({ id: id + "-" + k, label: lab, min: a, max: b, step: 0.1, value: v[k], show: (x) => fmt(x) + " V" }, (x) => { v[k] = x; draw(); }).el));
+          host.append(f, box, ro);
+          draw();
+        },
+      ]},
+      { k: "why", title: "Which way to push?", b: [
+        { t: "mcq", q: "To make NM₀ bigger, which changes help?", opts: [
+          ["Lower V_OL (stricter senders) or raise V_IL (more tolerant receivers)", true, "NM₀ = V_IL − V_OL. Chapter 6 shows the real device limits on how far you can push these."],
+          ["Raise V_OL", false, "That shrinks NM₀: senders get sloppier."],
+          ["Raise V_IH", false, "That affects the 1 side, and actually shrinks NM₁."],
+        ]},
+      ]},
+      { k: "learn", title: "The static discipline", b: [
+        `<div class="key">A device obeys the <b>static discipline</b> if, given valid inputs (below V<sub>IL</sub> or above V<sub>IH</sub>), it produces valid outputs (below V<sub>OL</sub> or above V<sub>OH</sub>).</div>`,
+        `<p>"Static" because it only talks about steady values, not timing. This shared contract lets chips from different makers and technologies work together.</p>`,
+      ]},
+      { k: "check", title: "Can this chip join the system?", b: [
+        `<p>Your system uses: V<sub>OL</sub> = 0.8 V, V<sub>IL</sub> = 1.5 V, V<sub>IH</sub> = 3.0 V, V<sub>OH</sub> = 4.0 V.</p>`,
+        { t: "sort", q: "For each candidate part, decide if it meets your static discipline.", bins: ["Compliant", "Not compliant"], items: [
+          ["Outputs 0.3 V / 4.4 V. Reads ≤ 1.8 V as 0 and ≥ 2.8 V as 1.", 0, "Outputs are inside both ranges. It reads everything your system can legally send (≤ 1.5 V and ≥ 3.0 V) correctly. What it does at 1.8–2.8 V doesn't matter: that band is forbidden anyway."],
+          ["Outputs 0.9 V / 4.4 V. Reads ≤ 1.8 V as 0 and ≥ 2.8 V as 1.", 1, "0.9 V > V_OL = 0.8 V. Its 0 is too high."],
+          ["Outputs 0.3 V / 4.4 V. Reads ≤ 1.2 V as 0 and ≥ 2.8 V as 1.", 1, "Your system may legally send 1.2–1.5 V as a 0. This part won't guarantee reading that as 0."],
+          ["Outputs 0.5 V / 4.8 V. Reads ≤ 1.5 V as 0 and ≥ 3.0 V as 1.", 0, "Exactly meets the input thresholds and has comfortable outputs."],
+        ]},
+      ]},
+      { k: "check", title: "Margins of your system", b: [
+        { t: "num", q: "NM₀ for that system?", a: 0.7, unit: "V", hint: "V_IL − V_OL.", why: "1.5 − 0.8 = 0.7 V." },
+        { t: "num", q: "NM₁?", a: 1, unit: "V", hint: "V_OH − V_IH.", why: "4.0 − 3.0 = 1.0 V. Not symmetric. The system is only as safe as its 0.7 V margin." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why must V_OL be lower than V_IL?", model: "So that a worst-case 0 from a sender still has room to pick up noise before it reaches the receiver's limit. The gap V_IL − V_OL is that room, the noise margin for 0. If V_OL equalled V_IL there'd be no margin; if it were higher, a legal output might not even be read correctly." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 4 =============== */
+  const p4 = {
+    id: "p4", title: "Boolean logic and truth tables", mins: 20,
+    blurb: "AND, OR, NOT, and a table that lists every case.",
+    takeaway: "AND (·) is 1 only if all inputs are 1. OR (+) is 1 if any input is 1. NOT (bar) flips. A truth table lists the output for every input combination, so it fully defines a function.",
+    steps: [
+      { k: "learn", title: "Three operations", b: [
+        `<div class="tbl"><table><thead><tr><th>operation</th><th>written</th><th>is 1 when…</th></tr></thead><tbody>
+          <tr><td>AND</td><td class="mono">Z = X·Y = XY</td><td>X and Y are both 1</td></tr>
+          <tr><td>OR</td><td class="mono">Z = X + Y</td><td>at least one is 1</td></tr>
+          <tr><td>NOT</td><td class="mono">Z = ${nb("X")}</td><td>X is 0</td></tr></tbody></table></div>`,
+        `<p class="aside">Careful: + here means OR, not addition. 1 + 1 = 1 in logic.</p>`,
+      ]},
+      { k: "play", title: "Fill the truth tables", b: [
+        (host) => {
+          const ro = el(`<div></div>`);
+          const fns = [["X·Y", (x, y) => x & y], ["X + Y", (x, y) => x | y], [`X·${nb("Y")}`, (x, y) => x & (1 - y)], [`${nb("X")} + Y`, (x, y) => (1 - x) | y]];
+          let k = 0;
+          function draw() {
+            const [lab, f] = fns[k];
+            ro.innerHTML = `<div class="tbl"><table><thead><tr><th>X</th><th>Y</th><th>${lab}</th></tr></thead><tbody>${[[0, 0], [0, 1], [1, 0], [1, 1]].map(([x, y]) => `<tr><td class="mono">${x}</td><td class="mono">${y}</td><td class="mono"><b>${f(x, y)}</b></td></tr>`).join("")}</tbody></table></div>`;
+          }
+          host.append(toggle(fns.map((x) => x[0]), (i) => { k = i; draw(); }), ro);
+          draw();
+        },
+        `<p class="aside">With n inputs, a truth table has 2ⁿ rows. Two inputs → 4 rows. Four inputs → 16.</p>`,
+      ]},
+      { k: "check", title: "From words to logic", b: [
+        `<p>A garage alarm sounds (A = 1) when the door is open (D = 1) <b>and</b> it's night (N = 1), <b>or</b> whenever the motion sensor fires (M = 1).</p>`,
+        { t: "mcq", q: "Which expression?", opts: [
+          ["A = D·N + M", true, "AND the first two conditions, then OR with M."],
+          ["A = D + N·M", false, "That sounds the alarm whenever the door is open, day or night."],
+          ["A = D·N·M", false, "That needs all three at once."],
+        ]},
+        { t: "num", q: "Door open, daytime, no motion: A = ?", a: 0, hint: "D = 1, N = 0, M = 0.", why: "1·0 + 0 = 0." },
+      ]},
+      { k: "check", title: "A NOT in the mix", b: [
+        `<p>A porch light L turns on when the motion signal M is high and it is <b>not</b> daytime (D = 1 in daytime).</p>`,
+        { t: "mcq", q: "Which expression?", opts: [
+          [`L = M·${nb("D")}`, true, "M AND (NOT D)."],
+          ["L = M·D", false, "That lights it only in daytime."],
+          [`L = ${nb("M·D")}`, false, "That's NOT(M AND D): on almost all the time."],
+        ]},
+      ]},
+      { k: "check", title: "Count the rows", b: [
+        { t: "num", q: "How many rows does a truth table for a 5-input function have?", a: 32, hint: "2ⁿ.", why: "2⁵ = 32 rows." },
+        { t: "num", q: "In the table for A·B + C + D (4 inputs), how many rows have output 1 when C = 1?", a: 8, hint: "If C = 1, OR makes the output 1 regardless of A, B, D. How many combinations of A, B, D are there?", why: "2³ = 8 rows." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why does a truth table completely describe a logic function?", model: "A logic function's output depends only on its inputs, and each input is just 0 or 1. So there are finitely many input combinations, and listing the output for every one of them leaves nothing unspecified." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 5 =============== */
+  const p5 = {
+    id: "p5", title: "Combinational gates", mins: 20,
+    blurb: "Logic as circuit symbols you can wire together.",
+    takeaway: "A combinational gate is an abstraction: its outputs depend only on its present inputs, and it obeys the static discipline. Wire gates together to build any truth table.",
+    steps: [
+      { k: "learn", title: "The gate zoo", b: [
+        fig(S.svg(460, 190, [["and", "AND", 30, 40], ["or", "OR", 180, 40], ["not", "NOT", 330, 40], ["nand", "NAND", 30, 140], ["nor", "NOR", 180, 140], ["buf", "BUFFER", 330, 140]].map(([k, n, x, y]) => S.wire([x - 15, k === "not" || k === "buf" ? y : y - 10], [x + 4, k === "not" || k === "buf" ? y : y - 10]) + (k === "not" || k === "buf" ? "" : S.wire([x - 15, y + 10], [x + 4, y + 10])) + S.gate(k, x, y) + S.wire([S.gateOut(k, x), y], [S.gateOut(k, x) + 15, y]) + S.t(x + 25, y + 38, n, { cls: "s" })).join(""), { max: 460, label: "Symbols for AND, OR, NOT, NAND, NOR and buffer gates" })),
+        `<p>The bubble means NOT. NAND = NOT(AND). NOR = NOT(OR). A buffer copies its input (useful for restoring a weak signal, Chapter 6).</p>`,
+      ]},
+      { k: "learn", title: "What makes something a 'gate'", b: [
+        `<div class="key">A <b>combinational gate</b>: (1) its outputs are a function of its present inputs alone, and (2) it obeys the static discipline.</div>`,
+        `<p>Underneath, it's built from switches, resistors and sources (Chapter 6). The abstraction lets you ignore all of that and think in 1s and 0s.</p>`,
+      ]},
+      { k: "play", title: "Wire a little circuit", b: [
+        `<p>Y = A·B + ${nb("C")}. Tap the inputs. Orange wires carry a 1.</p>`,
+        (host) => {
+          const f = el(`<div class="fig"></div>`);
+          const st = [1, 0, 1];
+          function draw() { f.innerHTML = gateFig(st[0], st[1], st[2]); }
+          const row = el(`<div class="row bits"></div>`);
+          ["A", "B", "C"].forEach((n, k) => {
+            const b = el(`<button type="button" class="btn small" aria-pressed="${!!st[k]}">${n}</button>`);
+            b.addEventListener("click", () => { st[k] ^= 1; b.setAttribute("aria-pressed", String(!!st[k])); draw(); });
+            row.appendChild(b);
+          });
+          host.append(row, f);
+          draw();
+        },
+        { t: "num", q: "For how many of the 8 input combinations is Y = 1? (Try them, or reason it out.)", a: 5, hint: "Y = 1 whenever C = 0 (4 cases), plus when A = B = 1 with C = 1.", why: "4 (C = 0) + 1 (A = B = 1, C = 1) = 5." },
+      ]},
+      { k: "check", title: "Read a gate circuit", b: [
+        fig(S.svg(420, 150, S.wire([30, 40], [104, 40]) + S.wire([30, 60], [104, 60]) + S.gate("nor", 100, 50) + S.wire([165, 50], [200, 50], [200, 80], [224, 80]) + S.wire([30, 110], [200, 110], [200, 100], [224, 100]) + S.gate("and", 220, 90) + S.wire([265, 90], [300, 90]) +
+          S.t(24, 45, "A", { a: "end" }) + S.t(24, 65, "B", { a: "end" }) + S.t(24, 115, "C", { a: "end" }) + S.t(306, 95, "Z", { a: "start", cls: "big" }), { max: 420, label: "A NOR B feeding an AND gate with C" })),
+        { t: "mcq", q: "What is Z?", opts: [
+          [`Z = ${nb("A + B")}·C`, true, "NOR gives NOT(A + B). That's ANDed with C."],
+          ["Z = (A + B)·C", false, "Look at the bubble on the first gate."],
+          [`Z = ${nb("A")} + ${nb("B")} + C`, false, "The second gate is an AND."],
+        ]},
+        { t: "num", q: "A = 0, B = 0, C = 1. Z = ?", a: 1, why: "NOR(0,0) = 1, and 1·1 = 1." },
+      ]},
+      { k: "why", title: "Noisy in, clean out", b: [
+        { t: "mcq", q: "The book shows noisy input waveforms going into a gate, and a clean output coming out. Why is the output clean?", opts: [
+          ["As long as the noisy inputs stay valid (below V_IL or above V_IH), the static discipline forces the gate to output a valid, firm level", true, "Each gate re-creates proper levels, so noise doesn't pile up from stage to stage. That's a big reason digital systems scale."],
+          ["Gates filter out high frequencies", false, "The abstraction says nothing about filtering. It's about valid levels."],
+          ["The noise cancels between the two inputs", false, "Noise on different inputs is unrelated."],
+        ]},
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "What two promises does the combinational gate abstraction make?", model: "Its output depends only on its current inputs, so it can be described by a truth table, and it obeys the static discipline: valid inputs produce valid outputs." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 6 =============== */
+  const p6 = {
+    id: "p6", title: "Sum of products and simplification", mins: 25,
+    blurb: "Turn any truth table into an expression, then shrink it.",
+    takeaway: "Any truth table → sum of products: one AND term per row with output 1, all ORed. Then simplify with the rules (A·Ā = 0, A + ĀB = A + B, De Morgan) to use fewer gates.",
+    steps: [
+      { k: "learn", title: "Truth table → expression", b: [
+        `<p>For each row with output 1, write an AND term containing every input: plain if it's 1 in that row, barred if it's 0. Then OR the terms.</p>`,
+        `<div class="tbl"><table><thead><tr><th>A</th><th>B</th><th>Y</th><th>term</th></tr></thead><tbody>
+          <tr><td>0</td><td>0</td><td>0</td><td></td></tr><tr><td>0</td><td>1</td><td><b>1</b></td><td class="mono">${nb("A")}B</td></tr>
+          <tr><td>1</td><td>0</td><td><b>1</b></td><td class="mono">A${nb("B")}</td></tr><tr><td>1</td><td>1</td><td>0</td><td></td></tr></tbody></table></div>`,
+        `<div class="eq">Y = ${nb("A")}B + A${nb("B")}</div>`,
+        `<p>This is the <b>sum-of-products</b> form: ANDs (products) ORed together (sum). Every truth table has one.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        `<div class="tbl"><table><thead><tr><th>A</th><th>B</th><th>Y</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td></tr></tbody></table></div>`,
+        { t: "mcq", q: "Sum of products for this table?", opts: [
+          [`Y = ${nb("A")}${nb("B")} + AB`, true, "Row 00 gives ĀB̄, row 11 gives AB. Y is 1 when A equals B."],
+          ["Y = A + B", false, "That's 1 for rows 01 and 10, where this table has 0."],
+          [`Y = ${nb("A")}B + A${nb("B")}`, false, "Those are the rows where Y = 0."],
+        ]},
+      ]},
+      { k: "learn", title: "The rules", b: [
+        `<div class="tbl"><table><tbody>
+          <tr><td class="mono">A·${nb("A")} = 0</td><td class="mono">A + ${nb("A")} = 1</td></tr>
+          <tr><td class="mono">A·A = A</td><td class="mono">A + A = A</td></tr>
+          <tr><td class="mono">A·0 = 0, A·1 = A</td><td class="mono">A + 0 = A, A + 1 = 1</td></tr>
+          <tr><td class="mono">A + ${nb("A")}B = A + B</td><td class="mono">A(B + C) = AB + AC</td></tr>
+          <tr><td colspan="2">Order and grouping don't matter: AB = BA, A + B = B + A.</td></tr></tbody></table></div>`,
+        `<p>Not sure a rule is true? Check it with a truth table. That always works.</p>`,
+      ]},
+      { k: "check", title: "Simplify", b: [
+        { t: "mcq", q: `Simplify A·${nb("A")} + B.`, opts: [["B", true, "A·Ā = 0, and 0 + B = B. One wire, no gates!"], ["A + B", false, "A·Ā is never 1."], ["1", false, "Only when B = 1."]] },
+        { t: "mcq", q: `Simplify ABC + AB${nb("C")}.`, opts: [["AB", true, "Factor: AB(C + C̄) = AB·1 = AB."], ["ABC", false, "The second term covers C = 0 too."], ["A + B", false, "Both terms need A and B."]] },
+        { t: "mcq", q: `Simplify ${nb("A")}${nb("B")} + ${nb("A")}B + AB.`, opts: [[`${nb("A")} + B`, true, "ĀB̄ + ĀB = Ā(B̄ + B) = Ā. Then Ā + AB = Ā + B (rule A + ĀB = A + B, with roles swapped)."], ["1", false, "Row A = 1, B = 0 gives 0."], ["B", false, "Row 00 gives 1."]] },
+      ]},
+      { k: "learn", title: "De Morgan's laws", b: [
+        `<div class="eq">${nb("A·B")} = ${nb("A")} + ${nb("B")}   ${nb("A + B")} = ${nb("A")}·${nb("B")}</div>`,
+        `<p>"Break the bar, flip the operator." So a NAND is the same as an OR with inverted inputs, and a NOR is an AND with inverted inputs.</p>`,
+        `<div class="tbl"><table><thead><tr><th>A</th><th>B</th><th>${nb("A·B")}</th><th>${nb("A")} + ${nb("B")}</th></tr></thead><tbody>
+          <tr><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td></tr></tbody></table></div>`,
+      ]},
+      { k: "check", title: "Build with one gate type", b: [
+        `<p>Some technologies make one gate type cheaply. With only 2-input NOR gates:</p>`,
+        { t: "mcq", q: "How do you make NOT A from a NOR?", opts: [["Feed A into both inputs: NOT(A + A) = Ā", true, "A + A = A, so the NOR outputs Ā."], ["Feed A and 1", false, "NOT(A + 1) = NOT 1 = 0 always."], ["You can't", false, "Tie the inputs together."]] },
+        { t: "num", q: "How many NOR gates make an OR gate A + B?", a: 2, hint: "NOR then invert. Inverting costs one NOR.", why: "NOR(A,B) gives NOT(A + B). A second NOR, with both inputs tied, inverts it back: A + B." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why bother simplifying a logic expression?", model: "A simpler expression with the same truth table needs fewer gates. That means less area, less power and fewer delays, but exactly the same behavior." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 7 =============== */
+  const p7 = {
+    id: "p7", title: "Numbers in binary, and an adder", mins: 25,
+    blurb: "Many bits make a number. Gates can add them.",
+    takeaway: "Bit k is worth 2ᵏ. Binary adds column by column with carries, like decimal. A one-bit full adder (A, B, carry in → sum, carry out) chained n times adds n-bit numbers: a ripple-carry adder.",
+    steps: [
+      { k: "learn", title: "Place values", b: [
+        `<p>Decimal 352 = 3·10² + 5·10¹ + 2·10⁰. Binary works the same with 2 instead of 10:</p>`,
+        `<div class="eq">1011₂ = 1·8 + 0·4 + 1·2 + 1·1 = 11</div>`,
+        `<p>Each bit travels on its own wire (0 V = 0, 5 V = 1).</p>`,
+      ]},
+      { k: "play", title: "Flip the bits", b: [
+        (host) => {
+          const ro = el(`<div></div>`), row = el(`<div class="row bits"></div>`);
+          const b = [0, 0, 0, 1, 0, 1, 1, 0];
+          let signed = 0;
+          function draw() {
+            const mag = b.slice(signed ? 1 : 0).reduce((t, x) => t * 2 + x, 0), val = signed && b[0] ? -mag : mag;
+            ro.innerHTML = readout([["bits", b.join("")], [signed ? "sign-bit value" : "unsigned value", String(val)], ["wire voltages", b.map((x) => (x ? "5" : "0")).join(" ")]]);
+          }
+          b.forEach((_, k) => {
+            const btn = el(`<button type="button" class="btn small" aria-pressed="${!!b[k]}">${b[k]}</button>`);
+            btn.addEventListener("click", () => { b[k] ^= 1; btn.textContent = b[k]; btn.setAttribute("aria-pressed", String(!!b[k])); draw(); });
+            row.appendChild(btn);
+          });
+          host.append(toggle(["Unsigned", "Leftmost bit = sign"], (k) => { signed = k; draw(); }), row, ro);
+          draw();
+        },
+        `<p class="aside">Leftmost button = highest bit. In "sign" mode the leftmost bit means negative, and the other 7 give the size.</p>`,
+      ]},
+      { k: "check", title: "Convert", b: [
+        { t: "num", q: "1101₂ = ? (decimal)", a: 13, hint: "8 + 4 + 0 + 1.", why: "13." },
+        { t: "num", q: "Largest number 6 unsigned bits can hold?", a: 63, hint: "All ones: 32 + 16 + 8 + 4 + 2 + 1.", why: "2⁶ − 1 = 63." },
+        { t: "num", q: "Using the leftmost bit as a sign bit, what is 10000110?", a: -6, hint: "Sign 1 = negative. The remaining 0000110 = ?", why: "−6." },
+      ]},
+      { k: "learn", title: "Binary addition", b: [
+        `<p>Just like decimal: add a column, write the sum digit, carry to the next column. In binary, 1 + 1 = 10₂ (write 0, carry 1).</p>`,
+        `<div class="eq">  0110 (6)<br>+ 0111 (7)<br>= 1101 (13)</div>`,
+        { t: "num", q: "0101 + 0011 = ? (give the decimal value)", a: 8, why: "5 + 3 = 8 = 1000₂. Every column carried." },
+      ]},
+      { k: "learn", title: "The full adder", b: [
+        `<p>One column needs three inputs (A<sub>i</sub>, B<sub>i</sub>, carry in C<sub>i</sub>) and two outputs (sum S<sub>i</sub>, carry out C<sub>i+1</sub>).</p>`,
+        `<div class="tbl"><table><thead><tr><th>A</th><th>B</th><th>C<sub>in</sub></th><th>C<sub>out</sub></th><th>S</th></tr></thead><tbody>
+          ${[[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]].map(([a, b, c]) => `<tr><td>${a}</td><td>${b}</td><td>${c}</td><td><b>${a + b + c >= 2 ? 1 : 0}</b></td><td><b>${(a + b + c) % 2}</b></td></tr>`).join("")}</tbody></table></div>`,
+        `<p class="aside">S is 1 when an odd number of inputs are 1. C<sub>out</sub> is 1 when at least two are. Sum of products turns each column into gates.</p>`,
+      ]},
+      { k: "play", title: "A 4-bit ripple-carry adder", b: [
+        `<p>Four full adders in a chain. Each carry out feeds the next column's carry in (the first carry in is 0).</p>`,
+        (host) => {
+          const ro = el(`<div></div>`);
+          const A = [0, 1, 1, 0], B = [0, 1, 1, 1];
+          function draw() {
+            const c = [0]; const s = [];
+            for (let k = 3; k >= 0; k--) { const t = A[k] + B[k] + c[0]; s.unshift(t % 2); c.unshift(t >= 2 ? 1 : 0); }
+            const val = (x) => x.reduce((t, v) => t * 2 + v, 0);
+            ro.innerHTML = `<div class="tbl"><table><tbody>
+              <tr><td>carries</td>${c.slice(0, 4).map((x) => `<td class="mono" style="color:var(--cool)">${x}</td>`).join("")}<td></td></tr>
+              <tr><td>A = ${val(A)}</td><td></td>${A.map((x) => `<td class="mono">${x}</td>`).join("")}</tr>
+              <tr><td>B = ${val(B)}</td><td></td>${B.map((x) => `<td class="mono">${x}</td>`).join("")}</tr>
+              <tr><td><b>S = ${val([c[0], ...s])}</b></td><td class="mono"><b>${c[0]}</b></td>${s.map((x) => `<td class="mono"><b>${x}</b></td>`).join("")}</tr></tbody></table></div>`;
+          }
+          const mk = (arr, name) => { const r = el(`<div class="row bits"><span class="mono" style="min-width:24px">${name}</span></div>`); arr.forEach((_, k) => { const b = el(`<button type="button" class="btn small" aria-pressed="${!!arr[k]}">${arr[k]}</button>`); b.addEventListener("click", () => { arr[k] ^= 1; b.textContent = arr[k]; b.setAttribute("aria-pressed", String(!!arr[k])); draw(); }); r.appendChild(b); }); return r; };
+          host.append(mk(A, "A"), mk(B, "B"), ro);
+          draw();
+        },
+        { t: "mcq", q: "Why is it called 'ripple' carry?", opts: [["The top column can't settle until the carry has passed through every column below it, one after another", true, "Divide-and-conquer made it easy to build, but the carry's trip through every stage costs time. Speed of logic returns in Chapter 10."], ["The output wiggles", false, "The name is about the carry travelling through the chain."], ["It uses ripple current", false, "It's about the carry signal."]] },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "How do you build an 8-bit adder from one-bit full adders?", model: "Line up eight full adders, one per bit column. Feed bit k of each number into adder k, connect each adder's carry out to the next higher adder's carry in, and set the lowest carry in to 0. The sum bits come out of each adder, and the last carry out is the extra top bit." },
+      ]},
+    ],
+  };
+
+  window.CHAPTER = {
+    id: "ch5", eyebrow: "Chapter 5", title: "The Digital Abstraction",
+    intro: `<p>Seven parts. A big shift: from voltages to 1s and 0s. Why digital beats noise, the <b>static discipline</b> that makes chips compatible, then <b>logic</b>, <b>gates</b>, and building an <b>adder</b>.</p><p class="aside">Arrow keys ← → move between steps. Need a refresher? <a href="04-nonlinear-circuits.html">Chapter 4</a>.</p>`,
+    after: `<p>Open the Chapter 5 PDF and go to the <b>exercises and problems</b> at the end. When you check a logic answer, a quick truth table is your friend.</p><p>Stuck? Tell Claude which problem and what you've tried. You'll get a guiding question, not the answer.</p>`,
+    parts: [p1, p2, p3, p4, p5, p6, p7],
+    summary: `
+      <h3>Digital abstraction</h3>
+      <p>Value discretization: ranges of voltage map to symbols 0 and 1. Noise smaller than the margin is ignored. Price: precision, so use many bits.</p>
+      <h3>Static discipline</h3>
+      <div class="tbl"><table><tbody>
+        <tr><td class="mono">V_OL</td><td>highest output for a 0</td></tr><tr><td class="mono">V_OH</td><td>lowest output for a 1</td></tr>
+        <tr><td class="mono">V_IL</td><td>highest input read as 0</td></tr><tr><td class="mono">V_IH</td><td>lowest input read as 1</td></tr></tbody></table></div>
+      <div class="eq">NM₀ = V_IL − V_OL · NM₁ = V_OH − V_IH</div>
+      <p>Valid inputs → valid outputs. Between V<sub>IL</sub> and V<sub>IH</sub>: forbidden. Senders strict, receivers tolerant. Shared ground required.</p>
+      <h3>Boolean logic</h3>
+      <p>AND (·), OR (+), NOT (bar). NAND, NOR, buffer. Truth table has 2ⁿ rows.</p>
+      <h3>Gates</h3><p>Combinational gate: output depends only on present inputs, obeys the static discipline.</p>
+      <h3>Sum of products and simplification</h3>
+      <p>One AND term per output-1 row, ORed. Rules: A·Ā = 0, A + Ā = 1, A·1 = A, A + 1 = 1, A + ĀB = A + B, A(B + C) = AB + AC.</p>
+      <div class="eq">De Morgan: NOT(A·B) = Ā + B̄ · NOT(A + B) = Ā·B̄</div>
+      <p>NOT from NOR: tie the inputs. Any function can be built from NORs (or NANDs) alone.</p>
+      <h3>Binary numbers</h3>
+      <div class="eq">Aₙ…A₁A₀ = Σ Aᵢ·2ⁱ</div>
+      <p>Sign bit option: leftmost bit 1 = negative. Full adder: S = 1 for an odd number of 1s, C<sub>out</sub> = 1 for two or more. Chain n full adders → n-bit ripple-carry adder.</p>`,
+  };
+  Course.start(window.CHAPTER);
+})();
+</script>
+</body>
+</html>

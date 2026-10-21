@@ -1,0 +1,2251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boylestad Ch 9 · BJT and JFET Frequency Response</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: a chapter map (hub) that opens one part at a time; each part is a rail of single-card steps on graph paper. */
+:root {
+  --paper: #eaf0f4;
+  --grid: rgba(40, 90, 140, 0.08);
+  --card: #ffffff;
+  --ink: #142238;
+  --muted: #56677d;
+  --line: #d2dce6;
+  --accent: #e39a0b;
+  --accent-soft: #fdf1d8;
+  --accent-ink: #7a4d00;
+  --cool: #2b67a3;
+  --cool-soft: #e1ecf7;
+  --good: #1d8656;
+  --good-soft: #def4e9;
+  --bad: #c2412a;
+  --bad-soft: #fbe5e0;
+  --on-accent: #1b1300;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1520; --grid: rgba(120, 170, 220, 0.07); --card: #16212f; --ink: #e5edf6; --muted: #98a8bc;
+    --line: #2a3a4e; --accent: #f3b53c; --accent-soft: #3a2d10; --accent-ink: #f8d68f; --cool: #7db3ea;
+    --cool-soft: #15283d; --good: #43c88d; --good-soft: #123426; --bad: #f2735a; --bad-soft: #3d1c16;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1520; --grid: rgba(120, 170, 220, 0.07); --card: #16212f; --ink: #e5edf6; --muted: #98a8bc;
+  --line: #2a3a4e; --accent: #f3b53c; --accent-soft: #3a2d10; --accent-ink: #f8d68f; --cool: #7db3ea;
+  --cool-soft: #15283d; --good: #43c88d; --good-soft: #123426; --bad: #f2735a; --bad-soft: #3d1c16;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 700px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 56px;
+  display: grid; gap: 16px;
+}
+header.top { display: grid; gap: 10px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.eyebrow button { font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--cool); background: none; border: 0; padding: 0; cursor: pointer; }
+.eyebrow a.book-link { color: var(--cool); text-decoration: none; }
+.eyebrow a.book-link:hover, .eyebrow a.book-link:focus-visible { text-decoration: underline; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(28px, 6.5vw, 40px); line-height: 1.05; margin: 0; text-wrap: balance; }
+.rail { display: flex; gap: 5px; align-items: center; }
+.rail button { flex: 1; height: 8px; border-radius: 4px; border: 0; padding: 0; cursor: pointer; background: var(--line); }
+.rail button.done { background: var(--accent); opacity: 0.5; }
+.rail button.now { background: var(--accent); }
+.rail button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.where { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.where b { color: var(--ink); }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px; display: grid; gap: 16px; min-width: 0; }
+.card > * { min-width: 0; }
+.card h2 { font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1.18; margin: 0; text-wrap: balance; }
+.card h3 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 0; }
+.card p { margin: 0; max-width: 62ch; }
+.card ul, .card ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.tag { justify-self: start; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--ink); }
+.k-predict, .k-play { background: var(--accent-soft); color: var(--accent-ink); }
+.k-why, .k-math { background: var(--cool-soft); color: var(--cool); }
+.k-bug { background: var(--bad-soft); color: var(--bad); }
+.k-whatif, .k-check { background: var(--good-soft); color: var(--good); }
+.k-say { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+
+.mono, code { font-family: var(--mono); font-weight: 700; font-size: 0.92em; }
+.eq { font-family: var(--mono); font-weight: 700; font-size: clamp(20px, 5.4vw, 28px); text-align: center; padding: 8px 0; overflow-x: auto; }
+.eq .a { color: var(--accent); }
+.key { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 10px 10px 0; }
+.key b { color: var(--accent-ink); }
+.aside { font-size: 15px; color: var(--muted); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.two > * { min-width: 0; }
+.tile { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.tile h3 { font-size: 17px; }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; font-size: 16px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+.tbl th { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* controls */
+.btn { font: inherit; font-size: 16px; padding: 10px 16px; border-radius: 10px; cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+.btn.ghost { background: transparent; }
+.btn.small { font-size: 14px; padding: 6px 12px; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); font-weight: 700; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:focus-visible, input:focus-visible, textarea:focus-visible, .hit:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.choices { display: grid; gap: 8px; }
+.choice { text-align: left; width: 100%; }
+.choice.right { border-color: var(--good); background: var(--good-soft); }
+.choice.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.q { display: grid; gap: 10px; }
+.qq { font-weight: 700; }
+.feedback { border-radius: 10px; padding: 12px 14px; font-size: 16px; background: var(--paper); border: 1px solid var(--line); }
+.feedback.ok { background: var(--good-soft); border-color: var(--good); }
+.feedback.no { background: var(--bad-soft); border-color: var(--bad); }
+.num { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.num input { font: inherit; font-family: var(--mono); font-size: 19px; width: 8em; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+textarea { font: inherit; font-size: 17px; width: 100%; min-height: 96px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); resize: vertical; }
+select { font: inherit; font-family: var(--mono); font-size: 15px; max-width: 100%; padding: 8px 10px; margin: 4px 0 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+.model { border: 2px dashed var(--good); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; }
+.model .lbl { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--good); }
+.sort { display: grid; gap: 8px; }
+.sort-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.sort-item > span { min-width: 0; }
+.sort-item.right { border-color: var(--good); background: var(--good-soft); }
+.sort-item.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.sort-item .why { grid-column: 1 / -1; font-size: 15px; }
+@media (max-width: 480px) { .sort-item { grid-template-columns: 1fr; } }
+
+/* sliders + readouts */
+.sliders { display: grid; gap: 10px; }
+.sl { display: grid; gap: 2px; }
+.sl label { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; color: var(--muted); }
+.sl output { font-family: var(--mono); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.sl input[type="range"] { width: 100%; accent-color: var(--accent); }
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.readout > div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; background: var(--paper); min-width: 0; }
+.readout span { display: block; font-size: 13px; color: var(--muted); }
+.readout b { font-family: var(--mono); font-size: 19px; font-variant-numeric: tabular-nums; }
+.verdict { justify-self: start; font-weight: 700; font-size: 15px; padding: 4px 14px; border-radius: 999px; }
+.verdict.ok { background: var(--good-soft); color: var(--good); }
+.verdict.mid { background: var(--accent-soft); color: var(--accent-ink); }
+.verdict.no { background: var(--bad-soft); color: var(--bad); }
+
+/* schematics + plots */
+.fig { overflow-x: auto; }
+.sch, .plot { width: 100%; height: auto; display: block; margin: 0 auto; }
+.sch .w { stroke: var(--ink); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.sch .w.hl { stroke: var(--accent); stroke-width: 3.5; }
+.sch .w.dim { stroke: var(--line); }
+.sch .el { fill: var(--card); stroke: var(--ink); stroke-width: 2.5; }
+.sch .el.hl { stroke: var(--accent); stroke-width: 3.5; }
+.sch .nd { fill: var(--ink); }
+.sch text { fill: var(--ink); font-family: var(--mono); font-size: 14px; }
+.sch text.s { font-size: 12px; }
+.sch text.big { font-size: 18px; font-weight: 700; }
+.sch .m { fill: var(--muted); }
+.sch .a { fill: var(--accent-ink); }
+.sch .c { fill: var(--cool); }
+.sch .g { fill: var(--good); }
+.sch .b { fill: var(--bad); }
+.sch .cur { stroke: var(--cool); stroke-width: 2.2; fill: none; }
+.sch .curh { fill: var(--cool); }
+.sch .flow { stroke: var(--accent); stroke-width: 4; fill: none; stroke-dasharray: 3 13; stroke-linecap: round; animation: flow var(--dur, 1s) linear infinite; }
+.sch .zone { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.sch .box { fill: var(--paper); stroke: var(--ink); stroke-width: 2.5; }
+.sch .hit { cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 18; }
+@keyframes flow { to { stroke-dashoffset: -16; } }
+.plot .grid { stroke: var(--line); stroke-width: 1; }
+.plot .axis { stroke: var(--muted); stroke-width: 1.5; }
+.plot text { fill: var(--muted); font-family: var(--mono); font-size: 12px; }
+.plot text.lab { fill: var(--ink); font-size: 13px; font-weight: 700; }
+.plot .s1 { stroke: var(--accent); stroke-width: 3; fill: none; }
+.plot .s2 { stroke: var(--cool); stroke-width: 3; fill: none; }
+.plot .s3 { stroke: var(--good); stroke-width: 3; fill: none; }
+.plot .s4 { stroke: var(--bad); stroke-width: 2; fill: none; stroke-dasharray: 6 5; }
+.plot .s5 { stroke: var(--muted); stroke-width: 2; fill: none; stroke-dasharray: 4 4; }
+.plot .ar1 { fill: var(--accent); opacity: 0.22; }
+.plot .ar2 { fill: var(--cool); opacity: 0.18; }
+.plot .ar3 { fill: var(--good); opacity: 0.16; }
+.plot .mk { fill: var(--accent); stroke: var(--card); stroke-width: 2; }
+.plot .mk2 { fill: var(--cool); stroke: var(--card); stroke-width: 2; }
+.plot .mkb { fill: var(--bad); stroke: var(--card); stroke-width: 2; }
+
+/* hub */
+.parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.part-btn { width: 100%; text-align: left; display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.part-btn:hover { border-color: var(--ink); }
+.part-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.part-btn > span { min-width: 0; }
+.part-n { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; border: 2px solid var(--line); }
+.part-btn.done .part-n { background: var(--good); border-color: var(--good); color: var(--card); }
+.part-btn.next .part-n { border-color: var(--accent); color: var(--accent-ink); }
+.part-t { font-weight: 700; display: block; }
+.part-d { font-size: 15px; color: var(--muted); display: block; }
+.part-m { font-family: var(--mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+.after { border: 2px solid var(--ink); border-radius: 14px; padding: 16px 18px; display: grid; gap: 8px; background: var(--card); }
+
+nav.bottom { display: flex; justify-content: space-between; gap: 8px; }
+nav.bottom .btn { min-width: 120px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+.ov { text-decoration: overline; }
+.bits { display: flex; flex-wrap: wrap; gap: 6px; }
+.bits .btn { min-width: 44px; font-family: var(--mono); font-weight: 700; }
+
+/* code (HDL and assembly listings) */
+pre.code { font-family: var(--mono); font-size: 14px; line-height: 1.5; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 0; overflow-x: auto; white-space: pre; color: var(--ink); }
+pre.code .kw { color: var(--accent-ink); font-weight: 700; }
+pre.code .cm { color: var(--muted); font-style: italic; }
+pre.code .nm { color: var(--cool); }
+pre.code .hl { background: var(--accent-soft); border-radius: 4px; }
+code { font-family: var(--mono); font-size: .92em; background: var(--paper); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+window.BOOK_KEY = "edc";
+</script>
+<script>
+/* 6.002's table of contents. One entry per chapter of Agarwal & Lang.
+   `file` is set once a chapter's tutorial is built; `parts` must match that chapter's part count.
+   `pdf` is the page range in the per-chapter PDF file names; `probs` is the page of that file where the exercises start. */
+(window.BOOKS = window.BOOKS || {})["6002"] = {
+  key: "6002", short: "6.002", home: "6002.html", dir: "chapters",
+  title: "6.002 Circuit Tutorials",
+  pdfFolder: "book by chapters",
+  source: "Agarwal & Lang, Foundations of Analog and Digital Electronic Circuits (2005)",
+  pdfPrefix: "Agarwal - Foundations of Analog and Digital Electronic Circuits Elsevier 2005b-",
+  answers: { pdf: "984-995", label: "Answers to selected problems" },
+  groups: [
+    {
+      name: "Resistive circuits",
+      note: "Wires, resistors, sources, and the methods for solving any resistive network.",
+      items: [
+        { n: 1, id: "ch1", title: "The Circuit Abstraction", pdf: "26-75", probs: 48, file: "01-circuit-abstraction.html", parts: 7,
+          blurb: "Lumping, voltage and current, power, resistors, ideal elements, signals." },
+        { n: 2, id: "ch2", title: "Resistive Networks", pdf: "76-141", probs: 59, file: "02-resistive-networks.html", parts: 9,
+          blurb: "KCL, KVL, dividers, collapsing networks, dependent sources." },
+        { n: 3, id: "ch3", title: "Network Theorems", pdf: "142-215", probs: 62, file: "03-network-theorems.html", parts: 9,
+          blurb: "Node method, superposition, Thévenin and Norton." },
+        { n: 4, id: "ch4", title: "Analysis of Nonlinear Circuits", pdf: "216-266", probs: 40, file: "04-nonlinear-circuits.html", parts: 8,
+          blurb: "Graphical, piecewise-linear and incremental analysis." }
+      ]
+    },
+    {
+      name: "Digital logic and the MOSFET",
+      note: "From noise margins to switches, gates and amplifiers.",
+      items: [
+        { n: 5, id: "ch5", title: "The Digital Abstraction", pdf: "267-307", probs: 33, file: "05-digital-abstraction.html", parts: 7,
+          blurb: "Value discretization, noise margins, logic gates." },
+        { n: 6, id: "ch6", title: "The MOSFET Switch", pdf: "308-354", probs: 40, file: "06-mosfet-switch.html", parts: 8,
+          blurb: "S and SR models, gates built from switches, power in gates." },
+        { n: 7, id: "ch7", title: "The MOSFET Amplifier", pdf: "355-427", probs: 61, file: "07-mosfet-amplifier.html", parts: 9,
+          blurb: "Gain, the switch-current-source model, choosing an operating point." },
+        { n: 8, id: "ch8", title: "The Small-Signal Model", pdf: "428-479", probs: 45, file: "08-small-signal-model.html", parts: 7,
+          blurb: "Linearizing the amplifier around an operating point." }
+      ]
+    },
+    {
+      name: "Energy storage and time",
+      note: "Capacitors and inductors make circuits remember, so voltages change over time.",
+      items: [
+        { n: 9, id: "ch9", title: "Energy Storage Elements", pdf: "480-525", probs: 40, file: "09-energy-storage.html", parts: 7,
+          blurb: "Capacitors, inductors, and conservation of charge and flux." },
+        { n: 10, id: "ch10", title: "First-Order Transients in Linear Electrical Networks", pdf: "526-617", probs: 69, file: "10-first-order-transients.html", parts: 9,
+          blurb: "RC and RL circuits, propagation delay, state, digital memory." },
+        { n: 11, id: "ch11", title: "Energy and Power in Digital Circuits", pdf: "618-647", probs: 26, file: "11-energy-power-digital.html", parts: 6,
+          blurb: "Average power, NMOS and CMOS logic." },
+        { n: 12, id: "ch12", title: "Transients in Second-Order Circuits", pdf: "648-725", probs: 71, file: "12-second-order-transients.html", parts: 8,
+          blurb: "LC and RLC circuits, damping, state-space analysis." }
+      ]
+    },
+    {
+      name: "Frequency, op amps and diodes",
+      note: "Sinusoidal steady state, resonance, and two key devices.",
+      items: [
+        { n: 13, id: "ch13", title: "Sinusoidal Steady State: Impedance and Frequency Response", pdf: "726-799", probs: 67, file: "13-sinusoidal-steady-state.html", parts: 9,
+          blurb: "Impedance, frequency response, filters." },
+        { n: 14, id: "ch14", title: "Sinusoidal Steady State: Resonance", pdf: "800-859", probs: 49, file: "14-resonance.html", parts: 7,
+          blurb: "RLC frequency response, Q, Bode plots, stored energy." },
+        { n: 15, id: "ch15", title: "The Operational Amplifier Abstraction", pdf: "860-927", probs: 39, file: "15-op-amp.html", parts: 9,
+          blurb: "Ideal op amps, feedback, saturation, op amp RC circuits." },
+        { n: 16, id: "ch16", title: "Diodes", pdf: "928-949", probs: 18, file: "16-diodes.html", parts: 6,
+          blurb: "Diode characteristics and nonlinear analysis with RL and RC." }
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Math and physics background, each as a short interactive page. Use them whenever a chapter leans on the math.",
+      items: [
+        { n: "A", id: "appA", title: "Maxwell's Equations and the Lumped Matter Discipline", pdf: "950-965", file: "appA-lumped-matter.html", parts: 4,
+          blurb: "Why voltage and current make sense, and where KVL, KCL and R = ρl/a come from. Background for Chapter 1." },
+        { n: "B", id: "appB", title: "Trigonometric Functions and Identities", pdf: "966-969", file: "appB-trig.html", parts: 3,
+          blurb: "The unit circle, the identities circuits use, Taylor series and Euler. A refresher for Chapters 12–14." },
+        { n: "C", id: "appC", title: "Complex Numbers", pdf: "970-983", file: "appC-complex-numbers.html", parts: 5,
+          blurb: "Polar form, arithmetic, the conjugate and rotation. The toolkit for Chapters 12–15." },
+        { n: "D", id: "appD", title: "Solving Simultaneous Linear Equations", pdf: "970-983", file: "appD-linear-equations.html", parts: 2,
+          blurb: "The 2 × 2 formula and Cramer\'s rule, for node and mesh equations (Chapter 3). In the PDF after Appendix C." }
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Boylestad & Nashelsky's table of contents.
+   `pdf` is the range in the per-chapter PDF file names, `pages` the printed book pages,
+   `probs` the page of that PDF file where PROBLEMS start, `probsBook` the printed page number.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["edc"] = {
+  key: "edc", short: "Boylestad", home: "edc.html", dir: "edc",
+  title: "Electronic Devices Tutorials",
+  pdfFolder: "electroinc_devices_circuit_theory / ilovepdf_split-range",
+  source: "Boylestad & Nashelsky, Electronic Devices and Circuit Theory, 11th edition",
+  pdfPrefix: "Electronic Devices and Circuit Theory - 11th Edition-",
+  answers: { pdf: "914-921", label: "Appendix D: Solutions to selected odd-numbered problems" },
+  intro: `<p>This book assumes you already know circuit laws. 6.002 gave you those. Where a chapter overlaps 6.002, its tutorial starts with a short recap that links back, then spends the time on what's new.</p>
+    <p><b>Two notation traps:</b> here <b>V<sub>T</sub></b> in the diode chapters is the <i>thermal</i> voltage (≈ 26 mV), which 6.002 calls V<sub>TH</sub>. And the MOSFET law I<sub>D</sub> = <b>k</b>(V<sub>GS</sub> − V<sub>T</sub>)² uses k = K/2 from 6.002.</p>`,
+  groups: [
+    {
+      name: "Diodes",
+      note: "How semiconductors work, the diode, and the circuits built from it.",
+      items: [
+        { n: 1, id: "edc1", title: "Semiconductor Diodes", pdf: "22-75", pages: "1-54", probs: 51, probsBook: 51, file: "01-semiconductor-diodes.html", parts: 11,
+          blurb: "Semiconductor materials, the pn junction, diode models, Zener diodes and LEDs." },
+        { n: 2, id: "edc2", title: "Diode Applications", pdf: "76-149", pages: "55-128", probs: 65, probsBook: 119, file: "02-diode-applications.html", parts: 13,
+          blurb: "Load lines, diode networks, rectifiers, clippers, clampers, Zener regulators, multipliers." },
+      ]
+    },
+    {
+      name: "Bipolar junction transistors",
+      note: "The BJT: how it works, how to bias it, and how it amplifies.",
+      items: [
+        { n: 3, id: "edc3", title: "Bipolar Junction Transistors", pdf: "150-180", pages: "129-159", probs: 29, probsBook: 157, file: "03-bjts.html", parts: 10,
+          blurb: "Construction, operation, the three configurations, limits of operation." },
+        { n: 4, id: "edc4", title: "DC Biasing: BJTs", pdf: "181-273", pages: "160-252", probs: 79, probsBook: 238, file: "04-dc-biasing-bjts.html", parts: 15,
+          blurb: "Operating point, the classic bias circuits, current mirrors, switching, stability." },
+        { n: 5, id: "edc5", title: "BJT AC Analysis", pdf: "274-398", pages: "253-377", probs: 109, probsBook: 361, file: "05-bjt-ac-analysis.html", parts: 16,
+          blurb: "The r_e model, gain and impedances for each configuration, cascades, hybrid models." },
+      ]
+    },
+    {
+      name: "Field-effect transistors",
+      note: "JFETs and MOSFETs: characteristics, biasing and amplifiers.",
+      items: [
+        { n: 6, id: "edc6", title: "Field-Effect Transistors", pdf: "399-442", pages: "378-421", probs: 41, probsBook: 418, file: "06-fets.html", parts: 10,
+          blurb: "JFET construction and transfer curve, depletion and enhancement MOSFETs, CMOS." },
+        { n: 7, id: "edc7", title: "FET Biasing", pdf: "443-501", pages: "422-480", probs: 52, probsBook: 473, file: "07-fet-biasing.html", parts: 12,
+          blurb: "Fixed, self and voltage-divider bias, graphically and by formula." },
+        { n: 8, id: "edc8", title: "FET Amplifiers", pdf: "502-565", pages: "481-544", probs: 56, probsBook: 536, file: "08-fet-amplifiers.html", parts: 12,
+          blurb: "The FET small-signal model and the common-source, -gate and -drain amplifiers." },
+      ]
+    },
+    {
+      name: "Frequency response",
+      note: "What happens to gain at low and high frequencies.",
+      items: [
+        { n: 9, id: "edc9", title: "BJT and JFET Frequency Response", pdf: "566-627", pages: "545-606", probs: 57, probsBook: 601, file: "09-frequency-response.html", parts: 11,
+          blurb: "Decibels, Bode plots, low- and high-frequency cutoffs, the Miller effect." },
+      ]
+    },
+    {
+      name: "Op amps",
+      note: "Inside the op amp, its real-world limits, and the circuits built from it.",
+      items: [
+        { n: 10, id: "edc10", title: "Operational Amplifiers", pdf: "628-673", pages: "607-652", probs: 42, probsBook: 648, file: "10-op-amps.html", parts: 11,
+          blurb: "The differential amplifier, op-amp basics, offsets, slew rate, CMRR." },
+        { n: 11, id: "edc11", title: "Op-Amp Applications", pdf: "674-703", pages: "653-682", probs: 26, probsBook: 678, file: "11-op-amp-applications.html", parts: 6,
+          blurb: "Gain blocks, summers, buffers, controlled sources, instrumentation amps, active filters." },
+      ]
+    },
+    {
+      name: "Power, ICs and oscillators",
+      note: "Driving real loads, mixed analog-digital chips, feedback, and power supplies.",
+      items: [
+        { n: 12, id: "edc12", title: "Power Amplifiers", pdf: "704-742", pages: "683-721", probs: 37, probsBook: 719, file: "12-power-amplifiers.html", parts: 9,
+          blurb: "Class A, B, C and D, efficiency, distortion, heat sinking." },
+        { n: 13, id: "edc13", title: "Linear-Digital ICs", pdf: "743-771", pages: "722-750", probs: 27, probsBook: 748, file: "13-linear-digital-ics.html", parts: 8,
+          blurb: "Comparators, DACs and ADCs, the 555 timer, VCOs and phase-locked loops." },
+        { n: 14, id: "edc14", title: "Feedback and Oscillator Circuits", pdf: "772-803", pages: "751-782", probs: 32, probsBook: 782, file: "14-feedback-oscillators.html", parts: 10,
+          blurb: "Feedback types, phase-shift, Wien bridge, tuned and crystal oscillators." },
+        { n: 15, id: "edc15", title: "Power Supplies (Voltage Regulators)", pdf: "804-831", pages: "783-810", probs: 26, probsBook: 808, file: "15-power-supplies.html", parts: 8,
+          blurb: "Capacitor and RC filters, ripple, transistor and IC regulators." },
+      ]
+    },
+    {
+      name: "More devices",
+      note: "Special-purpose diodes, sensors and switching devices.",
+      items: [
+        { n: 16, id: "edc16", title: "Other Two-Terminal Devices", pdf: "832-861", pages: "811-840", probs: 28, probsBook: 838, file: "16-two-terminal-devices.html", parts: 8,
+          blurb: "Schottky, varactor, solar cells, photodiodes, thermistors, tunnel diodes." },
+        { n: 17, id: "edc17", title: "pnpn and Other Devices", pdf: "862-899", pages: "841-878", probs: 35, probsBook: 875, file: "17-pnpn-devices.html", parts: 9,
+          blurb: "SCRs, triacs and other switching devices." },
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Reference material. The tutorials pull from these where a chapter needs them.",
+      items: [
+        { n: "A", id: "edcA", title: "Hybrid Parameters: Graphical Determinations and Conversions", pdf: "900-905", pages: "879-884", file: "appA-hybrid-parameters.html", parts: 3,
+          blurb: "Reading h-parameters off transistor curves. Used with Chapter 5." },
+        { n: "B", id: "edcB", title: "Ripple Factor and Voltage Calculations", pdf: "906-911", pages: "885-890", file: "appB-ripple.html", parts: 3,
+          blurb: "The math behind power-supply ripple. Used with Chapter 15." },
+        { n: "C", id: "edcC", title: "Charts and Tables", pdf: "912-913", pages: "891-892", file: "appC-tables.html", parts: 2,
+          blurb: "Greek letters and standard resistor values." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Patt & Patel's table of contents. One PDF for the whole book, so `pdf` is the PDF page range,
+   `pages` the printed pages (PDF page = printed page + 29), `probs` the PDF page where the exercises start.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["pp"] = {
+  key: "pp", short: "Patt & Patel", home: "pp.html", dir: "pp",
+  title: "Computing Systems Tutorials",
+  pdfFolder: "study / Digital Design",
+  pdfFile: "96a2b94d4be48285f2605d843a1e6db37da9a944.pdf",
+  source: "Patt & Patel, Introduction to Computing Systems: From Bits & Gates to C/C++ & Beyond, 3rd edition",
+  sub: "From transistors to a whole computer you can program, one level at a time. One tutorial per chapter; then the book's exercises.",
+  intro: `<p>This book climbs the levels of a computer: bits, transistors, gates, memory, a small computer called the <b>LC-3</b>, its machine language, assembly, and finally C. By the end you know what every level does and why.</p>
+    <p>It pairs with <b>Harris & Harris</b>: read Patt & Patel's chapter first for the idea, then Harris & Harris for the design detail. The library's suggested order says exactly when.</p>
+    <p class="aside">Chapters 11–20 teach programming in C. They're the software side: worth doing, but optional on the way to chip design.</p>`,
+  flow: [
+    ["Tutorial", "Do the parts in order. About 20 minutes each, with a break after every part."],
+    ["Book exercises", "Open the PDF at the page the tutorial gives and do the exercises at the end of the chapter. They're the real test."],
+    ["Check", "The book's answers to selected exercises are on its website (mhhe.com/patt3), not in the PDF. Commit to your answer first, or ask Claude to check your reasoning."],
+  ],
+  groups: [
+    {
+      name: "Bits and gates",
+      note: "What a computer is, how it stores information as bits, and the transistors and gates that do the work.",
+      items: [
+        { n: 1, id: "pp1", title: "Welcome Aboard", pdf: "30-53", pages: "1-24", probs: 49, probsBook: 20, file: "01-welcome-aboard.html", parts: 7,
+          blurb: "Levels of abstraction, hardware vs software, the two big ideas: universal computers and levels of transformation." },
+        { n: 2, id: "pp2", title: "Bits, Data Types, and Operations", pdf: "54-87", pages: "25-58", probs: 78, probsBook: 49, file: "02-bits-data-types.html", parts: 10,
+          blurb: "Unsigned and 2's complement integers, binary arithmetic, overflow, logic operations, hex, floating point, ASCII." },
+        { n: 3, id: "pp3", title: "Digital Logic Structures", pdf: "88-149", pages: "59-120", probs: 124, probsBook: 95, file: "03-digital-logic-structures.html", parts: 11,
+          blurb: "MOS transistors, gates, decoders, muxes, adders, latches, memory, finite state machines, a first data path." },
+      ]
+    },
+    {
+      name: "A whole computer: the LC-3",
+      note: "The von Neumann model, a real (small) instruction set, and your first programs in machine language.",
+      items: [
+        { n: 4, id: "pp4", title: "The von Neumann Model", pdf: "150-173", pages: "121-144", probs: 168, probsBook: 139, file: "04-von-neumann.html", parts: 8,
+          blurb: "Memory, processing unit, input/output, control unit; the instruction cycle; changing the flow with branches." },
+        { n: 5, id: "pp5", title: "The LC-3", pdf: "174-231", pages: "145-202", probs: 206, probsBook: 177, file: "05-lc3.html", parts: 9,
+          blurb: "The LC-3's ISA: operate, data movement and control instructions, addressing modes, condition codes, the data path." },
+        { n: 6, id: "pp6", title: "Programming", pdf: "232-259", pages: "203-230", probs: 249, probsBook: 220, file: "06-programming.html", parts: 6,
+          blurb: "Systematic decomposition into sequence, decision and loop; debugging with breakpoints and single-stepping." },
+      ]
+    },
+    {
+      name: "Assembly, data structures and I/O",
+      note: "Writing real programs for the LC-3: assembly language, subroutines, stacks, input/output and interrupts.",
+      items: [
+        { n: 7, id: "pp7", title: "Assembly Language", pdf: "260-291", pages: "231-262", probs: 274, probsBook: 245, file: "07-assembly.html", parts: 6,
+          blurb: "Opcodes and labels, pseudo-ops, the two-pass assembler, the symbol table, linking multiple files." },
+        { n: 8, id: "pp8", title: "Data Structures", pdf: "292-341", pages: "263-312", probs: 333, probsBook: 304, file: "08-data-structures.html", parts: 8,
+          blurb: "Subroutines and JSR/RET, the stack, recursion, queues, character strings." },
+        { n: 9, id: "pp9", title: "I/O", pdf: "342-407", pages: "313-378", probs: 381, probsBook: 352, file: "09-io.html", parts: 9,
+          blurb: "Privilege and priority, device registers, polling, TRAP routines, interrupts, the supervisor stack." },
+        { n: 10, id: "pp10", title: "A Calculator", pdf: "408-433", pages: "379-404", probs: 431, probsBook: 402, file: "10-calculator.html", parts: 7,
+          blurb: "ASCII-to-binary conversion and back, arithmetic using a stack, a complete calculator program." },
+      ]
+    },
+    {
+      name: "Programming in C",
+      note: "The same machine one level up: how C is compiled down to the LC-3. Optional on the way to chip design.",
+      items: [
+        { n: 11, id: "pp11", title: "Introduction to C/C++", pdf: "434-453", pages: "405-424", probs: 451, probsBook: 422, file: "11-intro-c.html", parts: 7,
+          blurb: "Bridging from assembly to a high-level language: compilers vs interpreters, the compilation process, a first program." },
+        { n: 12, id: "pp12", title: "Variables and Operators", pdf: "454-485", pages: "425-456", probs: 482, probsBook: 453, file: "12-variables-operators.html", parts: 10,
+          blurb: "Types, scope, storage; operators, precedence; how variables live in memory and on the run-time stack." },
+        { n: 13, id: "pp13", title: "Control Structures", pdf: "486-519", pages: "457-490", probs: 513, probsBook: 484, file: "13-control-structures.html", parts: 8,
+          blurb: "if, if-else, while, for, do-while, switch, break and continue, and the LC-3 code each becomes." },
+        { n: 14, id: "pp14", title: "Functions", pdf: "520-545", pages: "491-516", probs: 540, probsBook: 511, file: "14-functions.html", parts: 6,
+          blurb: "Arguments and return values, the run-time stack and activation records, caller and callee." },
+        { n: 15, id: "pp15", title: "Testing and Debugging", pdf: "546-565", pages: "517-536", probs: 561, probsBook: 532, file: "15-testing-debugging.html", parts: 5,
+          blurb: "Syntactic, semantic and algorithmic errors; black-box and white-box testing; debuggers; defensive programming." },
+      ]
+    },
+    {
+      name: "C in depth",
+      note: "Pointers, arrays, recursion, I/O, dynamic data structures and a first look at C++.",
+      items: [
+        { n: 16, id: "pp16", title: "Pointers and Arrays", pdf: "566-597", pages: "537-568", probs: 592, probsBook: 563, file: "16-pointers-arrays.html", parts: 8,
+          blurb: "Addresses and pointers, pass by reference, arrays, strings, the link between arrays and pointers." },
+        { n: 17, id: "pp17", title: "Recursion", pdf: "598-621", pages: "569-592", probs: 616, probsBook: 587, file: "17-recursion.html", parts: 6,
+          blurb: "Recursion vs iteration, Towers of Hanoi, Fibonacci, binary search, escaping a maze, and the stack under it all." },
+        { n: 18, id: "pp18", title: "I/O in C", pdf: "622-635", pages: "593-606", probs: 634, probsBook: 605, file: "18-io-in-c.html", parts: 5,
+          blurb: "Streams, putchar and getchar, buffering, printf and scanf, files." },
+        { n: 19, id: "pp19", title: "Dynamic Data Structures in C", pdf: "636-661", pages: "607-632", probs: 658, probsBook: 629, file: "19-dynamic-data.html", parts: 6,
+          blurb: "Structures, typedef, the heap, malloc and free, linked lists." },
+        { n: 20, id: "pp20", title: "Introduction to C++", pdf: "662-681", pages: "633-652", probs: 679, probsBook: 650, file: "20-intro-cpp.html", parts: 6,
+          blurb: "Namespaces, references, overloading, classes, constructors, vectors and templates." },
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Appendix C, the LC-3's microarchitecture, is the bridge to Harris & Harris Chapter 7. The others are references.",
+      items: [
+        { n: "A", id: "ppA", title: "The LC-3 ISA", pdf: "682-707", pages: "653-678", file: "appA-lc3-isa.html", parts: 5,
+          blurb: "Every LC-3 instruction defined precisely, plus interrupt and exception processing." },
+        { n: "B", id: "ppB", title: "From LC-3 to x86", pdf: "708-727", pages: "679-698", file: "appB-lc3-to-x86.html", parts: 7,
+          blurb: "How a real, much bigger ISA compares: instruction formats, memory, internal state." },
+        { n: "C", id: "ppC", title: "The Microarchitecture of the LC-3", pdf: "728-749", pages: "699-720", file: "appC-lc3-microarchitecture.html", parts: 5,
+          blurb: "The state machine, data path and microprogrammed control that execute every LC-3 instruction." },
+        { n: "D", id: "ppD", title: "The C Programming Language", pdf: "750-781", pages: "721-752", file: "appD-c-language.html", parts: 8,
+          blurb: "A C reference manual: conventions, types, operators, control, the preprocessor, the standard library." },
+        { n: "E", id: "ppE", title: "Useful Tables", pdf: "782-785", pages: "753-756", file: "appE-tables.html", parts: 3,
+          blurb: "Prefixes, ASCII codes, powers of 2." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Harris & Harris's table of contents (2nd edition). `pdf` is the range in the per-chapter PDF file names,
+   `pages` the printed pages (PDF page = printed page + 25), `probs` the page of that PDF file where the exercises start.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["hh"] = {
+  key: "hh", short: "Harris & Harris", home: "hh.html", dir: "hh",
+  title: "Digital Design Tutorials",
+  pdfFolder: "electroinc_devices_circuit_theory / digital_design",
+  pdfPrefix: "Digital Design and Computer Architecture (Harris, Sarah, Harris, David) (Z-Library)-",
+  source: "Harris & Harris, Digital Design and Computer Architecture, 2nd edition",
+  sub: "Logic design from gates to a pipelined MIPS processor, the way it's done in industry. One tutorial per chapter; then the book's exercises.",
+  intro: `<p>This book takes you from a single gate to a working processor: Boolean logic, sequential circuits, hardware description languages, arithmetic blocks, the MIPS instruction set, and three ways to build the processor that runs it.</p>
+    <p>It pairs with <b>Patt & Patel</b> (the ideas, a level at a time) and leads into <b>CMOS VLSI Design</b> (how each gate becomes transistors and wires). The library's suggested order says when to read which.</p>
+    <p class="aside">The book shows every HDL example in both SystemVerilog and VHDL. The tutorials use SystemVerilog, which the CMOS VLSI book and most chip companies use.</p>`,
+  flow: [
+    ["Tutorial", "Do the parts in order. About 20 minutes each, with a break after every part."],
+    ["Book exercises", "Open the PDF at the page the tutorial gives and do the exercises. The interview questions after them are a good final test."],
+    ["Check", "The PDF has no answers. Commit to your answer, then ask Claude to check your reasoning. You'll get a guiding question first, not the answer."],
+  ],
+  groups: [
+    {
+      name: "Digital logic",
+      note: "Bits and gates, combinational logic, and circuits with memory.",
+      items: [
+        { n: 1, id: "hh1", title: "From Zero to One", pdf: "1-79", pages: "3-54", probs: 62, probsBook: 37, file: "01-zero-to-one.html", parts: 10,
+          blurb: "Abstraction, number systems, logic gates, logic levels and noise margins, CMOS transistors, power." },
+        { n: 2, id: "hh2", title: "Combinational Logic Design", pdf: "80-133", pages: "55-108", probs: 122, probsBook: 97, file: "02-combinational-logic.html", parts: 10,
+          blurb: "Boolean equations and algebra, bubble pushing, X and Z, Karnaugh maps, muxes and decoders, timing and glitches." },
+        { n: 3, id: "hh3", title: "Sequential Logic Design", pdf: "134-197", pages: "109-172", probs: 187, probsBook: 162, file: "03-sequential-logic.html", parts: 11,
+          blurb: "Latches and flip-flops, synchronous design, finite state machines, setup and hold, skew, metastability, parallelism." },
+      ]
+    },
+    {
+      name: "Describing and building hardware",
+      note: "Writing hardware as code, then the standard blocks every chip is built from.",
+      items: [
+        { n: 4, id: "hh4", title: "Hardware Description Languages", pdf: "198-263", pages: "173-238", probs: 251, probsBook: 226, file: "04-hdl.html", parts: 10,
+          blurb: "SystemVerilog modules, operators, structural models, registers, case and if, blocking vs nonblocking, FSMs, testbenches." },
+        { n: 5, id: "hh5", title: "Digital Building Blocks", pdf: "264-319", pages: "239-294", probs: 307, probsBook: 282, file: "05-building-blocks.html", parts: 9,
+          blurb: "Adders, subtractors, comparators, ALUs, shifters, multipliers, fixed and floating point, counters, memories, FPGAs." },
+      ]
+    },
+    {
+      name: "Computer architecture",
+      note: "The MIPS instruction set, the processors that run it, and the memory system that feeds them.",
+      items: [
+        { n: 6, id: "hh6", title: "Architecture", pdf: "320-395", pages: "295-370", probs: 382, probsBook: 357, file: "06-architecture.html", parts: 11,
+          blurb: "MIPS assembly and machine language, programming, addressing modes, compiling, assembling and loading, a look at x86." },
+        { n: 7, id: "hh7", title: "Microarchitecture", pdf: "396-499", pages: "371-474", probs: 492, probsBook: 467, file: "07-microarchitecture.html", parts: 13,
+          blurb: "Performance, single-cycle, multicycle and pipelined MIPS processors, hazards, exceptions, advanced techniques." },
+        { n: 8, id: "hh8", title: "Memory and I/O Systems", pdf: "500-607", pages: "475-582", probs: 595, probsBook: 570, file: "08-memory-systems.html", parts: 13,
+          blurb: "Locality, caches, virtual memory, memory-mapped I/O, embedded I/O on a real microcontroller, PC I/O." },
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Appendix A shows how designs become real hardware. B is a reference table; C is a C primer (Patt & Patel teaches C in more depth).",
+      items: [
+        { n: "A", id: "hhA", title: "Digital System Implementation", pdf: "608-699", pages: "583-618", file: "appA-implementation.html", parts: 13,
+          blurb: "74xx logic, FPGAs, ASICs, data sheets, logic families, packaging, transmission lines, economics." },
+        { n: "B", id: "hhB", title: "MIPS Instructions", pdf: "608-699", pages: "619-622", file: "appB-mips-instructions.html", parts: 3,
+          blurb: "Opcode and funct tables for every MIPS instruction in the book." },
+        { n: "C", id: "hhC", title: "C Programming", pdf: "608-699", pages: "623-674", file: "appC-c-programming.html", parts: 9,
+          blurb: "C for hardware people: variables, operators, functions, control flow, pointers, structures, libraries." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Weste & Harris's table of contents. `pdf` is the range in the per-chapter PDF file names,
+   `pages` the printed pages (PDF page = printed page + 27), `probs` the page of that PDF file where the exercises start.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["vlsi"] = {
+  key: "vlsi", short: "CMOS VLSI", home: "vlsi.html", dir: "vlsi",
+  title: "CMOS VLSI Tutorials",
+  pdfFolder: "electroinc_devices_circuit_theory / cmos_vlsi",
+  source: "Weste & Harris, CMOS VLSI Design: A Circuits and Systems Perspective, 4th edition",
+  pdfPrefix: "CMOS VLSI Design A Circuits and Systems Perspective (4th Edition) by Neil H. E. Weste, David Money Harris (z-lib.org)-",
+  sub: "How logic becomes transistors, wires and silicon, and how to make it fast, low-power and reliable. One tutorial per chapter; then the book's exercises.",
+  intro: `<p>This is the chip designer's book. Every gate from Harris & Harris becomes transistors you size, wires you route, and delay, power and variation you budget.</p>
+    <p>It builds on three things in this library: the <b>MOSFET</b> (Boylestad Chapter 6, 6.002 Chapters 6–7), <b>digital logic</b> (Harris & Harris 1–5) and the <b>chip-design math</b> (Math 24–39). Each chapter page says which ones it uses.</p>
+    <p class="aside">The book marks some sections “Optional” or puts them on its website. The tutorials skip the web-only sections and keep optional ones short.</p>`,
+  flow: [
+    ["Tutorial", "Do the parts in order. About 20 minutes each, with a break after every part."],
+    ["Book exercises", "Open that chapter's PDF and do the exercises at the end. They're the real test, and many are small design problems."],
+    ["Check", "The PDFs have no answers. Commit to your answer, then ask Claude to check your reasoning. You'll get a guiding question first, not the answer."],
+  ],
+  groups: [
+    {
+      name: "Foundations",
+      note: "The whole field in one chapter, then the transistor model and how chips are made.",
+      items: [
+        { n: 1, id: "vlsi1", title: "Introduction", pdf: "1-87", pages: "1-60", probs: 84, probsBook: 57, file: "01-introduction.html", parts: 11,
+          blurb: "Transistors as switches, CMOS gates, layout, design partitioning, and an 8-bit MIPS processor from logic to silicon." },
+        { n: 2, id: "vlsi2", title: "MOS Transistor Theory", pdf: "88-125", pages: "61-98", probs: 122, probsBook: 95, file: "02-mos-transistor.html", parts: 10,
+          blurb: "Long-channel I-V, capacitances, velocity saturation, leakage, body effect, and the inverter's DC transfer curve." },
+        { n: 3, id: "vlsi3", title: "CMOS Processing Technology", pdf: "126-167", pages: "99-140", probs: 166, probsBook: 139, file: "03-processing.html", parts: 10,
+          blurb: "Wafers, wells, oxides, lithography, metal layers, design rules, process enhancements, manufacturing issues." },
+      ]
+    },
+    {
+      name: "Delay, power, wires and robustness",
+      note: "The four things every chip designer budgets. This is the heart of the book.",
+      items: [
+        { n: 4, id: "vlsi4", title: "Delay", pdf: "168-207", pages: "141-180", probs: 203, probsBook: 176, file: "04-delay.html", parts: 10,
+          blurb: "Transient response, the RC delay model, Elmore delay, the linear delay model, logical effort of paths." },
+        { n: 5, id: "vlsi5", title: "Power", pdf: "208-237", pages: "181-210", probs: 236, probsBook: 209, file: "05-power.html", parts: 9,
+          blurb: "Dynamic power, activity factor, static leakage, energy-delay trade-offs, low-power architectures." },
+        { n: 6, id: "vlsi6", title: "Interconnect", pdf: "238-267", pages: "211-240", probs: 265, probsBook: 238, file: "06-interconnect.html", parts: 9,
+          blurb: "Wire resistance and capacitance, wire delay, crosstalk, repeaters, logical effort with wires." },
+        { n: 7, id: "vlsi7", title: "Robustness", pdf: "268-313", pages: "241-286", probs: 311, probsBook: 284, file: "07-robustness.html", parts: 9,
+          blurb: "Process, voltage and temperature variation, reliability, scaling, statistical analysis, variation-tolerant design." },
+      ]
+    },
+    {
+      name: "Simulation and circuit design",
+      note: "SPICE, then how real gates and flip-flops are built.",
+      items: [
+        { n: 8, id: "vlsi8", title: "Circuit Simulation", pdf: "314-353", pages: "287-326", probs: 351, probsBook: 324, file: "08-simulation.html", parts: 8,
+          blurb: "A SPICE tutorial, device models, characterizing transistors and gates, interconnect simulation." },
+        { n: 9, id: "vlsi9", title: "Combinational Circuit Design", pdf: "354-402", pages: "327-375", probs: 397, probsBook: 370, file: "09-combinational.html", parts: 11,
+          blurb: "Static CMOS, ratioed, dynamic and pass-transistor circuits; circuit pitfalls; SOI and subthreshold design." },
+        { n: 10, id: "vlsi10", title: "Sequential Circuit Design", pdf: "403-455", pages: "376-428", probs: 452, probsBook: 425, file: "10-sequential.html", parts: 11,
+          blurb: "Sequencing methods, timing constraints, latch and flip-flop circuits, synchronizers." },
+      ]
+    },
+    {
+      name: "Subsystems",
+      note: "The big blocks of a chip: arithmetic, memories, and the circuits around them.",
+      items: [
+        { n: 11, id: "vlsi11", title: "Datapath Subsystems", pdf: "456-523", pages: "429-496", probs: 521, probsBook: 494, file: "11-datapath.html", parts: 12,
+          blurb: "Adders (ripple, carry-lookahead, prefix), comparators, counters, shifters, multipliers." },
+        { n: 12, id: "vlsi12", title: "Array Subsystems", pdf: "524-575", pages: "497-548", probs: 573, probsBook: 546, file: "12-arrays.html", parts: 10,
+          blurb: "SRAM cells and periphery, DRAM, ROM, CAMs, PLAs, robust memory design." },
+        { n: 13, id: "vlsi13", title: "Special-Purpose Subsystems", pdf: "576-641", pages: "549-614", probs: 641, probsBook: 614, file: "13-special-purpose.html", parts: 11,
+          blurb: "Packaging and cooling, power distribution, clocks, PLLs and DLLs, I/O, high-speed links." },
+      ]
+    },
+    {
+      name: "Methodology and test",
+      note: "How real chips are designed in teams, and how you know they work.",
+      items: [
+        { n: 14, id: "vlsi14", title: "Design Methodology and Tools", pdf: "642-685", pages: "615-658", probs: 684, probsBook: 657, file: "14-methodology.html", parts: 9,
+          blurb: "Structured design, design methods, design flows from RTL to GDS, design economics." },
+        { n: 15, id: "vlsi15", title: "Testing, Debugging, and Verification", pdf: "686-725", pages: "659-698", probs: 724, probsBook: 697, file: "15-testing.html", parts: 9,
+          blurb: "Testers, logic verification, silicon debug, manufacturing test, fault models, design for testability." },
+      ]
+    },
+    {
+      name: "Appendix",
+      note: "An HDL reference by the same author as Harris & Harris Chapter 4.",
+      items: [
+        { n: "A", id: "vlsiA", title: "Hardware Description Languages", pdf: "726-811", pages: "699-784", probs: 803, probsBook: 776, file: "appA-hdl.html", parts: 8,
+          blurb: "SystemVerilog and VHDL side by side: combinational and sequential logic, FSMs, parameterized modules, testbenches." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Math Toolkit: the math both books lean on, one module per tool.
+   No PDF: modules are original. `needs` lists the chapter ids (6.002 "chN"/"appX", Boylestad "edcN") that use the tool,
+   so a module can say where it's used and each chapter page can list the math it needs.
+   Items with `ref` are already taught by a 6.002 appendix: `file` points at that page and `id` is its id, so progress is shared. */
+(window.BOOKS = window.BOOKS || {})["math"] = {
+  key: "math", short: "Math Toolkit", home: "math.html", dir: "math", unit: "Module", noPdf: true,
+  title: "Math Toolkit",
+  source: "The math behind both books and chip design, one tool at a time",
+  sub: "Every math tool the two books use, then the math a chip designer needs, all taught with circuits. Do a module just before the chapter that needs it, or work through the chip-design track in order.",
+  intro: `<p>Each module says which chapters use it, and each chapter page lists the modules it needs (look for “Math you'll use”).</p>
+    <p>Nothing here assumes you remember school algebra. Each module starts from the basics and goes only as far as the circuits need.</p>
+    <p>Modules 24–39 are the <b>chip-design track</b>: linear algebra, calculus for design, signals, probability and noise, feedback, and fields. Each ends with a “Master it” part of harder mixed problems, because these topics have no book problems to fall back on.</p>`,
+  flow: [
+    ["Pick a module", "Either the next one in order or one a chapter page points you to. Each part takes 10–20 minutes."],
+    ["Practise", "Every part ends with questions using circuit numbers. Work them on paper first, then type the answer."],
+    ["Use it", "Go back to the chapter. The module's “Used in” line links straight there."],
+  ],
+  groups: [
+    {
+      name: "Numbers and algebra",
+      note: "The everyday tools: every chapter uses these.",
+      items: [
+        { n: 1, id: "m1", title: "Numbers, Prefixes and Units", file: "01-numbers-units.html", parts: 3,
+          needs: ["ch1", "ch2", "edc1", "edc3"],
+          blurb: "Powers of ten, k/m/µ/n/p, units that check your answer, and quick estimates." },
+        { n: 2, id: "m2", title: "Rearranging Formulas", file: "02-rearranging.html", parts: 4,
+          needs: ["ch1", "ch2", "ch3", "edc3", "edc4"],
+          blurb: "Get any letter on its own, the balance-scale way. Squares, roots, reciprocals and exponent rules." },
+        { n: 3, id: "m3", title: "Fractions, Ratios and Percent", file: "03-ratios-percent.html", parts: 3,
+          needs: ["ch2", "ch3", "edc2", "edc4", "edc5", "edc12", "edc15"],
+          blurb: "Parallel resistors, divider ratios, percent error, regulation and efficiency." },
+        { n: 4, id: "m4", title: "Approximations", file: "04-approximations.html", parts: 3,
+          needs: ["ch8", "ch15", "edc4", "edc5", "edc8", "edc10", "edc14"],
+          blurb: "When ≫ lets you drop a term, the 10× rule, and how much error that costs." },
+      ]
+    },
+    {
+      name: "Graphs and equations",
+      note: "Reading and solving: load lines, node equations, square laws.",
+      items: [
+        { n: 5, id: "m5", title: "Lines, Graphs and Load Lines", file: "05-lines.html", parts: 3,
+          needs: ["ch3", "ch4", "ch7", "ch16", "edc2", "edc4", "edc7"],
+          blurb: "Slope and intercept, drawing a line from two points, where two curves cross." },
+        { n: 6, id: "appD", ref: "6002", title: "Simultaneous Equations", file: "../chapters/appD-linear-equations.html", parts: 2,
+          needs: ["ch2", "ch3", "edc4", "edcA"],
+          blurb: "Already in 6.002 Appendix D: two or three unknowns, elimination and Cramer's rule." },
+        { n: 7, id: "m7", title: "Quadratic Equations", file: "07-quadratics.html", parts: 3,
+          needs: ["ch7", "ch12", "edc6", "edc7"],
+          blurb: "Expand a square, use the formula, and pick the root that makes physical sense." },
+      ]
+    },
+    {
+      name: "Exponentials and logarithms",
+      note: "Diodes, time constants, decibels: anything that grows or decays.",
+      items: [
+        { n: 8, id: "m8", title: "Exponentials and Logarithms", file: "08-exp-log.html", parts: 3,
+          needs: ["ch4", "ch10", "ch16", "edc1", "edc13", "edc16", "edc17"],
+          blurb: "e^x and its shape, ln undoes it, the log rules, and solving for a time or a voltage." },
+        { n: 9, id: "m9", title: "Decibels and Log Scales", file: "09-decibels.html", parts: 3,
+          needs: ["ch13", "ch14", "edc9", "edc10", "edc11"],
+          blurb: "dB for power and voltage, why gains add in dB, decades, octaves and log axes." },
+      ]
+    },
+    {
+      name: "Waves and complex numbers",
+      note: "Everything ac: sine waves, phase, and the numbers that handle them.",
+      items: [
+        { n: 10, id: "m10", title: "Sinusoids", file: "10-sinusoids.html", parts: 3,
+          needs: ["ch12", "ch13", "edc2", "edc9", "edc12", "edc15"],
+          blurb: "Radians, amplitude, frequency, ω = 2πf, phase shift, and right triangles." },
+        { n: 11, id: "appB", ref: "6002", title: "Trig Identities and Taylor Series", file: "../chapters/appB-trig.html", parts: 3,
+          needs: ["ch12", "ch13"],
+          blurb: "Already in 6.002 Appendix B: sin and cos from a circle, the identities, Euler's formula." },
+        { n: 12, id: "appC", ref: "6002", title: "Complex Numbers", file: "../chapters/appC-complex-numbers.html", parts: 5,
+          needs: ["ch12", "ch13", "ch14", "edc9", "edc14"],
+          blurb: "Already in 6.002 Appendix C: points in a plane, polar form, multiply and divide, rotation." },
+      ]
+    },
+    {
+      name: "Calculus",
+      note: "Rates of change and areas: capacitors, inductors, small signals, transients.",
+      items: [
+        { n: 13, id: "m13", title: "Derivatives", file: "13-derivatives.html", parts: 5,
+          needs: ["ch4", "ch8", "ch9", "edc1", "edc4", "edc5", "edc8", "edc10"],
+          blurb: "Slope at a point, the rules (product, quotient, chain), tangent lines, and partial derivatives." },
+        { n: 14, id: "m14", title: "Integrals and Averages", file: "14-integrals.html", parts: 5,
+          needs: ["ch9", "ch11", "ch16", "edc2", "edc12", "edc15", "edcB"],
+          blurb: "Areas, averages and rms, then antiderivatives, substitution, integration by parts and ∫ to ∞." },
+        { n: 15, id: "m15", title: "Differential Equations", file: "15-diff-eqs.html", parts: 5,
+          needs: ["ch10", "ch11", "ch12"],
+          blurb: "First-order recipe, second order and damping, forced (sinusoidal) response, fitting initial conditions." },
+      ]
+    },
+    {
+      name: "Frequency response and logic",
+      note: "Two specialised tools: Bode plots and Boolean algebra.",
+      items: [
+        { n: 16, id: "m16", title: "Transfer Functions and Bode Plots", file: "16-bode.html", parts: 3,
+          needs: ["ch13", "ch14", "edc9", "edc11", "edc14"],
+          blurb: "H(jω) as a ratio, break frequencies, straight-line asymptotes and phase." },
+        { n: 17, id: "m17", title: "Binary and Boolean Algebra", file: "17-binary-boolean.html", parts: 3,
+          needs: ["ch5", "ch6", "edc13"],
+          blurb: "Counting in binary, 2^n levels, AND/OR/NOT algebra and De Morgan." },
+      ]
+    },
+    {
+      name: "Laplace transforms (optional track)",
+      note: "Neither book teaches these; both only mention them in passing. They turn differential equations into algebra and tie transients, impedance and Bode plots into one method. Do Modules 13–15 first.",
+      items: [
+        { n: 18, id: "m18", title: "Polynomials and Partial Fractions", file: "18-partial-fractions.html", parts: 4,
+          also: ["ch12", "ch13"],
+          blurb: "Roots and factors, completing the square, and splitting a fraction into simple pieces." },
+        { n: 19, id: "m19", title: "Laplace: the Idea and the Table", file: "19-laplace-intro.html", parts: 4,
+          also: ["ch10", "ch12", "ch13"],
+          blurb: "Why transform, the defining integral, building the table, and what pole positions mean." },
+        { n: 20, id: "m20", title: "Laplace Properties", file: "20-laplace-properties.html", parts: 4,
+          also: ["ch10", "ch12"],
+          blurb: "Derivatives become ×s, shifts and delays, ×t, and the initial and final value theorems." },
+        { n: 21, id: "m21", title: "Inverse Laplace Transforms", file: "21-inverse-laplace.html", parts: 4,
+          also: ["ch10", "ch12"],
+          blurb: "Back to time: real poles, repeated poles, complex poles, and checking your answer." },
+        { n: 22, id: "m22", title: "Solving Differential Equations with Laplace", file: "22-laplace-odes.html", parts: 4,
+          also: ["ch10", "ch12", "ch13"],
+          blurb: "Initial conditions built in: first order, second order, ringing, and a sinusoidal input." },
+        { n: 23, id: "m23", title: "Circuits in the s-Domain", file: "23-s-domain.html", parts: 4,
+          also: ["ch10", "ch12", "ch13", "ch14", "edc9", "edc10", "edc11", "edc14"],
+          blurb: "Impedances in s, transfer functions, poles and zeros, impulse response and stability." },
+      ]
+    },
+    {
+      name: "Chip design 1: linear algebra",
+      note: "Beyond both books: the start of the chip-design track. Every simulator turns a schematic into a matrix, and eigenvalues are a circuit's natural frequencies. Do Module 6 first.",
+      items: [
+        { n: 24, id: "m24", title: "Vectors and Matrices", file: "24-matrices.html", parts: 6,
+          also: ["ch2", "ch3", "appD"],
+          blurb: "Vectors and the dot product, a matrix as a machine, products, determinants and the inverse, with pictures first." },
+        { n: 25, id: "m25", title: "Solving Circuits with Matrices", file: "25-circuit-matrices.html", parts: 6,
+          also: ["ch3", "ch8", "edc5"],
+          blurb: "Build G by inspection, Gaussian elimination, LU and sparsity, Modified Nodal Analysis, transistors as matrix stamps: what SPICE does." },
+        { n: 26, id: "m26", title: "Eigenvalues and Eigenvectors", file: "26-eigenvalues.html", parts: 6,
+          also: ["ch10", "ch12", "ch13"],
+          blurb: "Directions a matrix doesn't turn, det(A − λI) = 0, complex eigenvalues as rotation, x′ = Ax, modes and on-chip wire delay." },
+      ]
+    },
+    {
+      name: "Chip design 2: calculus for real design",
+      note: "Real chips vary, real circuits are nonlinear, and simulators approximate. These modules make that precise. Do Modules 13–15 first.",
+      items: [
+        { n: 27, id: "m27", title: "Sensitivity and Error Budgets", file: "27-sensitivity.html", parts: 6,
+          also: ["ch8", "edc4", "edc7", "edc10"],
+          blurb: "Partial derivatives as knobs, percent-per-percent sensitivity, small-signal models as total differentials, worst case vs RSS, optimal sizing." },
+        { n: 28, id: "m28", title: "Numerical Methods: How Simulators Think", file: "28-numerical-methods.html", parts: 6,
+          also: ["ch4", "ch10", "ch16"],
+          blurb: "Bisection, Newton's method, companion models and convergence, Euler and trapezoidal time-stepping, error and step control." },
+        { n: 29, id: "m29", title: "Series and Approximations", file: "29-series.html", parts: 6,
+          also: ["ch8", "appB", "edc5", "edc10"],
+          blurb: "Taylor series, how small ‘small signal’ is, harmonic distortion from device curves, geometric series in DACs and feedback, limits." },
+      ]
+    },
+    {
+      name: "Chip design 3: signals and spectra",
+      note: "How signals look in frequency, and what happens when a chip samples them. Do Modules 10, 12 and 16 first.",
+      items: [
+        { n: 30, id: "m30", title: "Fourier Series", file: "30-fourier-series.html", parts: 6,
+          also: ["ch13", "edc12", "edc15"],
+          blurb: "Any periodic wave as a sum of sines: harmonics, finding coefficients, symmetry, power per harmonic and THD." },
+        { n: 31, id: "m31", title: "The Fourier Transform and Spectra", file: "31-fourier-transform.html", parts: 6,
+          also: ["ch13", "ch14", "edc9"],
+          blurb: "From series to transform, pulse and sinc, time–bandwidth trade-off, convolution and filtering, the link to Laplace." },
+        { n: 32, id: "m32", title: "Sampling, Aliasing and Quantization", file: "32-sampling.html", parts: 6,
+          also: ["edc13"],
+          blurb: "Sampling and Nyquist, aliasing, sample-and-hold, quantization noise, SNR = 6.02N + 1.76 dB, and the DFT." },
+        { n: 33, id: "m33", title: "Discrete-Time Systems and the z-Transform", file: "33-z-transform.html", parts: 6,
+          also: ["edc13"],
+          blurb: "Difference equations, z⁻¹ as a delay, poles inside the unit circle, FIR and IIR filters, and switched-capacitor circuits." },
+      ]
+    },
+    {
+      name: "Chip design 4: probability, statistics and noise",
+      note: "Every chip is a random sample from a process, and every signal carries noise. These modules make randomness something you can design with.",
+      items: [
+        { n: 34, id: "m34", title: "Probability and Random Variables", file: "34-probability.html", parts: 6,
+          also: [],
+          blurb: "Probability rules, distributions, mean and variance, and why independent variances add." },
+        { n: 35, id: "m35", title: "The Normal Distribution, Mismatch and Yield", file: "35-normal-yield.html", parts: 6,
+          also: ["edc10"],
+          blurb: "The bell curve and why it appears, σ and yield, Pelgrom's mismatch law, Monte Carlo, process corners." },
+        { n: 36, id: "m36", title: "Random Signals and Noise", file: "36-noise.html", parts: 6,
+          also: ["edc9", "edc10"],
+          blurb: "Noise spectral density, thermal, shot and 1/f noise, kT/C, noise bandwidth, input-referred noise and SNR." },
+      ]
+    },
+    {
+      name: "Chip design 5: feedback and stability",
+      note: "The math behind every op amp, regulator and PLL on a chip. Do Modules 16 and 23 first.",
+      items: [
+        { n: 37, id: "m37", title: "Feedback Systems", file: "37-feedback.html", parts: 6,
+          also: ["ch15", "edc10", "edc14"],
+          blurb: "Loop gain, desensitisation, bandwidth and distortion with feedback, impedances, and the four feedback types." },
+        { n: 38, id: "m38", title: "Stability and Compensation", file: "38-stability.html", parts: 6,
+          also: ["edc10", "edc14"],
+          blurb: "When 1 + T = 0, phase and gain margin, overshoot and peaking, root locus, dominant-pole and Miller compensation." },
+      ]
+    },
+    {
+      name: "Chip design 6: fields for device physics",
+      note: "What happens inside a transistor: fields, charge and diffusion. The math for semiconductor physics.",
+      items: [
+        { n: 39, id: "m39", title: "Fields, Flux and Diffusion", file: "39-fields.html", parts: 6,
+          also: ["edc1", "ch16", "appA"],
+          blurb: "Field as slope of potential, Gauss's law, Poisson's equation and the depletion region, current density, diffusion." },
+      ]
+    },
+  ],
+};
+</script>
+<script>
+/* Library registry. Each book manifest adds itself to window.BOOKS; this file (loaded after them)
+   adds the shared helpers and sets window.BOOK to the book this page belongs to (window.BOOK_KEY). */
+(function () {
+  const all = window.BOOKS || {};
+  Object.values(all).forEach((B) => {
+    B.all = () => B.groups.flatMap((g) => g.items);
+    B.chapters = () => B.all().filter((c) => typeof c.n === "number");
+    B.find = (id) => B.all().find((c) => c.id === id);
+    B.pdfName = (c) => B.pdfFile || B.pdfPrefix + c.pdf + ".pdf"; /* one-file books name the whole PDF */
+    /* "pp. 26–75" for books whose file names are PDF pages, "pp. 1–54" (printed pages) when a chapter lists `pages`. */
+    B.pagesLabel = (c) => (c.pages ? "book pp. " + c.pages : "pp. " + c.pdf).replace("-", "–") + (B.pdfFile && c.pages ? ", PDF pp. " + c.pdf.replace("-", "–") : "");
+    B.probsLabel = (c) => (c.probs ? `page ${c.probs} of that PDF${c.probsBook && c.probsBook !== c.probs ? ` (book page ${c.probsBook})` : ""}` : "");
+  });
+  window.BOOK = all[window.BOOK_KEY] || null;
+})();
+</script>
+<script>
+/* Progress store shared by the contents page and every chapter page.
+   Each chapter's state is { done: {p1: true}, last: {part, step} | null, say: {key: text}, t: ms }.
+   It lives in two places:
+     - localStorage "course-<id>": instant first paint, and the fallback when nothing else works.
+     - the artifact's db, at data/users/<viewer id>/<chapter id>: private to the viewer, follows them
+       across browsers and sessions. Only available when the page runs inside the claude.ai viewer. */
+window.Progress = (function () {
+  const LKEY = (id) => "course-" + id;
+  const local = {
+    get(id) { try { const v = localStorage.getItem(LKEY(id)); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+    set(id, v) { try { localStorage.setItem(LKEY(id), JSON.stringify(v)); } catch (e) {} },
+  };
+  const blank = () => ({ done: {}, last: null, say: {}, t: 0 });
+  const norm = (s) => Object.assign(blank(), s || {}, { done: Object.assign({}, s && s.done), say: Object.assign({}, s && s.say) });
+
+  /* Combine two copies: parts finished anywhere stay finished; the newer copy wins for position and text. */
+  function merge(a, b) {
+    a = norm(a); b = norm(b);
+    const [old, neu] = a.t >= b.t ? [b, a] : [a, b];
+    return { done: Object.assign({}, old.done, neu.done), last: neu.last, say: Object.assign({}, old.say, neu.say), t: neu.t };
+  }
+  const same = (a, b) => JSON.stringify(norm(a)) === JSON.stringify(norm(b));
+
+  /* ---------- cloud ---------- */
+  let status = "local"; // "local" | "cloud"
+  const statusFns = [];
+  const setStatus = (s) => { status = s; statusFns.forEach((f) => f(s)); };
+  const cloud = (async () => {
+    try {
+      if (!window.claude || !window.claude.use) return null;
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      if (!db || !user) return null;
+      const uid = await user.id();
+      if (!uid) return null;
+      const col = db.collection("data/users/" + uid);
+      await col.limit(1).get(); // proves the store answers before we claim "saved to your account"
+      setStatus("cloud");
+      return col;
+    } catch (e) { return null; }
+  })();
+
+  /* One write in flight per chapter; bursts collapse into the latest state. */
+  const pending = {}, busy = {};
+  async function flush(id) {
+    const col = await cloud;
+    if (!col || busy[id] || !pending[id]) return;
+    busy[id] = true;
+    const body = pending[id]; pending[id] = null;
+    try { await col.doc(id).set(body); }
+    catch (e) {
+      if (e && e.code === "unavailable") { pending[id] = pending[id] || body; setTimeout(() => flush(id), 1500 + Math.random() * 1500); }
+      else if (e && (e.code === "invalid_argument" || e.code === "revoked" || e.code === "not_granted")) setStatus("local");
+    }
+    busy[id] = false;
+    if (pending[id]) flush(id);
+  }
+  const timers = {};
+  function push(id, state, delay) {
+    pending[id] = JSON.parse(JSON.stringify(norm(state)));
+    clearTimeout(timers[id]);
+    timers[id] = setTimeout(() => flush(id), delay);
+  }
+
+  return {
+    /* Synchronous best guess from this browser. */
+    load(id) { return norm(local.get(id)); },
+    /* Save locally now, to the account shortly after. `delay` batches typing. */
+    save(id, state, delay = 400) {
+      state.t = Date.now();
+      local.set(id, state);
+      push(id, state, delay);
+    },
+    /* Once the account copy arrives, merge it into `state` (mutating it) and call onChange if anything moved. */
+    async sync(id, state, onChange) {
+      const col = await cloud;
+      if (!col) return;
+      let remote = null;
+      try { const snap = await col.doc(id).get(); remote = snap.exists ? snap.data() : null; } catch (e) { return; }
+      const m = merge(state, remote);
+      const changed = !same(m, state);
+      Object.keys(state).forEach((k) => delete state[k]);
+      Object.assign(state, m);
+      local.set(id, state);
+      if (!same(m, remote)) push(id, state, 0); // this browser had something the account didn't
+      if (changed && onChange) onChange();
+    },
+    /* Contents page: every chapter's state, local first, then merged with the account. */
+    async all(ids, onReady) {
+      const out = {};
+      ids.forEach((id) => (out[id] = norm(local.get(id))));
+      onReady(out);
+      const col = await cloud;
+      if (!col) return;
+      let snap;
+      try { snap = await col.get(); } catch (e) { return; }
+      const remote = {};
+      snap.docs.forEach((d) => (remote[d.id] = d.data()));
+      let changed = false;
+      ids.forEach((id) => {
+        const m = merge(out[id], remote[id]);
+        if (!same(m, out[id])) { changed = true; out[id] = m; local.set(id, m); }
+        if (!same(m, remote[id]) && (m.t || Object.keys(m.done).length)) push(id, m, 0);
+      });
+      if (changed) onReady(out);
+    },
+    status: () => status,
+    onStatus(fn) { statusFns.push(fn); fn(status); },
+  };
+})();
+</script>
+<script>
+/* Course engine: chapter map -> parts -> one-card steps. Content files call Course.start(CHAPTER). */
+window.Course = (function () {
+  const reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  };
+  const el = (html) => { const t = document.createElement("template"); t.innerHTML = String(html).trim(); return t.content.firstElementChild; };
+
+  /* ---------- number formatting ---------- */
+  function fmt(n, d = 3) {
+    if (n === Infinity) return "∞";
+    if (n === -Infinity) return "−∞";
+    if (!isFinite(n)) return "—";
+    const a = Math.abs(n);
+    let s = a !== 0 && (a < 1e-3 || a >= 1e6) ? n.toExponential(2) : String(+n.toPrecision(d));
+    return s.replace("-", "−");
+  }
+  function si(n, unit, d = 3) {
+    if (!isFinite(n)) return (n < 0 ? "−∞ " : "∞ ") + unit;
+    if (n === 0) return "0 " + unit;
+    const P = [[1e9, "G"], [1e6, "M"], [1e3, "k"], [1, ""], [1e-3, "m"], [1e-6, "µ"], [1e-9, "n"], [1e-12, "p"]];
+    const a = Math.abs(n);
+    for (const [v, p] of P) if (a >= v * 0.99995) return fmt(n / v, d) + " " + p + unit;
+    return fmt(n / 1e-12, d) + " p" + unit;
+  }
+
+  /* ---------- schematic drawing helpers (SVG strings) ---------- */
+  const S = {
+    svg(w, h, inner, o = {}) {
+      return `<svg class="sch" viewBox="0 0 ${w} ${h}" style="max-width:${o.max || w}px" role="img" aria-label="${o.label || "Circuit diagram"}">${inner}</svg>`;
+    },
+    wire(...pts) { return `<polyline class="w${pts.cls ? " " + pts.cls : ""}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`; },
+    wc(cls, ...pts) { return `<polyline class="w ${cls}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`; },
+    res(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, L = horiz ? x2 - x1 : y2 - y1, s = Math.sign(L) || 1, AL = Math.abs(L);
+      const body = Math.min(40, AL - 8), a = (AL - body) / 2;
+      const P = (t, off) => (horiz ? [x1 + s * t, y1 + off] : [x1 + off, y1 + s * t]);
+      const pts = [P(0, 0), P(a, 0)];
+      for (let k = 0; k < 6; k++) pts.push(P(a + (body * (k + 0.5)) / 6, (k % 2 ? -1 : 1) * 7));
+      pts.push(P(a + body, 0), P(AL, 0));
+      let out = `<path class="w${o.cls ? " " + o.cls : ""}" d="M${pts.map((p) => p.join(" ")).join(" L")}"/>`;
+      if (label) {
+        const m = P(AL / 2, 0);
+        let lx, ly, an;
+        if (horiz) { lx = m[0]; ly = o.side === "below" ? m[1] + 26 : m[1] - 14; an = "middle"; }
+        else { lx = o.side === "left" ? m[0] - 14 : m[0] + 14; ly = m[1] + 5; an = o.side === "left" ? "end" : "start"; }
+        out += `<text x="${lx}" y="${ly}" text-anchor="${an}" class="${o.tcls || ""}">${label}</text>`;
+      }
+      return out;
+    },
+    vsrc(cx, cy, label, o = {}) {
+      const top = o.flip ? "−" : "+", bot = o.flip ? "+" : "−";
+      let out = `<circle class="el${o.cls ? " " + o.cls : ""}" cx="${cx}" cy="${cy}" r="18"/>`;
+      out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="s">${top}</text><text x="${cx}" y="${cy + 13}" text-anchor="middle" class="s">${bot}</text>`;
+      if (label) out += `<text x="${o.side === "right" ? cx + 26 : cx - 26}" y="${cy + 5}" text-anchor="${o.side === "right" ? "start" : "end"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    isrc(cx, cy, label, o = {}) {
+      const d = o.down ? 1 : -1;
+      let out = `<circle class="el${o.cls ? " " + o.cls : ""}" cx="${cx}" cy="${cy}" r="18"/>`;
+      out += `<line class="w" x1="${cx}" y1="${cy - d * 10}" x2="${cx}" y2="${cy + d * 6}"/><polygon class="nd" points="${cx - 5},${cy + d * 4} ${cx + 5},${cy + d * 4} ${cx},${cy + d * 11}"/>`;
+      if (label) out += `<text x="${o.side === "right" ? cx + 26 : cx - 26}" y="${cy + 5}" text-anchor="${o.side === "right" ? "start" : "end"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    dep(cx, cy, label, o = {}) {
+      let out = `<polygon class="el${o.cls ? " " + o.cls : ""}" points="${cx},${cy - 22} ${cx + 17},${cy} ${cx},${cy + 22} ${cx - 17},${cy}"/>`;
+      if (o.kind === "v") out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="s">+</text><text x="${cx}" y="${cy + 13}" text-anchor="middle" class="s">−</text>`;
+      else {
+        const d = o.down ? 1 : -1;
+        out += `<line class="w" x1="${cx}" y1="${cy - d * 10}" x2="${cx}" y2="${cy + d * 6}"/><polygon class="nd" points="${cx - 5},${cy + d * 4} ${cx + 5},${cy + d * 4} ${cx},${cy + d * 11}"/>`;
+      }
+      if (label) out += `<text x="${o.side === "left" ? cx - 26 : cx + 26}" y="${cy + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    // Capacitor between two points on a horizontal or vertical line: two plates in the middle.
+    cap(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, m = horiz ? (x1 + x2) / 2 : (y1 + y2) / 2, s = Math.sign(horiz ? x2 - x1 : y2 - y1) || 1, g = 5, c = o.cls ? " " + o.cls : "";
+      let out = horiz
+        ? `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${m - s * g}" y2="${y1}"/><line class="w${c}" x1="${m + s * g}" y1="${y1}" x2="${x2}" y2="${y1}"/><line class="w${c}" x1="${m - g}" y1="${y1 - 16}" x2="${m - g}" y2="${y1 + 16}" style="stroke-width:3.5"/><line class="w${c}" x1="${m + g}" y1="${y1 - 16}" x2="${m + g}" y2="${y1 + 16}" style="stroke-width:3.5"/>`
+        : `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${x1}" y2="${m - s * g}"/><line class="w${c}" x1="${x1}" y1="${m + s * g}" x2="${x1}" y2="${y2}"/><line class="w${c}" x1="${x1 - 16}" y1="${m - g}" x2="${x1 + 16}" y2="${m - g}" style="stroke-width:3.5"/><line class="w${c}" x1="${x1 - 16}" y1="${m + g}" x2="${x1 + 16}" y2="${m + g}" style="stroke-width:3.5"/>`;
+      if (label) out += horiz ? `<text x="${m}" y="${o.side === "below" ? y1 + 34 : y1 - 22}" text-anchor="middle" class="${o.tcls || ""}">${label}</text>` : `<text x="${o.side === "left" ? x1 - 24 : x1 + 24}" y="${m + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    // Inductor: four humps between two points on a horizontal or vertical line.
+    ind(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, L = horiz ? x2 - x1 : y2 - y1, s = Math.sign(L) || 1, AL = Math.abs(L), body = Math.min(48, AL - 8), a = (AL - body) / 2, r = body / 8, c = o.cls ? " " + o.cls : "";
+      let d;
+      if (horiz) { d = `M${x1} ${y1} H${x1 + s * a}`; for (let k = 0; k < 4; k++) d += ` a${r} ${r} 0 0 ${s > 0 ? 1 : 0} ${s * 2 * r} 0`; d += ` H${x2}`; }
+      else { d = `M${x1} ${y1} V${y1 + s * a}`; for (let k = 0; k < 4; k++) d += ` a${r} ${r} 0 0 ${s > 0 ? 1 : 0} 0 ${s * 2 * r}`; d += ` V${y2}`; }
+      let out = `<path class="w${c}" d="${d}"/>`;
+      const mx = horiz ? (x1 + x2) / 2 : x1, my = horiz ? y1 : (y1 + y2) / 2;
+      if (label) out += horiz ? `<text x="${mx}" y="${o.side === "below" ? my + 30 : my - 16}" text-anchor="middle" class="${o.tcls || ""}">${label}</text>` : `<text x="${o.side === "left" ? mx - 18 : mx + 18}" y="${my + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    // Diode from (x1,y1) [anode] to (x2,y2) [cathode]; horizontal or vertical. The triangle points along the forward current.
+    diode(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, s = Math.sign(horiz ? x2 - x1 : y2 - y1) || 1, m = horiz ? (x1 + x2) / 2 : (y1 + y2) / 2, c = o.cls ? " " + o.cls : "";
+      let out;
+      if (horiz) out = `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${m - s * 9}" y2="${y1}"/><line class="w${c}" x1="${m + s * 9}" y1="${y1}" x2="${x2}" y2="${y1}"/><polygon class="el${c}" points="${m - s * 9},${y1 - 10} ${m - s * 9},${y1 + 10} ${m + s * 9},${y1}"/><line class="w${c}" x1="${m + s * 9}" y1="${y1 - 11}" x2="${m + s * 9}" y2="${y1 + 11}"/>`;
+      else out = `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${x1}" y2="${m - s * 9}"/><line class="w${c}" x1="${x1}" y1="${m + s * 9}" x2="${x1}" y2="${y2}"/><polygon class="el${c}" points="${x1 - 10},${m - s * 9} ${x1 + 10},${m - s * 9} ${x1},${m + s * 9}"/><line class="w${c}" x1="${x1 - 11}" y1="${m + s * 9}" x2="${x1 + 11}" y2="${m + s * 9}"/>`;
+      if (label) {
+        if (horiz) out += `<text x="${m}" y="${o.side === "below" ? y1 + 30 : y1 - 16}" text-anchor="middle">${label}</text>`;
+        else out += `<text x="${o.side === "left" ? x1 - 18 : x1 + 18}" y="${m + 5}" text-anchor="${o.side === "left" ? "end" : "start"}">${label}</text>`;
+      }
+      return out;
+    },
+    // Logic gate with its left edge at x and vertical center y. kind: and|or|not|buf|nand|nor. Output tip at S.gateOut(kind, x).
+    gate(kind, x, y, o = {}) {
+      const c = o.cls ? " " + o.cls : "";
+      let body;
+      if (kind === "and" || kind === "nand") body = `<path class="el${c}" d="M${x} ${y - 20} H${x + 25} A20 20 0 0 1 ${x + 25} ${y + 20} H${x} Z"/>`;
+      else if (kind === "or" || kind === "nor") body = `<path class="el${c}" d="M${x} ${y - 20} Q${x + 38} ${y - 20} ${x + 55} ${y} Q${x + 38} ${y + 20} ${x} ${y + 20} Q${x + 12} ${y} ${x} ${y - 20} Z"/>`;
+      else body = `<path class="el${c}" d="M${x} ${y - 18} L${x + 40} ${y} L${x} ${y + 18} Z"/>`;
+      const tip = { and: 45, nand: 45, or: 55, nor: 55, not: 40, buf: 40 }[kind];
+      if (kind === "nand" || kind === "nor" || kind === "not") body += `<circle class="el${c}" cx="${x + tip + 5}" cy="${y}" r="5"/>`;
+      if (o.label) body += `<text x="${x + 20}" y="${y + 5}" text-anchor="middle" class="s m">${o.label}</text>`;
+      return body;
+    },
+    // n-channel MOSFET. Terminals: G (x-30, y), D (x+14, y-40), S (x+14, y+40). o.p = true draws a p-channel (bubble on the gate).
+    nmos(x, y, o = {}) {
+      const c = o.cls ? " " + o.cls : "";
+      let s = `<line class="w${c}" x1="${x - 30}" y1="${y}" x2="${x - (o.p ? 20 : 10)}" y2="${y}"/>` + (o.p ? `<circle class="el${c}" cx="${x - 15}" cy="${y}" r="5"/>` : "") +
+        `<line class="w${c}" x1="${x - 10}" y1="${y - 18}" x2="${x - 10}" y2="${y + 18}"/><line class="w${c}" x1="${x - 3}" y1="${y - 22}" x2="${x - 3}" y2="${y + 22}" style="stroke-width:3.5"/>` +
+        `<polyline class="w${c}" points="${x - 3},${y - 14} ${x + 14},${y - 14} ${x + 14},${y - 40}"/><polyline class="w${c}" points="${x - 3},${y + 14} ${x + 14},${y + 14} ${x + 14},${y + 40}"/>`;
+      if (o.labels) s += `<text x="${x + 22}" y="${y - 26}" class="s m">D</text><text x="${x + 22}" y="${y + 34}" class="s m">S</text><text x="${x - 28}" y="${y - 8}" class="s m">G</text>`;
+      if (o.label) s += `<text x="${x + 22}" y="${y + 5}" class="${o.tcls || ""}">${o.label}</text>`;
+      return s;
+    },
+    // Vertical switch from (x,y1) down to (x,y2). closed = true draws the blade shut.
+    sw(x, y1, y2, closed, o = {}) {
+      const c = o.cls ? " " + o.cls : "", a = y1 + 14, b = y2 - 14;
+      let s = `<line class="w${c}" x1="${x}" y1="${y1}" x2="${x}" y2="${a}"/><line class="w${c}" x1="${x}" y1="${b}" x2="${x}" y2="${y2}"/>`;
+      s += closed ? `<line class="w${c}" x1="${x}" y1="${b}" x2="${x}" y2="${a}"/>` : `<line class="w${c}" x1="${x}" y1="${b}" x2="${x + 18}" y2="${a + 4}"/>`;
+      s += `<circle class="el" cx="${x}" cy="${a}" r="3.5"/><circle class="el" cx="${x}" cy="${b}" r="3.5"/>`;
+      if (o.label) s += `<text x="${x + (o.side === "left" ? -14 : 26)}" y="${(a + b) / 2 + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${o.label}</text>`;
+      return s;
+    },
+    gateOut(kind, x) { return x + { and: 45, nand: 55, or: 55, nor: 65, not: 50, buf: 40 }[kind]; },
+    dot(x, y) { return `<circle class="nd" cx="${x}" cy="${y}" r="4"/>`; },
+    t(x, y, s, o = {}) { return `<text x="${x}" y="${y}" text-anchor="${o.a || "middle"}" class="${o.cls || ""}">${s}</text>`; },
+    pm(x, y, top = "+", gap = 34) { return `<text x="${x}" y="${y}" text-anchor="middle" class="big">${top}</text><text x="${x}" y="${y + gap}" text-anchor="middle" class="big">${top === "+" ? "−" : "+"}</text>`; },
+    arrow(x1, y1, x2, y2, label, o = {}) {
+      const ang = Math.atan2(y2 - y1, x2 - x1), h = 9, w = 5;
+      const bx = x2 - h * Math.cos(ang), by = y2 - h * Math.sin(ang);
+      const p1 = [bx + w * Math.sin(ang), by - w * Math.cos(ang)], p2 = [bx - w * Math.sin(ang), by + w * Math.cos(ang)];
+      let out = `<line class="cur" x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}"/><polygon class="curh" points="${x2},${y2} ${p1.join(",")} ${p2.join(",")}"/>`;
+      if (label) out += `<text x="${o.lx != null ? o.lx : (x1 + x2) / 2}" y="${o.ly != null ? o.ly : (y1 + y2) / 2 - 8}" text-anchor="${o.a || "middle"}" class="c">${label}</text>`;
+      return out;
+    },
+    flow(pts, amps, k = 1, width) {
+      if (reduce || !amps || !isFinite(amps)) return "";
+      const dur = Math.max(0.18, Math.min(4, k / Math.abs(amps)));
+      return `<polyline class="flow" style="--dur:${dur.toFixed(2)}s${amps < 0 ? ";animation-direction:reverse" : ""}${width ? ";stroke-width:" + width.toFixed(1) : ""}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`;
+    },
+    gnd(x, y) { return `<line class="w" x1="${x}" y1="${y}" x2="${x}" y2="${y + 10}"/><line class="w" x1="${x - 14}" y1="${y + 10}" x2="${x + 14}" y2="${y + 10}"/><line class="w" x1="${x - 9}" y1="${y + 16}" x2="${x + 9}" y2="${y + 16}"/><line class="w" x1="${x - 4}" y1="${y + 22}" x2="${x + 4}" y2="${y + 22}"/>`; },
+    supply(x, y, label) { return `<line class="w" x1="${x}" y1="${y}" x2="${x}" y2="${y - 22}"/><polygon class="nd" points="${x - 7},${y - 18} ${x + 7},${y - 18} ${x},${y - 30}"/><text x="${x + 12}" y="${y - 20}" text-anchor="start">${label}</text>`; },
+    box(x, y, w, h, label, o = {}) { return `<rect class="box${o.cls ? " " + o.cls : ""}" x="${x}" y="${y}" width="${w}" height="${h}" rx="8"/>${label ? `<text x="${x + w / 2}" y="${y + h / 2 + 5}" text-anchor="middle">${label}</text>` : ""}`; },
+    bulb(cx, cy, glow = 0) {
+      return `<circle cx="${cx}" cy="${cy}" r="22" style="fill:var(--accent);opacity:${Math.min(0.85, glow).toFixed(2)}"/><circle class="el" cx="${cx}" cy="${cy}" r="18" style="fill:none"/><path class="w" d="M${cx - 8} ${cy + 18} L${cx - 8} ${cy} Q${cx - 4} ${cy - 10} ${cx} ${cy} Q${cx + 4} ${cy - 10} ${cx + 8} ${cy} L${cx + 8} ${cy + 18}"/>`;
+    },
+  };
+
+  /* ---------- simple x-y plot (SVG string) ---------- */
+  let clipN = 0;
+  function plot(o) {
+    const W = o.w || 520, H = o.h || 290, L = o.padL || 54, R = 14, T = 14, B = 40;
+    const [x0, x1] = o.x, [y0, y1] = o.y;
+    const X = (x) => L + ((x - x0) / (x1 - x0)) * (W - L - R);
+    const Y = (y) => T + ((y1 - y) / (y1 - y0)) * (H - T - B);
+    let s = "";
+    (o.xt || []).forEach((v) => { s += `<line class="grid" x1="${X(v)}" y1="${T}" x2="${X(v)}" y2="${H - B}"/><text x="${X(v)}" y="${H - B + 16}" text-anchor="middle">${o.xtf ? o.xtf(v) : fmt(v)}</text>`; });
+    (o.yt || []).forEach((v) => { s += `<line class="grid" x1="${L}" y1="${Y(v)}" x2="${W - R}" y2="${Y(v)}"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${o.ytf ? o.ytf(v) : fmt(v)}</text>`; });
+    const ay = y0 <= 0 && y1 >= 0 ? Y(0) : H - B, ax = x0 <= 0 && x1 >= 0 ? X(0) : L;
+    s += `<line class="axis" x1="${L}" y1="${ay}" x2="${W - R}" y2="${ay}"/><line class="axis" x1="${ax}" y1="${T}" x2="${ax}" y2="${H - B}"/>`;
+    if (o.xl) s += `<text class="lab" x="${W - R}" y="${H - 6}" text-anchor="end">${o.xl}</text>`;
+    if (o.yl) s += `<text class="lab" x="${L + 6}" y="${T + 12}" text-anchor="start">${o.yl}</text>`;
+    const cid = "clip" + ++clipN;
+    s += `<clipPath id="${cid}"><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}"/></clipPath><g clip-path="url(#${cid})">`;
+    const sample = (f, a, b, n) => { const pts = []; for (let i = 0; i <= n; i++) { const x = a + ((b - a) * i) / n; const y = f(x); if (isFinite(y)) pts.push([X(x), Y(Math.max(y0 - (y1 - y0), Math.min(y1 + (y1 - y0), y)))]); } return pts; };
+    (o.areas || []).forEach((ar) => {
+      const a = ar.from != null ? ar.from : x0, b = ar.to != null ? ar.to : x1;
+      const pts = sample(ar.f, a, b, ar.n || 240), base = ar.base != null ? ar.base : 0;
+      s += `<polygon class="${ar.cls || "ar1"}" points="${X(a)},${Y(base)} ${pts.map((p) => p.join(",")).join(" ")} ${X(b)},${Y(base)}"/>`;
+    });
+    (o.series || []).forEach((se) => {
+      const pts = se.pts ? se.pts.map(([x, y]) => [X(x), Y(y)]) : sample(se.f, se.from != null ? se.from : x0, se.to != null ? se.to : x1, se.n || 300);
+      if (pts.length) s += `<polyline class="${se.cls || "s1"}" points="${pts.map((p) => p.map((v) => v.toFixed(1)).join(",")).join(" ")}"/>`;
+    });
+    s += "</g>";
+    (o.marks || []).forEach((m) => {
+      if (m.x < x0 || m.x > x1 || m.y < y0 || m.y > y1) return;
+      s += `<circle class="${m.cls || "mk"}" cx="${X(m.x)}" cy="${Y(m.y)}" r="${m.r || 6}"/>`;
+      if (m.label) s += `<text class="lab" x="${X(m.x) + (m.dx || 10)}" y="${Y(m.y) + (m.dy || -10)}" text-anchor="${m.a || "start"}">${m.label}</text>`;
+    });
+    (o.texts || []).forEach((tx) => { s += `<text class="lab" x="${X(tx.x)}" y="${Y(tx.y)}" text-anchor="${tx.a || "start"}">${tx.s}</text>`; });
+    return `<svg class="plot" viewBox="0 0 ${W} ${H}" style="max-width:${W}px" role="img" aria-label="${o.label || "Graph"}">${s}</svg>`;
+  }
+
+  /* ---------- UI helpers for widgets ---------- */
+  function slider(o, onChange) {
+    const wrap = el(`<div class="sl"><label for="${o.id}"><span>${o.label}</span><output></output></label><input type="range" id="${o.id}"></div>`);
+    const inp = wrap.querySelector("input"), out = wrap.querySelector("output");
+    if (o.log) { inp.min = 0; inp.max = 1000; inp.step = 1; }
+    else { inp.min = o.min; inp.max = o.max; inp.step = o.step || (o.max - o.min) / 100; }
+    const toT = (v) => (1000 * Math.log(v / o.min)) / Math.log(o.max / o.min);
+    const get = () => (o.log ? o.min * Math.pow(o.max / o.min, inp.value / 1000) : +inp.value);
+    const show = () => { out.textContent = o.show ? o.show(get()) : fmt(get()); };
+    inp.value = o.log ? toT(o.value) : o.value;
+    show();
+    inp.addEventListener("input", () => { show(); onChange && onChange(get()); });
+    return { el: wrap, get, set(v) { inp.value = o.log ? toT(v) : v; show(); onChange && onChange(get()); } };
+  }
+  function toggle(labels, onPick, start = 0) {
+    const r = el(`<div class="row" role="group"></div>`);
+    labels.forEach((lab, i) => {
+      const b = el(`<button type="button" class="btn small" aria-pressed="${i === start}">${lab}</button>`);
+      b.addEventListener("click", () => { r.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); onPick(i); });
+      r.appendChild(b);
+    });
+    return r;
+  }
+  const readout = (pairs) => `<div class="readout">${pairs.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>`;
+
+  /* ---------- blocks ---------- */
+  function mcq(b) {
+    const n = el(`<div class="q">${b.q ? `<p class="qq">${b.q}</p>` : ""}${b.fig || ""}<div class="choices"></div><div class="feedback" aria-live="polite" hidden></div></div>`);
+    const ch = n.querySelector(".choices"), fb = n.querySelector(".feedback");
+    b.opts.forEach(([txt, ok, why]) => {
+      const btn = el(`<button type="button" class="btn choice">${txt}</button>`);
+      btn.addEventListener("click", () => {
+        fb.hidden = false;
+        fb.className = "feedback " + (ok ? "ok" : "no");
+        fb.innerHTML = (ok ? "<b>Yes.</b> " : "<b>Not this one.</b> ") + (why || "");
+        btn.classList.add(ok ? "right" : "wrong");
+        if (ok) ch.querySelectorAll("button").forEach((x) => (x.disabled = x !== btn));
+      });
+      ch.appendChild(btn);
+    });
+    return n;
+  }
+  function num(b, id) {
+    const n = el(`<div class="q"><p class="qq">${b.q}</p>${b.fig || ""}<form class="num" novalidate><input id="${id}" inputmode="decimal" autocomplete="off" aria-label="Your answer"><span class="mono">${b.unit || ""}</span><button class="btn primary" type="submit">Check</button></form><div class="feedback" aria-live="polite" hidden></div></div>`);
+    const fb = n.querySelector(".feedback"), inp = n.querySelector("input");
+    let tries = 0;
+    n.querySelector("form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = parseFloat(String(inp.value).replace(",", ".").replace("−", "-"));
+      fb.hidden = false;
+      if (isNaN(v)) { fb.className = "feedback"; fb.textContent = "Type a number first."; return; }
+      const tol = b.tol != null ? b.tol : 0.02;
+      const ok = b.a === 0 ? Math.abs(v) < 1e-9 : Math.abs(v - b.a) <= Math.abs(b.a) * tol;
+      tries++;
+      if (ok) { fb.className = "feedback ok"; fb.innerHTML = "<b>Yes.</b> " + (b.why || ""); }
+      else { fb.className = "feedback no"; fb.innerHTML = "<b>Not yet.</b> " + (tries >= 2 && b.hint2 ? b.hint2 : b.hint || "Check your units and signs."); }
+    });
+    return n;
+  }
+  /* Say-it-back answers live in the chapter's progress state; start() points this at it. */
+  let says = { get: (k) => store.get(k, ""), set: (k, v) => store.set(k, v) };
+  function say(b, id, key) {
+    const n = el(`<div class="q"><p class="qq">${b.q}</p><textarea id="${id}" placeholder="Type your answer in your own words. Rough is fine."></textarea><div class="row"><button type="button" class="btn primary">Compare with mine</button></div><div class="model" hidden><span class="lbl">One good answer</span><div>${b.model}</div><p class="aside">Did yours get the same core idea? Wording doesn't matter. If you're unsure, paste yours into the chat and ask for feedback.</p></div></div>`);
+    const ta = n.querySelector("textarea");
+    ta.value = says.get(key);
+    ta.addEventListener("input", () => says.set(key, ta.value));
+    n.querySelector("button").addEventListener("click", () => { n.querySelector(".model").hidden = false; });
+    return n;
+  }
+  function sort(b) {
+    const n = el(`<div class="q">${b.q ? `<p class="qq">${b.q}</p>` : ""}<div class="sort"></div><div class="row"><button type="button" class="btn primary sort-check">Check my sorting</button></div><div class="feedback" aria-live="polite" hidden></div></div>`);
+    const box = n.querySelector(".sort"), picks = [];
+    b.items.forEach(([label], i) => {
+      const it = el(`<div class="sort-item"><span>${label}</span></div>`);
+      it.appendChild(toggle(b.bins, (k) => (picks[i] = k), -1));
+      it.appendChild(el(`<div class="why" hidden></div>`));
+      box.appendChild(it);
+    });
+    n.querySelector(".sort-check").addEventListener("click", () => {
+      let right = 0;
+      b.items.forEach(([, bin, why], i) => {
+        const it = box.children[i], ok = picks[i] === bin;
+        if (ok) right++;
+        it.classList.toggle("right", ok); it.classList.toggle("wrong", !ok);
+        const w = it.querySelector(".why"); w.hidden = false;
+        w.innerHTML = (picks[i] == null ? "<b>Not sorted yet.</b> " : "") + (ok ? "" : `<b>Belongs in “${b.bins[bin]}”.</b> `) + (why || "");
+      });
+      const fb = n.querySelector(".feedback"); fb.hidden = false;
+      fb.className = "feedback " + (right === b.items.length ? "ok" : "no");
+      fb.innerHTML = `<b>${right} of ${b.items.length}</b> sorted correctly. ${right === b.items.length ? "" : "Read the notes on the red ones."}`;
+    });
+    return n;
+  }
+  function reveal(b) {
+    const n = el(`<div class="q"><div class="row"><button type="button" class="btn">${b.label || "Show me"}</button></div><div hidden>${b.html}</div></div>`);
+    n.querySelector("button").addEventListener("click", (e) => { n.lastElementChild.hidden = false; e.currentTarget.disabled = true; });
+    return n;
+  }
+  function renderBlock(b, id, key) {
+    if (typeof b === "string") return el(`<div>${b}</div>`);
+    if (typeof b === "function") { const h = el(`<div class="widget" style="display:grid;gap:12px;min-width:0"></div>`); b(h, id); return h; }
+    if (b.t === "mcq") return mcq(b);
+    if (b.t === "num") return num(b, id);
+    if (b.t === "say") return say(b, id, key);
+    if (b.t === "sort") return sort(b);
+    if (b.t === "reveal") return reveal(b);
+    return el(`<div>${b.html || ""}</div>`);
+  }
+
+  /* ---------- subscripts: "v_TH" in any text renders as v<sub>TH</sub> (tspan inside SVG).
+     A subscript stops before a letter that starts the next subscripted name, so "g_mR_D" reads g<sub>m</sub>R<sub>D</sub>. ---------- */
+  const SUBRE = /([A-Za-zΔβμαθωφτγ′])_([A-Za-z0-9]+?)(?=[A-Za-zΔβμαθωφτγ′]_|[^A-Za-z0-9]|$)/g, SVGNS = "http://www.w3.org/2000/svg";
+  function subify(root) {
+    if (!root || !document.createTreeWalker) return;
+    const w = document.createTreeWalker(root, 4 /* text */), hits = [];
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      const p = n.parentNode;
+      if (n.nodeValue.indexOf("_") < 0 || !p || /^(script|style|textarea|sub|tspan|title|code|pre)$/i.test(p.nodeName) || (p.closest && p.closest("pre, code"))) continue;
+      SUBRE.lastIndex = 0;
+      if (SUBRE.test(n.nodeValue)) hits.push(n);
+    }
+    hits.forEach((n) => {
+      const svg = n.parentNode.namespaceURI === SVGNS, s = n.nodeValue, frag = document.createDocumentFragment();
+      let last = 0, m;
+      SUBRE.lastIndex = 0;
+      while ((m = SUBRE.exec(s))) {
+        frag.appendChild(document.createTextNode(s.slice(last, m.index) + m[1]));
+        const sub = svg ? document.createElementNS(SVGNS, "tspan") : document.createElement("sub");
+        if (svg) { sub.setAttribute("baseline-shift", "sub"); sub.setAttribute("font-size", "75%"); }
+        sub.textContent = m[2];
+        frag.appendChild(sub);
+        last = m.index + m[0].length;
+      }
+      frag.appendChild(document.createTextNode(s.slice(last)));
+      n.parentNode.replaceChild(frag, n);
+    });
+  }
+  function watchSubs(root) {
+    subify(root);
+    if (!window.MutationObserver) return;
+    new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((a) => subify(a.nodeType === 3 ? a.parentNode : a)))).observe(root, { childList: true, subtree: true });
+  }
+
+  /* ---------- app ---------- */
+  const KIND = { learn: "Learn", play: "Play", predict: "Predict first", why: "Why?", whatif: "What if…", bug: "Spot the mistake", check: "Quick check", say: "Say it back", math: "Math boost" };
+
+  function start(C) {
+    const KEY = "course-" + C.id, P = window.Progress;
+    const state = P ? P.load(C.id) : store.get(KEY, { done: {}, last: null, say: {} });
+    state.say = state.say || {};
+    const save = (delay) => (P ? P.save(C.id, state, delay) : store.set(KEY, state));
+    says = {
+      get: (k) => (k in state.say ? state.say[k] : store.get(k, "")), // older builds kept answers under their own keys
+      set: (k, v) => { state.say[k] = v; save(1500); },
+    };
+    const root = document.getElementById("app");
+    watchSubs(root);
+    let view = { part: null, step: 0 };
+
+    /* Book navigation: chapter pages sit in the book's folder, its contents page one level up. */
+    const B = window.BOOK;
+    const bookLink = () => (B ? `<a class="book-link" href="../${B.home}">← Contents</a> · ` : "");
+    /* Where this chapter lives in the real book, so the problems are easy to find afterwards. */
+    const U = (B && B.unit) || "Chapter", u = U.toLowerCase();
+    /* Cross-book links: a math module lists the chapters that use it; a chapter lists the math modules it needs. */
+    const BOOKS = Object.values(window.BOOKS || {});
+    function chapterRef(id) {
+      for (const K of BOOKS) {
+        if (K.key === "math" || !K.find) continue;
+        const c = K.find(id);
+        if (c && c.file) return `<a href="../${K.dir}/${c.file}" title="${c.title}">${K.short} ${typeof c.n === "number" ? "Ch" : "App"} ${c.n}</a>`;
+      }
+      return "";
+    }
+    function mathLinks() {
+      const M = window.BOOKS && window.BOOKS.math;
+      if (!M || !M.all || (B && B.key === "math")) return "";
+      const href = (m) => (m.file.startsWith("../") ? m.file : "../math/" + m.file);
+      const list = (key) => M.all().filter((m) => m.file && (m[key] || []).includes(C.id)).map((m) => `<a href="${href(m)}">${m.title}</a>`).join(" · ");
+      const need = list("needs"), also = list("also");
+      return (need ? `<p class="aside where-book">Math you'll use: ${need}</p>` : "") + (also ? `<p class="aside where-book">Going further (optional): ${also}</p>` : "");
+    }
+    function whereInBook() {
+      const me = B && B.find(C.id);
+      if (me && B.noPdf) {
+        const used = (me.needs || []).map(chapterRef).filter(Boolean), pairs = (me.also || []).map(chapterRef).filter(Boolean);
+        return (used.length ? `<p class="aside where-book">Used in: ${used.join(" · ")}</p>` : "") + (pairs.length ? `<p class="aside where-book">Not in the books, but pairs with: ${pairs.join(" · ")}</p>` : "");
+      }
+      if (!me || !me.pdf) return mathLinks();
+      return `<p class="aside where-book">${B.short}, ${typeof me.n === "number" ? "Chapter" : "Appendix"} ${me.n} · ${B.pagesLabel(me)}${B.pdfFile ? "" : ` · PDF file ending “-${me.pdf}.pdf”`}${me.probs ? ` · problems from ${B.probsLabel(me)}` : ""}</p>` + mathLinks();
+    }
+    function problemsNote() {
+      const me = B && B.find(C.id);
+      if (!me || !me.probs) return "";
+      return `<div class="key"><b>Your book problems:</b> open <span class="mono">${B.pdfName(me)}</span> and go to ${B.probsLabel(me)}.</div>`;
+    }
+    const isAppPage = () => { const m = B && B.find(C.id); return !!m && typeof m.n !== "number"; };
+    function nextChapter() {
+      if (!B) return "";
+      const me = B.find(C.id), isApp = !!me && typeof me.n !== "number";
+      const list = isApp ? B.all().filter((c) => typeof c.n !== "number" && c.file) : B.chapters(), i = list.findIndex((c) => c.id === C.id), nx = list[i + 1];
+      const ans = B.answers && !isApp ? `<p class="aside">The book has short answers to some problems (${B.answers.label}, pages ${B.answers.pdf.replace("-", "–")}). Look only after you've committed to your own answer.</p>` : "";
+      if (!nx) return ans + `<p><a href="../${B.home}">← Back to the contents</a></p>`;
+      return ans + (nx.file
+        ? `<p>Then: <a href="${nx.file}">${isApp ? "Appendix" : U} ${nx.n} · ${nx.title} →</a></p>`
+        : `<p>Next up: ${U} ${nx.n} · ${nx.title}. Its tutorial isn't built yet. Ask Claude for it when you're ready.</p>`);
+    }
+
+    function hub() {
+      view = { part: null, step: 0 };
+      const firstOpen = C.parts.findIndex((p) => !state.done[p.id]);
+      const node = el(`<div class="wrap">
+        <header class="top"><div class="eyebrow">${bookLink()}${C.eyebrow}</div><h1>${C.title}</h1>${whereInBook()}</header>
+        <section class="card"><span class="tag">How this ${isAppPage() ? "appendix" : u} works</span>${C.intro}</section>
+        <ol class="parts" aria-label="Parts of this ${u}"></ol>
+        <section class="after"><h3 style="font-family:var(--display);margin:0">After the last part</h3>${problemsNote()}${C.after}${nextChapter()}</section>
+        <p class="aside save-note"></p>
+      </div>`);
+      if (P) P.onStatus((s) => { const n = node.querySelector(".save-note"); if (n) n.textContent = s === "cloud" ? "Progress saves to your Claude account, so it follows you to any browser." : "Progress saves in this browser only."; });
+      const list = node.querySelector(".parts");
+      C.parts.forEach((p, i) => {
+        const done = !!state.done[p.id];
+        const cls = done ? "done" : i === firstOpen ? "next" : "";
+        const b = el(`<li><button type="button" class="part-btn ${cls}"><span class="part-n">${done ? "✓" : i + 1}</span><span><span class="part-t">${p.title}</span><span class="part-d">${p.blurb}</span></span><span class="part-m">${p.mins} min</span></button></li>`);
+        b.querySelector("button").addEventListener("click", () => openPart(i, state.last && state.last.part === i ? state.last.step : 0));
+        list.appendChild(b);
+      });
+      const sum = el(`<li><button type="button" class="part-btn"><span class="part-n">Σ</span><span><span class="part-t">${U} summary</span><span class="part-d">Every key idea and formula on one page. Keep it open while you do the problems.</span></span><span class="part-m">ref</span></button></li>`);
+      sum.querySelector("button").addEventListener("click", summary);
+      list.appendChild(sum);
+      if (state.last && state.last.part != null && C.parts[state.last.part]) {
+        const p = C.parts[state.last.part];
+        const cont = el(`<div class="row"><button type="button" class="btn primary">Continue: Part ${state.last.part + 1}, step ${state.last.step + 1}</button><span class="aside">${p.title}</span></div>`);
+        cont.querySelector("button").addEventListener("click", () => openPart(state.last.part, state.last.step));
+        node.querySelector(".card").after(cont);
+      }
+      root.replaceChildren(node);
+      window.scrollTo(0, 0);
+    }
+
+    function summary() {
+      view = { part: null, step: 0 };
+      const node = el(`<div class="wrap"><header class="top"><div class="eyebrow"><button type="button">← ${C.eyebrow}</button></div><h1>${U} summary</h1></header><section class="card">${C.summary}</section><nav class="bottom"><button type="button" class="btn ghost">← ${U} map</button><span></span></nav></div>`);
+      node.querySelectorAll(".eyebrow button, nav .btn").forEach((b) => b.addEventListener("click", hub));
+      root.replaceChildren(node);
+      window.scrollTo(0, 0);
+    }
+
+    function openPart(pi, si0 = 0) {
+      const P = C.parts[pi];
+      const node = el(`<div class="wrap">
+        <header class="top"><div class="eyebrow"><button type="button">← ${C.eyebrow}</button> · Part ${pi + 1} of ${C.parts.length}</div><h1>${P.title}</h1>
+        <div class="rail" aria-label="Steps"></div><div class="where"></div></header>
+        <main></main>
+        <nav class="bottom"><button type="button" class="btn ghost" data-back>← Back</button><button type="button" class="btn primary" data-next>Next →</button></nav></div>`);
+      node.querySelector(".eyebrow button").addEventListener("click", hub);
+      root.replaceChildren(node);
+      const rail = node.querySelector(".rail"), where = node.querySelector(".where"), main = node.querySelector("main");
+      const back = node.querySelector("[data-back]"), next = node.querySelector("[data-next]");
+      const N = P.steps.length;
+
+      function show(i) {
+        i = Math.max(0, Math.min(N, i));
+        view = { part: pi, step: i };
+        if (i === N) return finish();
+        state.last = { part: pi, step: i }; save();
+        const st = P.steps[i];
+        const card = el(`<section class="card"><span class="tag k-${st.k}">${KIND[st.k] || st.k}</span>${st.title ? `<h2>${st.title}</h2>` : ""}</section>`);
+        (st.b || []).forEach((b, j) => card.appendChild(renderBlock(b, `${C.id}-${P.id}-s${i}-b${j}`, `${KEY}-say-${P.id}-${i}-${j}`)));
+        main.replaceChildren(card);
+        rail.innerHTML = P.steps.map((s, k) => `<button type="button" class="${k < i ? "done" : k === i ? "now" : ""}" aria-label="Step ${k + 1}" ${k === i ? 'aria-current="step"' : ""} data-i="${k}"></button>`).join("");
+        rail.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => show(+b.dataset.i)));
+        where.innerHTML = `Step <b>${i + 1}</b> of ${N} · ${KIND[st.k] || st.k}`;
+        back.disabled = i === 0;
+        next.hidden = false;
+        next.textContent = i === N - 1 ? "Finish part ✓" : "Next →";
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+      }
+      function finish() {
+        state.done[P.id] = true;
+        state.last = pi + 1 < C.parts.length ? { part: pi + 1, step: 0 } : null;
+        save();
+        const hasNext = pi + 1 < C.parts.length;
+        const card = el(`<section class="card"><span class="tag k-check">Part ${pi + 1} complete</span><h2>Your takeaway</h2><div class="key">${P.takeaway}</div>
+          <p class="aside">Good moment for a short break. Stand up, drink some water, then come back.</p>
+          <div class="row">${hasNext ? `<button type="button" class="btn primary" data-np>Part ${pi + 2}: ${C.parts[pi + 1].title} →</button>` : `<button type="button" class="btn primary" data-sum>Open the ${u} summary</button>`}<button type="button" class="btn ghost" data-hub>Chapter map</button></div></section>`);
+        main.replaceChildren(card);
+        rail.querySelectorAll("button").forEach((b) => (b.className = "done"));
+        where.innerHTML = `<b>Done</b> · ${N} steps`;
+        back.disabled = false;
+        next.hidden = true;
+        card.querySelector("[data-hub]").addEventListener("click", hub);
+        if (hasNext) card.querySelector("[data-np]").addEventListener("click", () => openPart(pi + 1, 0));
+        else card.querySelector("[data-sum]").addEventListener("click", summary);
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+      }
+      back.addEventListener("click", () => show(view.step - 1));
+      next.addEventListener("click", () => show(view.step + 1));
+      show(si0);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (view.part == null) return;
+      if (e.target.closest && e.target.closest("input, textarea, select")) return;
+      const nb = document.querySelector("[data-next]"), bb = document.querySelector("[data-back]");
+      if (e.key === "ArrowRight" && nb && !nb.hidden) nb.click();
+      if (e.key === "ArrowLeft" && bb && !bb.disabled) bb.click();
+    });
+
+    const m = /^#p(\d+)$/.exec(location.hash || "");
+    /* #resume (from the library's Resume card): the saved step, else the first unfinished part, else the map. */
+    const L = state.last, todo = C.parts.findIndex((p) => !state.done[p.id]);
+    if (m && C.parts[+m[1] - 1]) openPart(+m[1] - 1, 0);
+    else if (location.hash === "#resume" && L && C.parts[L.part]) openPart(L.part, L.step);
+    else if (location.hash === "#resume" && todo >= 0) openPart(todo, 0);
+    else hub();
+    if (P) P.sync(C.id, state, () => { if (view.part == null) hub(); });
+  }
+
+  return { start, S, plot, slider, toggle, readout, fmt, si, el, reduce, store };
+})();
+</script>
+<script>
+(function () {
+  const { S, plot, slider, toggle, readout, fmt, si, el } = Course;
+  const fig = (svg) => `<div class="fig">${svg}</div>`;
+  const seen = (html, href, where) => `<div class="key"><b>Seen in 6.002:</b> ${html} <a href="../chapters/${href}">${where} →</a></div>`;
+  const ch = (n, file, part, where, html) => `<p class="aside">${html} <a href="${file}#${part}">Boylestad Chapter ${n}, ${where} →</a></p>`;
+  const par = (...r) => 1 / r.reduce((a, x) => a + 1 / x, 0);
+  const ohm = (r) => si(r, "Ω");
+  const hz = (f) => si(f, "Hz", 3);
+  const L10 = Math.log10, TAU = 2 * Math.PI;
+  const db = (x) => 20 * L10(x);
+  /* First-order factors. lo: high-pass corner fc; hi: low-pass corner fc. Magnitudes. */
+  const lo = (fc) => (f) => 1 / Math.sqrt(1 + Math.pow(fc / f, 2));
+  const hi = (fc) => (f) => 1 / Math.sqrt(1 + Math.pow(f / fc, 2));
+  /* A dB plot against log frequency. x is log10(f). */
+  function bode(o) {
+    return plot({ x: o.x || [0, 8], y: o.y || [-40, 5], xt: o.xt || [0, 1, 2, 3, 4, 5, 6, 7, 8], xtf: (v) => si(Math.pow(10, v), "", 2).trim() + (o.unitTicks === false ? "" : ""), yt: o.yt || [-40, -30, -20, -10, -3, 0], xl: "f (Hz, log scale)", yl: o.yl || "gain (dB)", series: o.series, marks: o.marks || [], texts: o.texts || [], areas: o.areas || [], label: o.label || "Gain in dB against frequency on a log scale" });
+  }
+  const curve = (g, cls, from, to) => ({ f: (x) => db(g(Math.pow(10, x))), cls: cls || "s1", from, to, n: 400 });
+
+  /* =============== PART 1 =============== */
+  const p1 = {
+    id: "p1", title: "Math boost: logarithms", mins: 25,
+    blurb: "The tool behind every frequency plot. What a log is, its rules, and how to read a log axis.",
+    takeaway: "If a = bˣ then x = log_b a: the log is the power. Common log (base 10, 'log' key) and natural log (base e ≈ 2.718, 'ln' key): ln a = 2.3 log a. log 1 = 0; log(a/b) = log a − log b; log(1/b) = −log b (so numbers below 1 have negative logs); log(ab) = log a + log b. Antilog: 10ˣ or eˣ. A log scale gives each power of ten the same width: 2 sits about 30% along a decade, 3 about 48%, 5 about 70%. Reading between ticks: value = 10ˣ × 10^(d₁/d₂), where d₁ is the distance from the decade's start and d₂ the decade's width.",
+    steps: [
+      { k: "learn", title: "A log is a power", b: [
+        `<div class="eq">a = bˣ    ⟺    x = log<sub>b</sub> a</div>`,
+        `<p>"What power of 10 gives 10 000?" Four: log<sub>10</sub> 10 000 = 4. Base 10 is the <b>common</b> log (the <b>log</b> key). Base e ≈ 2.718 is the <b>natural</b> log (the <b>ln</b> key).</p>`,
+        `<div class="eq">ln a = 2.3 log<sub>10</sub> a</div>`,
+        `<div class="two"><div class="tile"><h3>log 1 = 0</h3><p>10⁰ = 1.</p></div><div class="tile"><h3>log(ab) = log a + log b</h3><p>Multiplying becomes adding.</p></div><div class="tile"><h3>log(a/b) = log a − log b</h3><p>Dividing becomes subtracting.</p></div><div class="tile"><h3>log(1/b) = −log b</h3><p>Numbers below 1 have negative logs.</p></div></div>`,
+      ]},
+      { k: "check", title: "Calculator practice", b: [
+        { t: "num", q: "log₁₀ 500?", a: 2.699, tol: 0.002, hint: "Use the log key. Expect between 2 and 3.", why: "2.699: 500 is between 10² and 10³." },
+        { t: "num", q: "ln 500?", a: 6.215, tol: 0.002, hint: "The ln key.", why: "6.215 = 2.3 × 2.699, near enough." },
+        { t: "num", q: "log₁₀ 0.02?", a: -1.699, tol: 0.002, hint: "Negative, because 0.02 < 1.", why: "−1.699 = log 2 − 2." },
+        { t: "num", q: "Antilog: 2.3 = log₁₀ a. What's a?", a: 199.5, tol: 0.003, hint: "a = 10^2.3 (the 10ˣ key).", why: "199.5." },
+      ]},
+      { k: "play", title: "Reading a log axis", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          let pos = 0.6;
+          function draw() {
+            const x0 = 40, w = 160;
+            let s = `<line class="w" x1="${x0}" y1="60" x2="${x0 + 3 * w}" y2="60"/>`;
+            for (let d = 0; d < 3; d++) {
+              for (let k = 1; k <= 10; k++) { const x = x0 + d * w + L10(k) * w, big = k === 1 || k === 10; s += `<line class="w" x1="${x}" y1="${big ? 44 : 52}" x2="${x}" y2="60" style="stroke-width:${big ? 2.5 : 1.5}"/>`; if (k === 1 || k === 2 || k === 5) s += S.t(x, 80, si(k * Math.pow(10, d + 1), "", 1).trim(), { cls: "s m" }); }
+            }
+            s += S.t(x0 + 3 * w, 80, "10k", { cls: "s m" });
+            const xp = x0 + w + pos * w, val = 100 * Math.pow(10, pos);
+            s += `<circle class="mk" cx="${xp}" cy="60" r="7"/>` + `<line x1="${x0 + w}" y1="28" x2="${xp}" y2="28" style="stroke:var(--accent);stroke-width:2"/>` + S.t((x0 + w + xp) / 2, 22, "d₁", { cls: "a s" }) + `<line x1="${x0 + w}" y1="100" x2="${x0 + 2 * w}" y2="100" style="stroke:var(--cool);stroke-width:2"/>` + S.t(x0 + 1.5 * w, 116, "d₂ (one decade)", { cls: "c s" });
+            f.innerHTML = S.svg(560, 125, s, { max: 560, label: "A log axis from 10 to 10 000 with a point between 100 and 1000" });
+            ro.innerHTML = readout([["d₁/d₂", fmt(pos, 3)], ["Value = 10² × 10^(d₁/d₂)", fmt(val, 4)]]);
+          }
+          host.append(f, slider({ id: id + "-p", label: "Where the point sits in the 100–1000 decade (d₁/d₂)", min: 0, max: 1, step: 0.01, value: pos, show: (v) => fmt(v, 2) }, (v) => { pos = v; draw(); }).el, ro);
+          draw();
+        },
+        `<p>On a log axis each power of ten gets the same width. Inside a decade the ticks bunch up: 2 is about 30% of the way (log 2 ≈ 0.3), 3 about 48%, 5 about 70%.</p>`,
+        `<div class="eq">value = 10ˣ × 10^(d₁/d₂)</div>`,
+        { t: "num", q: "A point sits 60% of the way across the 100-to-1000 decade. Its value?", a: 398.1, tol: 0.005, hint: "10² × 10^0.6.", why: "100 × 3.981 = 398." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why do engineers plot frequency on a log scale?", model: "Because the frequencies of interest span many powers of ten, from a few hertz to megahertz. A log scale gives each decade the same width, so the whole range fits on one graph and the low end isn't squashed into nothing." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 2 =============== */
+  const p2 = {
+    id: "p2", title: "Decibels", mins: 25,
+    blurb: "A log ratio of powers. 10 log for power, 20 log for voltage, and cascades just add.",
+    takeaway: "Bel: log₁₀(P₂/P₁); decibel: G_dB = 10 log₁₀(P₂/P₁). Always a comparison with a reference. dBm: reference 1 mW in 600 Ω (that's 0.775 V rms). For voltages across the same resistance, P ∝ V², so G_dB = 20 log₁₀(V₂/V₁) (often used even when resistances differ, then strictly 'voltage gain in dB'). Landmarks: ×2 = 6 dB, ×0.707 = −3 dB, ×10 = 20 dB, ×1000 = 60 dB; 50 dB or more is a high voltage gain. Cascades: dB gains add. Back from dB: A_v = 10^(dB/20).",
+    steps: [
+      { k: "learn", title: "From bels to decibels", b: [
+        `<p>Loudness follows ratios, not differences: 4 W → 16 W sounds like one step, 4 W → 64 W like two. So power levels are compared with a log:</p>`,
+        `<div class="eq">G<sub>dB</sub> = 10 log<sub>10</sub>(P<sub>2</sub>/P<sub>1</sub>)    (10 dB = 1 bel, after Alexander Graham Bell)</div>`,
+        `<div class="key">A decibel is always a <b>comparison</b> with a reference. "dBm" means the reference is 1 mW, in 600 Ω (an audio line's impedance).</div>`,
+      ]},
+      { k: "learn", title: "Voltage in dB: why 20?", b: [
+        `<p>Same resistance at both points: P = V²/R. Put that in:</p>`,
+        `<div class="eq">10 log(V<sub>2</sub>²/V<sub>1</sub>²) = 20 log(V<sub>2</sub>/V<sub>1</sub>)</div>`,
+        `<p>The square comes out of the log as a factor of 2. Back from dB: A<sub>v</sub> = 10^(dB/20).</p>`,
+      ]},
+      { k: "play", title: "Gain ↔ dB", b: [
+        (host, id) => {
+          const ro = el(`<div></div>`);
+          let g = 2;
+          function draw() { ro.innerHTML = readout([["Ratio", fmt(g, 4)], ["As a voltage ratio: 20 log", fmt(db(g), 4) + " dB"], ["As a power ratio: 10 log", fmt(10 * L10(g), 4) + " dB"]]); }
+          host.append(slider({ id: id + "-g", label: "Ratio (output/input)", min: 0.01, max: 100000, log: true, value: g, show: (v) => fmt(v, 3) }, (v) => { g = v; draw(); }).el, ro);
+          draw();
+        },
+        `<div class="tbl"><table><tr><th>Voltage gain</th><th>dB</th></tr><tr><td>0.5</td><td>−6</td></tr><tr><td>0.707</td><td>−3</td></tr><tr><td>1</td><td>0</td></tr><tr><td>2</td><td>6</td></tr><tr><td>10</td><td>20</td></tr><tr><td>100</td><td>40</td></tr><tr><td>1000</td><td>60</td></tr><tr><td>10 000</td><td>80</td></tr></table></div>`,
+        `<p class="aside">Going from 1000 to 10 000 adds only 20 dB. Voltage gains of 50 dB or more are high.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "Power ratio 50. In dB?", a: 16.99, unit: "dB", tol: 0.005, hint: "10 log 50.", why: "17.0 dB." },
+        { t: "num", q: "Voltage ratio 50. In dB?", a: 33.98, unit: "dB", tol: 0.005, hint: "20 log 50.", why: "34.0 dB: double the power figure." },
+        { t: "num", q: "Three stages of 20 dB, 26 dB and 14 dB. Overall voltage gain (as a ratio)?", a: 1000, tol: 0.01, hint: "dB gains add: 60 dB. Then 10^(60/20).", why: "1000. In dB, cascades add instead of multiply." },
+        { t: "num", q: "2 V rms across 600 Ω. Level in dBm?", a: 8.235, unit: "dBm", tol: 0.01, hint: "0 dBm is 0.775 V across 600 Ω. 20 log(2/0.775).", why: "8.24 dBm." },
+      ]},
+      { k: "check", title: "A real amplifier", b: [
+        `<p>An amplifier delivers 50 W into an 8 Ω speaker. Its power gain is 30 dB and its voltage gain 46 dB.</p>`,
+        { t: "num", q: "Input power needed for full output, in mW?", a: 50, unit: "mW", hint: "30 dB is a power ratio of 10³.", why: "50 W/1000 = 50 mW." },
+        { t: "num", q: "Input voltage, in V?", a: 0.1002, unit: "V", tol: 0.01, hint: "V_o = √(PR) = 20 V. 46 dB is a voltage ratio of 10^2.3.", why: "20/199.5 = 0.100 V." },
+      ]},
+      { k: "learn", title: "Ears and meters", b: [
+        `<p>The ear responds logarithmically. Sound pressure level: dB<sub>s</sub> = 20 log(P/0.0002 µbar), where 0.0002 µbar is the threshold of hearing. Conversation ≈ 60 dB, a chain saw ≈ 100 dB, pain ≈ 120 dB.</p>`,
+        `<ul><li>Loudness roughly <b>doubles every 10 dB</b>, which is <b>10×</b> the power. Doubling the loudness of a 1 W source takes a 10 W source.</li><li>About 3 dB (twice the power) is just noticeable at normal levels.</li><li>Hearing damage usually can't be undone: keep music players under about 60% volume and an hour a day.</li></ul>`,
+        `<p class="aside">Meters with a dB scale use 1 mW in 600 Ω, i.e. 0.775 V rms = 0 dB. The reading is only exact across 600 Ω. Don't read 5 dB as 5 mW: it's 10^0.5 = 3.16 mW.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why is a voltage ratio converted with 20 log but a power ratio with 10 log?", model: "Because power goes as voltage squared. Ten log of a squared voltage ratio is twenty log of the voltage ratio itself, since the square comes out of the logarithm as a factor of two. Both give the same decibel figure for the same change, as long as the resistances are equal." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 3 =============== */
+  const p3 = {
+    id: "p3", title: "Where the gain goes: low, mid, high", mins: 20,
+    blurb: "Big capacitors limit the low end, tiny parasitic ones the high end. In between, the midband.",
+    takeaway: "Coupling and bypass capacitors (µF) have large reactance at low frequencies: they set the low cutoff and act as shorts at high frequencies. Parasitic and wiring capacitances (pF) are open circuits at low frequencies and become shorts at high ones: they set the high cutoff (with the transistor's own gain fall-off). Midband: ignore all capacitors. Cutoff (corner, break, band, half-power) frequencies f_L and f_H are where the gain is 0.707 of midband: output power is half. Bandwidth BW = f_H − f_L. RC-coupled amplifiers lose gain at both ends; transformer-coupled ones too (magnetizing inductance at low f, winding capacitance at high f); direct-coupled amplifiers are flat down to DC. Normalizing (dividing by A_vmid) gives a plot with 1 (0 dB) in midband and 0.707 (−3 dB) at the cutoffs. Phase: 180° only in midband; at low f the output leads more, at high f less.",
+    steps: [
+      { k: "play", title: "Big C and little C", b: [
+        (host, id) => {
+          const ro = el(`<div></div>`);
+          let lf = 3;
+          function draw() {
+            const f = Math.pow(10, lf);
+            ro.innerHTML = readout([["Frequency", hz(f)], ["X<sub>C</sub> of a 1 µF coupling capacitor", ohm(1 / (TAU * f * 1e-6))], ["X<sub>C</sub> of a 5 pF parasitic capacitance", ohm(1 / (TAU * f * 5e-12))]]);
+          }
+          host.append(slider({ id: id + "-f", label: "Frequency (log)", min: 1, max: 8, step: 0.05, value: lf, show: (v) => hz(Math.pow(10, v)) }, (v) => { lf = v; draw(); }).el, ro);
+          draw();
+        },
+        `<p>Compare with circuit resistances of a few kΩ. At 10 Hz the 1 µF capacitor is 16 kΩ: definitely not a short. By 100 kHz it's 1.6 Ω: a short. The 5 pF capacitance is the opposite: 3 GΩ at 10 Hz (open), but only 318 Ω at 100 MHz.</p>`,
+        `<div class="key"><b>Large</b> capacitors shape the <b>low</b>-frequency response; <b>small</b> ones shape the <b>high</b>-frequency response. In between, the <b>midband</b>, you ignore both: that's every analysis so far.</div>`,
+      ]},
+      { k: "learn", title: "Cutoff and bandwidth", b: [
+        fig(bode({ series: [curve((f) => lo(150)(f) * hi(800e3)(f))], marks: [{ x: L10(150), y: -3 }, { x: L10(800e3), y: -3 }], texts: [{ x: L10(150) + 0.15, y: -5.5, s: "f_L" }, { x: L10(800e3) - 0.15, y: -5.5, s: "f_H", a: "end" }, { x: 3.4, y: 2, s: "midband" }], label: "Normalized gain of an RC-coupled amplifier with its two cutoff frequencies" })),
+        `<p>Where the gain has fallen to <b>0.707</b> of midband, output power is <b>half</b>: (0.707)² = 0.5. Those are the <b>cutoff</b> (corner, break, band or half-power) frequencies.</p>`,
+        `<div class="eq">BW = f<sub>H</sub> − f<sub>L</sub>    at f<sub>L</sub>, f<sub>H</sub>: A<sub>v</sub>/A<sub>vmid</sub> = 0.707 = −3 dB</div>`,
+        `<p class="aside">Plotting A<sub>v</sub>/A<sub>vmid</sub> (normalizing) makes the plot independent of the actual gain: midband is 1 (0 dB) whether A<sub>vmid</sub> is 50 or 200.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "Midband gain 150. What gain marks the cutoff frequencies?", a: 106.1, tol: 0.01, hint: "0.707 × 150.", why: "106: that's −3 dB." },
+        { t: "num", q: "f_L = 180 Hz, f_H = 27 kHz. Bandwidth?", a: 26820, unit: "Hz", tol: 0.005, hint: "f_H − f_L.", why: "26.8 kHz, essentially f_H." },
+        { t: "sort", q: "What limits each amplifier at each end?", bins: ["Low-frequency fall-off", "High-frequency fall-off", "Nothing: flat to DC"], items: [
+          ["Coupling and bypass capacitors (RC-coupled)", 0, "Their reactance grows as frequency falls."],
+          ["Transformer's magnetizing inductance", 0, "X_L = 2πfL shorts the input at low frequency; at DC no changing flux, no output."],
+          ["Stray capacitance between windings", 1, "It shorts the signal at high frequency."],
+          ["Parasitic transistor capacitance and β fall-off", 1, "Tiny capacitances matter only at high frequency."],
+          ["Direct-coupled amplifier's low end", 2, "No coupling capacitors, so the gain holds down to DC."],
+        ]},
+      ]},
+      { k: "learn", title: "Phase changes too", b: [
+        `<p>"A CE amplifier shifts phase by 180°" is only true in the <b>midband</b>. At low frequencies the coupling networks add a lead (the output leads by more); at high frequencies the phase shift falls below 180°.</p>`,
+        seen("Frequency response: magnitude and phase on log scales.", "13-sinusoidal-steady-state.html#p5", "Chapter 13, Part 5"),
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why do the cutoff frequencies sit at 0.707 of the midband gain?", model: "Because at 0.707 of the midband voltage, the output power is half the midband power, since power goes with voltage squared and 0.707 squared is 0.5. In decibels that's 3 dB down, so they're also called the half-power or −3 dB frequencies." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 4 =============== */
+  const p4 = {
+    id: "p4", title: "One RC: f_L and the Bode plot", mins: 25,
+    blurb: "Every low-frequency corner is an RC divider. Find f_L, draw two straight lines, done.",
+    takeaway: "Series C, shunt R (high-pass): A_v = 1/(1 − j f_L/f), |A_v| = 1/√(1 + (f_L/f)²), phase (V_o leads V_i) = tan⁻¹(f_L/f). f_L = 1/(2πRC), where X_C = R and |A_v| = 0.707 (−3 dB). Well below f_L: A_v(dB) ≈ −20 log(f_L/f): −6 dB per octave (×2 in frequency), −20 dB per decade (×10). Bode plot: a 0 dB asymptote above f_L, a 20 dB/decade slope below it, meeting at f_L; the real curve is 3 dB below the corner. Phase: 45° at f_L, toward 90° well below, toward 0° well above. A_v = 10^(dB/20).",
+    steps: [
+      { k: "learn", title: "The RC divider", b: [
+        seen("First-order responses sketched with straight-line asymptotes.", "13-sinusoidal-steady-state.html#p6", "Chapter 13, Part 6"),
+        `<p>A capacitor in series with the signal, a resistor to ground: at high frequency C is a short, V<sub>o</sub> = V<sub>i</sub>. At 0 Hz it's open, V<sub>o</sub> = 0. In between, a voltage divider:</p>`,
+        `<div class="eq">|A<sub>v</sub>| = 1/√(1 + (f<sub>L</sub>/f)²)    f<sub>L</sub> = 1/(2πRC)    phase = tan⁻¹(f<sub>L</sub>/f)</div>`,
+        `<p>At f = f<sub>L</sub>, X<sub>C</sub> = R exactly, and |A<sub>v</sub>| = 1/√2 = 0.707: −3 dB.</p>`,
+      ]},
+      { k: "play", title: "Bode lab", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          let R = 2200, C = 0.47e-6, ph = false, lt = 2;
+          function draw() {
+            const fL = 1 / (TAU * R * C), x = L10(fL), ft = Math.pow(10, lt);
+            if (!ph) f.innerHTML = bode({ x: [0, 5], xt: [0, 1, 2, 3, 4, 5], y: [-40, 5], series: [curve(lo(fL)), { pts: [[x, 0], [5, 0]], cls: "s5" }, { pts: [[x - 2, -40], [x, 0]], cls: "s5" }], marks: [{ x: x, y: -3 }, { x: lt, y: db(lo(fL)(ft)), cls: "mk2" }], texts: [{ x: x + 0.1, y: -6, s: "f_L" }], label: "Bode plot of an RC high-pass: asymptotes and the real curve" });
+            else f.innerHTML = plot({ x: [0, 5], y: [0, 90], xt: [0, 1, 2, 3, 4, 5], xtf: (v) => si(Math.pow(10, v), "", 2).trim(), yt: [0, 45, 90], xl: "f (Hz, log scale)", yl: "phase lead (°)", series: [{ f: (xx) => (Math.atan(fL / Math.pow(10, xx)) * 180) / Math.PI, cls: "s1" }], marks: [{ x, y: 45 }, { x: lt, y: (Math.atan(fL / ft) * 180) / Math.PI, cls: "mk2" }], label: "Phase of the RC high-pass" });
+            ro.innerHTML = readout([["f<sub>L</sub> = 1/(2πRC)", hz(fL)], ["At the blue dot, f", hz(ft)], ["|A<sub>v</sub>| there", fmt(lo(fL)(ft), 3) + " = " + fmt(db(lo(fL)(ft)), 3) + " dB"], ["Phase lead there", fmt((Math.atan(fL / ft) * 180) / Math.PI, 3) + "°"]]);
+          }
+          host.append(f, toggle(["Magnitude", "Phase"], (k) => { ph = k === 1; draw(); }, 0),
+            slider({ id: id + "-r", label: "R", min: 100, max: 100e3, log: true, value: R, show: (v) => ohm(v) }, (v) => { R = v; draw(); }).el,
+            slider({ id: id + "-c", label: "C", min: 0.01e-6, max: 100e-6, log: true, value: C, show: (v) => si(v, "F") }, (v) => { C = v; draw(); }).el,
+            slider({ id: id + "-t", label: "Test frequency (blue dot)", min: 0, max: 5, step: 0.02, value: lt, show: (v) => hz(Math.pow(10, v)) }, (v) => { lt = v; draw(); }).el, ro);
+          draw();
+        },
+        `<p class="aside">Dashed: the two straight-line asymptotes (the Bode plot). Orange: the real response. They meet at f<sub>L</sub>, where the real curve is 3 dB below.</p>`,
+      ]},
+      { k: "learn", title: "6 dB per octave", b: [
+        `<p>Well below f<sub>L</sub>, 1 + (f<sub>L</sub>/f)² ≈ (f<sub>L</sub>/f)², so A<sub>v</sub>(dB) ≈ −20 log(f<sub>L</sub>/f):</p>`,
+        `<div class="two"><div class="tile"><h3>f = f<sub>L</sub>/2</h3><p>−6 dB. One <b>octave</b> = ×2 in frequency = 6 dB.</p></div><div class="tile"><h3>f = f<sub>L</sub>/10</h3><p>−20 dB. One <b>decade</b> = ×10 in frequency = 20 dB.</p></div></div>`,
+        `<p class="aside">Hendrik Bode (Bell Labs, 1940s) introduced these straight-line plots.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        `<p>R = 2.2 kΩ, C = 0.47 µF.</p>`,
+        { t: "num", q: "f_L?", a: 153.9, unit: "Hz", tol: 0.01, hint: "1/(2πRC).", why: "1/(2π × 2200 × 0.47 µF) = 154 Hz." },
+        { t: "num", q: "Exact gain in dB at f = f_L/5?", a: -14.15, unit: "dB", tol: 0.01, hint: "−10 log(1 + 5²).", why: "−14.15 dB. The asymptote gives −20 log 5 = −13.98: within 0.2 dB." },
+        { t: "num", q: "Phase lead at f = f_L/5, in degrees?", a: 78.69, unit: "°", tol: 0.01, hint: "tan⁻¹(5).", why: "78.7°, heading for 90°." },
+        { t: "num", q: "A reading of −9 dB. Voltage ratio?", a: 0.3548, tol: 0.01, hint: "10^(−9/20).", why: "0.355." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "How do you sketch the low-frequency response of one RC network quickly?", model: "Find f_L = 1/(2πRC). Draw a flat 0 dB line above f_L and a line falling at 20 dB per decade (6 dB per octave) below it, meeting at f_L. The real curve follows these asymptotes away from the corner and passes 3 dB below the corner at f_L." },
+      ]},
+    ],
+  };
+
+  /* ---------- Chapter 9 amplifier helpers ---------- */
+  function bjtSym(x, y) {
+    const L = Math.hypot(22, 19), ux = 22 / L, uy = 19 / L;
+    let s = `<line class="w" x1="${x - 30}" y1="${y}" x2="${x}" y2="${y}"/><line class="w" x1="${x}" y1="${y - 20}" x2="${x}" y2="${y + 20}" style="stroke-width:3.5"/>`;
+    s += `<polyline class="w" points="${x},${y - 9} ${x + 22},${y - 28} ${x + 22},${y - 50}"/><polyline class="w" points="${x},${y + 9} ${x + 22},${y + 28} ${x + 22},${y + 50}"/>`;
+    const tx = x + 22 * 0.85, ty = y + 9 + 19 * 0.85, bx = tx - 9 * ux, by = ty - 9 * uy;
+    return s + `<polygon class="nd" points="${tx},${ty} ${bx - 5 * uy},${by + 5 * ux} ${bx + 5 * uy},${by - 5 * ux}"/>`;
+  }
+  function jfetSym(x, y) {
+    let s = `<line class="w" x1="${x - 30}" y1="${y}" x2="${x}" y2="${y}"/><line class="w" x1="${x}" y1="${y - 24}" x2="${x}" y2="${y + 24}" style="stroke-width:3.5"/>`;
+    s += `<polyline class="w" points="${x},${y - 16} ${x + 22},${y - 16} ${x + 22},${y - 40}"/><polyline class="w" points="${x},${y + 16} ${x + 22},${y + 16} ${x + 22},${y + 40}"/>`;
+    return s + `<polygon class="nd" points="${x - 2},${y} ${x - 12},${y - 5} ${x - 12},${y + 5}"/>`;
+  }
+  /* The loaded voltage-divider amplifier with its three low-frequency capacitors.
+     o.fet: JFET version. o.hl: which capacitor's loop to highlight (0 input, 1 output, 2 bypass). o.hf: draw the parasitic capacitances instead. */
+  function ampFig(o = {}) {
+    const f = !!o.fet, h = o.hl, H = (k) => (h === k ? "hl" : "");
+    const L = f ? { s: "R_sig", cin: "C_G", r1: null, r2: "R_G", rc: "R_D", cc: "C_C", re: "R_S", ce: "C_S", top: "V_DD" } : { s: "R_s", cin: "C_s", r1: "R_1", r2: "R_2", rc: "R_C", cc: "C_C", re: "R_E", ce: "C_E", top: "V_CC" };
+    let s = S.supply(250, 40, L.top) + S.wire([190, 40], [312, 40]);
+    if (L.r1) s += S.res(190, 40, 190, 170, L.r1, { side: "left", cls: H(0) });
+    else s = S.supply(250, 40, L.top) + S.wire([250, 40], [312, 40]);
+    s += S.res(190, 170, 190, 300, L.r2, { side: "left", cls: H(0) }) + S.gnd(190, 300) + S.dot(190, 170);
+    s += S.vsrc(30, 240, f ? "V_s" : "V_s") + S.wire([30, 258], [30, 300]) + S.gnd(30, 300) + S.wire([30, 222], [30, 170]);
+    s += S.res(30, 170, 105, 170, L.s, { cls: H(0), side: "below" }) + S.cap(105, 170, 185, 170, L.cin, { cls: H(0), tcls: h === 0 ? "a" : "" }) + S.wire([185, 170], [190, 170]);
+    s += S.wire([190, 170], [260, 170]) + (f ? jfetSym(290, 170) + S.wire([312, 130], [312, 100]) + S.wire([312, 210], [312, 235]) : bjtSym(290, 170) + S.wire([312, 120], [312, 100]) + S.wire([312, 220], [312, 235]));
+    s += S.res(312, 40, 312, 100, L.rc, { side: "left", cls: H(1) }) + S.dot(312, 100);
+    s += S.cap(312, 100, 392, 100, L.cc, { cls: H(1), tcls: h === 1 ? "a" : "" }) + S.wire([392, 100], [440, 100], [440, 120]) + S.res(440, 120, 440, 300, "R_L", { side: "right", cls: H(1) }) + S.gnd(440, 300) + S.dot(440, 100) + S.t(448, 92, "V_o", { a: "start", cls: "a" });
+    s += S.dot(312, 235) + S.wire([312, 235], [380, 235]) + S.res(312, 235, 312, 300, L.re, { side: "left", cls: H(2) }) + S.cap(380, 235, 380, 300, L.ce, { side: "right", cls: H(2), tcls: h === 2 ? "a" : "" }) + S.wire([312, 300], [380, 300]) + S.gnd(346, 300);
+    s += S.t(112, 196, "V_i", { a: "start", cls: "c s" });
+    return S.svg(520, 335, `<g transform="translate(20,0)">${s}</g>`, { max: 520, label: o.label || (f ? "JFET amplifier with C_G, C_C and C_S" : "Loaded BJT voltage-divider amplifier with C_s, C_C and C_E") });
+  }
+  /* Find where a normalized gain g(f) crosses 0.707, searching log10 f between a and b. rising: true for the low end. */
+  function cross(g, a, b, rising) {
+    for (let i = 0; i < 60; i++) { const m = (a + b) / 2, v = g(Math.pow(10, m)); if ((v < Math.SQRT1_2) === rising) a = m; else b = m; }
+    return Math.pow(10, (a + b) / 2);
+  }
+  /* Everything for a loaded voltage-divider BJT amplifier (my example values as defaults). */
+  function bjtAmp(p) {
+    const VB = (p.R2 * p.VCC) / (p.R1 + p.R2), IE = (VB - 0.7) / p.RE, re = 0.026 / IE, bre = p.b * re;
+    const Ri = par(p.R1, p.R2, bre), Av = -par(p.RC, p.RL) / re, Avs = (Av * Ri) / (Ri + p.Rs);
+    const fLs = 1 / (TAU * (p.Rs + Ri) * p.Cs), fLC = 1 / (TAU * (p.RC + p.RL) * p.CC);
+    const Rsp = p.Rs > 0 ? par(p.Rs, p.R1, p.R2) : par(p.R1, p.R2), Re = par(p.RE, Rsp / p.b + re), fLE = 1 / (TAU * Re * p.CE);
+    const RThi = p.Rs > 0 ? par(p.Rs, p.R1, p.R2, bre) : 0, Ci = p.CWi + p.Cbe + (1 - Av) * p.Cbc, fHi = RThi > 0 ? 1 / (TAU * RThi * Ci) : Infinity;
+    const RTho = par(p.RC, p.RL), Co = p.CWo + p.Cce + (1 - 1 / Av) * p.Cbc, fHo = 1 / (TAU * RTho * Co);
+    const fb = 1 / (TAU * p.b * re * (p.Cbe + p.Cbc));
+    return { VB, IE, re, bre, Ri, Av, Avs, fLs, fLC, Re, fLE, RThi, Ci, fHi, RTho, Co, fHo, fb, fT: p.b * fb };
+  }
+  const MY = { VCC: 15, R1: 47e3, R2: 10e3, RE: 1.5e3, RC: 3.3e3, RL: 4.7e3, b: 120, Cs: 4.7e-6, CC: 2.2e-6, CE: 47e-6, Rs: 600, Cbe: 30e-12, Cbc: 3e-12, Cce: 1e-12, CWi: 5e-12, CWo: 6e-12 };
+
+  /* =============== PART 5 =============== */
+  const p5 = {
+    id: "p5", title: "BJT low end: C_s, C_C and C_E", mins: 30,
+    blurb: "Three capacitors, three RC loops, three corners. The highest one sets f_L.",
+    takeaway: "Treat each capacitor alone, with the other two as shorts. Input C_s: f_Ls = 1/[2π(R_s + R_i)C_s], R_i = R₁ ∥ R₂ ∥ βr_e. Output C_C: f_LC = 1/[2π(R_o + R_L)C_C], R_o = R_C ∥ r_o. Bypass C_E: f_LE = 1/(2πR_eC_E), R_e = R_E ∥ (R′_s/β + r_e), R′_s = R_s ∥ R₁ ∥ R₂ (R′_s = R₁ ∥ R₂ with no R_s). R_e is tiny, so C_E usually sets the highest corner even though it's the biggest capacitor. Midband (all shorts): A_v = −(R_C ∥ R_L)/r_e. The highest of the three corners is the last met before midband and essentially sets f_L when they're well apart. Corners close together raise f_L and steepen the slope (12, then 18 dB/octave).",
+    steps: [
+      { k: "learn", title: "Three loops", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), cap = el(`<p></p>`);
+          const txt = [
+            `<b>C<sub>s</sub></b> sits between the source and the base. Its loop: R<sub>s</sub> in series, then R<sub>i</sub> = R<sub>1</sub> ∥ R<sub>2</sub> ∥ βr<sub>e</sub> looking into the amplifier.`,
+            `<b>C<sub>C</sub></b> sits between collector and load. Its loop: R<sub>o</sub> = R<sub>C</sub> ∥ r<sub>o</sub> (a Thévenin resistance) in series with R<sub>L</sub>.`,
+            `<b>C<sub>E</sub></b> sits across R<sub>E</sub>. Its loop: whatever resistance it "sees" from the emitter. Looking up into the emitter you see a small resistance, so R<sub>e</sub> is small.`];
+          const draw = (k) => { f.innerHTML = ampFig({ hl: k }); cap.innerHTML = txt[k]; };
+          host.append(f, toggle(["C_s loop", "C_C loop", "C_E loop"], draw, 0), cap);
+          draw(0);
+        },
+        `<div class="key">One capacitor at a time: treat the other two as <b>shorts</b> (they're doing their job), find the resistance the capacitor sees, and use f = 1/(2πRC).</div>`,
+      ]},
+      { k: "learn", title: "The three formulas", b: [
+        `<div class="eq">f<sub>Ls</sub> = 1/[2π(R<sub>s</sub> + R<sub>i</sub>)C<sub>s</sub>]    R<sub>i</sub> = R<sub>1</sub> ∥ R<sub>2</sub> ∥ βr<sub>e</sub></div>`,
+        `<div class="eq">f<sub>LC</sub> = 1/[2π(R<sub>o</sub> + R<sub>L</sub>)C<sub>C</sub>]    R<sub>o</sub> = R<sub>C</sub> ∥ r<sub>o</sub></div>`,
+        `<div class="eq">f<sub>LE</sub> = 1/(2πR<sub>e</sub>C<sub>E</sub>)    R<sub>e</sub> = R<sub>E</sub> ∥ (R′<sub>s</sub>/β + r<sub>e</sub>)    R′<sub>s</sub> = R<sub>s</sub> ∥ R<sub>1</sub> ∥ R<sub>2</sub></div>`,
+        ch(5, "05-bjt-ac-analysis.html", "p5", "Part 5", "R′<sub>s</sub>/β + r<sub>e</sub> is the emitter-follower output impedance: the base side seen from the emitter, divided by β."),
+        `<p class="aside">With no R<sub>s</sub>, drop it: R<sub>i</sub> alone for C<sub>s</sub>, and R′<sub>s</sub> = R<sub>1</sub> ∥ R<sub>2</sub> for C<sub>E</sub>.</p>`,
+      ]},
+      { k: "predict", title: "Guess first", b: [
+        { t: "mcq", q: "C_s = 4.7 µF, C_C = 2.2 µF, C_E = 47 µF. Which one probably sets the low cutoff?", opts: [
+          ["C_E, even though it's the biggest", true, "Right. R_e is only tens of ohms, so R_eC_E is the smallest time constant and f_LE the highest corner."],
+          ["C_C, because it's the smallest", false, "Small C pushes the corner up, but the resistance matters just as much. C_C sees kilohms."],
+          ["C_s, because it's at the input", false, "Position doesn't decide it: the RC product does."],
+        ]},
+      ]},
+      { k: "check", title: "My amplifier: midband first", b: [
+        `<p>V<sub>CC</sub> = 15 V, R<sub>1</sub> = 47 kΩ, R<sub>2</sub> = 10 kΩ, R<sub>E</sub> = 1.5 kΩ, R<sub>C</sub> = 3.3 kΩ, R<sub>L</sub> = 4.7 kΩ, β = 120, r<sub>o</sub> = ∞, R<sub>s</sub> = 600 Ω. βR<sub>E</sub> = 180 kΩ ≥ 10R<sub>2</sub>, so the approximate method works.</p>`,
+        { t: "num", q: "r_e?", a: 20.19, unit: "Ω", tol: 0.01, hint: "V_B = 2.63 V, I_E = (V_B − 0.7)/R_E.", why: "I_E = 1.288 mA, r_e = 26 mV/1.288 mA = 20.2 Ω." },
+        { t: "num", q: "R_i = R₁ ∥ R₂ ∥ βr_e?", a: 1873, unit: "Ω", tol: 0.01, hint: "βr_e = 2.42 kΩ.", why: "47k ∥ 10k ∥ 2.42k = 1.87 kΩ." },
+        { t: "num", q: "Midband A_v = V_o/V_i?", a: -96.02, tol: 0.01, hint: "−(R_C ∥ R_L)/r_e.", why: "−1939/20.19 = −96.0." },
+      ]},
+      { k: "check", title: "Now the three corners", b: [
+        `<p>C<sub>s</sub> = 4.7 µF, C<sub>C</sub> = 2.2 µF, C<sub>E</sub> = 47 µF, R<sub>s</sub> = 600 Ω.</p>`,
+        { t: "num", q: "f_Ls?", a: 13.7, unit: "Hz", tol: 0.01, hint: "R_s + R_i = 2.47 kΩ.", why: "1/(2π × 2473 × 4.7 µF) = 13.7 Hz." },
+        { t: "num", q: "f_LC?", a: 9.043, unit: "Hz", tol: 0.01, hint: "R_o = R_C here.", why: "1/(2π × 8 kΩ × 2.2 µF) = 9.04 Hz." },
+        { t: "num", q: "R_e, the resistance C_E sees?", a: 24.45, unit: "Ω", tol: 0.01, hint: "R′_s = 600 ∥ 47k ∥ 10k = 559 Ω. Then R_E ∥ (559/120 + 20.19).", why: "4.66 + 20.19 = 24.85 Ω, in parallel with 1.5 kΩ: 24.4 Ω." },
+        { t: "num", q: "f_LE?", a: 138.5, unit: "Hz", tol: 0.01, hint: "1/(2πR_eC_E).", why: "138.5 Hz: ten times the others. C_E sets f_L ≈ 139 Hz." },
+      ]},
+      { k: "play", title: "Move the capacitors", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          const p = Object.assign({}, MY);
+          function draw() {
+            const a = bjtAmp(p), g = (ff) => lo(a.fLs)(ff) * lo(a.fLC)(ff) * lo(a.fLE)(ff), fL = cross(g, -1, 5, true);
+            f.innerHTML = bode({ x: [0, 4], xt: [0, 1, 2, 3, 4], y: [-50, 5], yt: [-50, -40, -30, -20, -10, -3, 0], yl: "A_v/A_vmid (dB)",
+              series: [curve(lo(a.fLs), "s2"), curve(lo(a.fLC), "s3"), curve(lo(a.fLE), "s4"), curve(g, "s1")],
+              marks: [{ x: L10(fL), y: -3 }], texts: [{ x: 0.1, y: -46, s: "blue C_s · green C_C · red C_E · orange all three" }], label: "Low-frequency response of each capacitor alone and all together" });
+            ro.innerHTML = readout([["f<sub>Ls</sub>", hz(a.fLs)], ["f<sub>LC</sub>", hz(a.fLC)], ["f<sub>LE</sub>", hz(a.fLE)], ["Overall f<sub>L</sub> (all three)", hz(fL)]]);
+          }
+          host.append(f,
+            slider({ id: id + "-s", label: "C_s", min: 0.1e-6, max: 100e-6, log: true, value: p.Cs, show: (v) => si(v, "F") }, (v) => { p.Cs = v; draw(); }).el,
+            slider({ id: id + "-c", label: "C_C", min: 0.1e-6, max: 100e-6, log: true, value: p.CC, show: (v) => si(v, "F") }, (v) => { p.CC = v; draw(); }).el,
+            slider({ id: id + "-e", label: "C_E", min: 1e-6, max: 1000e-6, log: true, value: p.CE, show: (v) => si(v, "F") }, (v) => { p.CE = v; draw(); }).el, ro);
+          draw();
+        },
+        `<p>Try it: make C<sub>E</sub> 470 µF. Now the three corners bunch together, and the orange curve's −3 dB point sits <b>above</b> every single corner. Close corners add up.</p>`,
+        `<p class="aside">The book treats C<sub>E</sub> as a simple first-order corner too. The real C<sub>E</sub> response levels off at the unbypassed gain far below f<sub>LE</sub>, but near the corner the model works.</p>`,
+      ]},
+      { k: "why", title: "Why the highest corner wins", b: [
+        { t: "mcq", q: "Coming down from midband, why does the highest low corner matter most?", opts: [
+          ["It's the first one you meet, so its drop starts while the others are still flat", true, "Yes. By the time you reach the lower corners, the gain is already well down."],
+          ["Because the corners multiply to give the highest one", false, "The gains multiply, but that doesn't single out the highest corner by itself."],
+          ["Because it has the biggest capacitor", false, "In my example it's the biggest capacitor, but that's because its resistance is tiny."],
+        ]},
+        `<p>Below each corner the asymptote falls 6 dB/octave. Below two corners the slopes add: 12 dB/octave. Below all three: 18 dB/octave.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "How do you find the low cutoff frequency of a BJT amplifier with three capacitors?", model: "Take one capacitor at a time with the other two treated as shorts. Find the resistance it sees: R_s plus R_i for the input capacitor, R_o plus R_L for the output one, and the small emitter resistance R_e for the bypass one. Each gives f equals one over two pi R C. If they're well apart, the highest of the three is the low cutoff. If they're close, the real cutoff is somewhat higher." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 6 =============== */
+  const p6 = {
+    id: "p6", title: "R_s's effect, and the FET low end", mins: 25,
+    blurb: "A source resistance costs gain but moves two corners. Then the same method for a JFET.",
+    takeaway: "Adding R_s: f_Ls falls (more resistance in its loop), f_LC is unchanged, f_LE rises (R′_s = R_s ∥ R₁ ∥ R₂ is smaller, so R_e is smaller). Midband gain from the source: A_vs = [R_i/(R_i + R_s)]A_v. FET: C_G sees R_sig + R_i with R_i = R_G (huge), so a tiny C_G still gives a low f_LG = 1/[2π(R_sig + R_i)C_G]. C_C: f_LC = 1/[2π(R_o + R_L)C_C], R_o = R_D ∥ r_d. C_S: f_LS = 1/(2πR_eqC_S), R_eq = R_S ∥ 1/g_m when r_d = ∞ (in general R_S/[1 + R_S(1 + g_mr_d)/(r_d + R_D ∥ R_L)]). C_S usually sets the FET's f_L.",
+    steps: [
+      { k: "play", title: "Take R_s away", b: [
+        (host, id) => {
+          const ro = el(`<div></div>`);
+          let Rs = 600;
+          function draw() {
+            const a = bjtAmp(Object.assign({}, MY, { Rs }));
+            ro.innerHTML = readout([["f<sub>Ls</sub>", hz(a.fLs)], ["f<sub>LC</sub>", hz(a.fLC)], ["R<sub>e</sub>", ohm(a.Re)], ["f<sub>LE</sub>", hz(a.fLE)], ["A<sub>vs</sub> = V<sub>o</sub>/V<sub>s</sub>", fmt(a.Avs, 4)]]);
+          }
+          host.append(slider({ id: id + "-r", label: "R_s", min: 0, max: 5000, step: 50, value: Rs, show: (v) => ohm(v) }, (v) => { Rs = v; draw(); }).el, ro);
+          draw();
+        },
+        `<p>Same amplifier as Part 5. Slide R<sub>s</sub> from 0 up.</p>`,
+        `<div class="two"><div class="tile"><h3>f<sub>Ls</sub> falls</h3><p>R<sub>s</sub> adds to the series resistance in C<sub>s</sub>'s loop.</p></div><div class="tile"><h3>f<sub>LE</sub> rises</h3><p>R′<sub>s</sub> = R<sub>s</sub> ∥ R<sub>1</sub> ∥ R<sub>2</sub> shrinks, so R<sub>e</sub> shrinks.</p></div></div>`,
+        `<div class="eq">A<sub>vs</sub> = [R<sub>i</sub>/(R<sub>i</sub> + R<sub>s</sub>)] A<sub>v</sub></div>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "My amplifier with R_s = 0: f_LE?", a: 40.35, unit: "Hz", tol: 0.01, hint: "R′_s = R₁ ∥ R₂ = 8.25 kΩ. R_e = R_E ∥ (8246/120 + 20.19).", why: "R_e = 83.9 Ω, f_LE = 40.3 Hz. With 600 Ω of R_s it was 138.5 Hz." },
+        { t: "num", q: "With R_s = 600 Ω, A_vs?", a: -72.72, tol: 0.01, hint: "R_i = 1873 Ω.", why: "−96.0 × 1873/2473 = −72.7: a quarter of the gain lost in R_s." },
+        { t: "mcq", q: "Does adding R_s widen the bandwidth here?", opts: [
+          ["No: f_L went up from 40 Hz to 139 Hz", true, "Right. C_E dominates, and R_s pushed f_LE up. A lower f_Ls doesn't help when it isn't the dominant corner."],
+          ["Yes: f_Ls went down", false, "f_Ls did fall, but it isn't the dominant corner."],
+        ]},
+      ]},
+      { k: "learn", title: "The FET version", b: [
+        fig(ampFig({ fet: true })),
+        `<div class="eq">f<sub>LG</sub> = 1/[2π(R<sub>sig</sub> + R<sub>i</sub>)C<sub>G</sub>]    R<sub>i</sub> = R<sub>G</sub></div>`,
+        `<div class="eq">f<sub>LC</sub> = 1/[2π(R<sub>o</sub> + R<sub>L</sub>)C<sub>C</sub>]    R<sub>o</sub> = R<sub>D</sub> ∥ r<sub>d</sub></div>`,
+        `<div class="eq">f<sub>LS</sub> = 1/(2πR<sub>eq</sub>C<sub>S</sub>)    R<sub>eq</sub> = R<sub>S</sub> ∥ 1/g<sub>m</sub>    (r<sub>d</sub> = ∞)</div>`,
+        `<p class="aside">R<sub>G</sub> is megohms, so C<sub>G</sub> can be nanofarads and f<sub>LG</sub> still stays low. Example 9.13 quotes "Eqs. (9.36), (9.38), (9.40)" for these; the FET equations are (9.42), (9.44), (9.46).</p>`,
+        ch(8, "08-fet-amplifiers.html", "p6", "Part 6", "1/g<sub>m</sub> is what you see looking into the source."),
+      ]},
+      { k: "check", title: "A JFET amplifier", b: [
+        `<p>R<sub>sig</sub> = 10 kΩ, R<sub>G</sub> = 2.2 MΩ, C<sub>G</sub> = 22 nF, R<sub>D</sub> = 3.3 kΩ, R<sub>L</sub> = 10 kΩ, C<sub>C</sub> = 1 µF, R<sub>S</sub> = 1.2 kΩ, C<sub>S</sub> = 22 µF, g<sub>m</sub> = 2.5 mS, r<sub>d</sub> = ∞.</p>`,
+        { t: "num", q: "f_LG?", a: 3.273, unit: "Hz", tol: 0.01, hint: "R_sig + R_G = 2.21 MΩ.", why: "3.27 Hz, with only 22 nF." },
+        { t: "num", q: "f_LC?", a: 11.97, unit: "Hz", tol: 0.01, hint: "R_D + R_L = 13.3 kΩ.", why: "12.0 Hz." },
+        { t: "num", q: "R_eq?", a: 300, unit: "Ω", tol: 0.01, hint: "1/g_m = 400 Ω, in parallel with 1.2 kΩ.", why: "300 Ω." },
+        { t: "num", q: "f_LS?", a: 24.11, unit: "Hz", tol: 0.01, hint: "1/(2πR_eqC_S).", why: "24.1 Hz: the highest, so f_L ≈ 24 Hz." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why does a FET amplifier get away with a much smaller input coupling capacitor than a BJT amplifier?", model: "Because the resistance the input capacitor sees includes R_G, which is in the megohms, instead of R_1 parallel R_2 parallel beta r_e, which is a few kilohms. The corner frequency is one over two pi R C, so a resistance a thousand times bigger lets the capacitor be a thousand times smaller for the same corner." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 7 =============== */
+  function millerFig(eq) {
+    let s = S.wire([40, 130], [170, 130]) + S.box(170, 100, 120, 60, "A_v") + S.wire([290, 130], [420, 130]) + S.dot(40, 130) + S.t(40, 118, "V_i", { cls: "c" }) + S.dot(420, 130) + S.t(420, 118, "V_o", { cls: "a" });
+    if (!eq) s += S.dot(110, 130) + S.dot(350, 130) + S.wire([110, 130], [110, 50], [190, 50]) + S.cap(190, 50, 270, 50, "C_f", { tcls: "a" }) + S.wire([270, 50], [350, 50], [350, 130]) + S.t(230, 192, "C_f bridges input and output", { cls: "s m" });
+    else s += S.dot(110, 130) + S.dot(350, 130) + S.cap(110, 130, 110, 200, "C_Mi", { side: "left", tcls: "a" }) + S.gnd(110, 200) + S.cap(350, 130, 350, 200, "C_Mo", { side: "right", tcls: "a" }) + S.gnd(350, 200) + S.t(230, 60, "same currents, capacitors to ground", { cls: "s m" });
+    return S.svg(460, 230, s, { max: 460, label: eq ? "Miller equivalent: C_Mi at the input and C_Mo at the output, both to ground" : "Inverting amplifier with a feedback capacitor C_f from input to output" });
+  }
+  const p7 = {
+    id: "p7", title: "The Miller effect", mins: 25,
+    blurb: "A tiny capacitor from input to output of an inverting amplifier looks huge from the input.",
+    takeaway: "For an inverting amplifier with C_f between input and output: the current through C_f is (V_i − V_o)/X_Cf = (1 − A_v)V_i/X_Cf, as if a capacitor C_Mi = (1 − A_v)C_f sat from input to ground. At the output: C_Mo = (1 − 1/A_v)C_f ≈ C_f when |A_v| ≫ 1. Use the midband A_v (largest, so worst case). Only inverting amplifiers: for A_v > 1 positive the formula gives negative capacitance, and for followers and common base it's not a concern.",
+    steps: [
+      { k: "learn", title: "Follow the current", b: [
+        (host) => { const f = el(`<div class="fig"></div>`); const d = (k) => { f.innerHTML = millerFig(k === 1); }; host.append(f, toggle(["Real circuit", "Miller equivalent"], d, 0)); d(0); },
+        `<p>V<sub>o</sub> = A<sub>v</sub>V<sub>i</sub>, with A<sub>v</sub> negative. The voltage across C<sub>f</sub> is V<sub>i</sub> − V<sub>o</sub> = (1 − A<sub>v</sub>)V<sub>i</sub>. With A<sub>v</sub> = −100, that's <b>101</b> V<sub>i</sub>: the capacitor sees 101 times the input voltage, so it draws 101 times the current.</p>`,
+        `<div class="eq">C<sub>Mi</sub> = (1 − A<sub>v</sub>)C<sub>f</sub>    C<sub>Mo</sub> = (1 − 1/A<sub>v</sub>)C<sub>f</sub> ≈ C<sub>f</sub></div>`,
+      ]},
+      { k: "play", title: "Gain slider", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          let A = -100; const Cf = 3e-12;
+          function draw() {
+            const Mi = (1 - A) * Cf, Mo = (1 - 1 / A) * Cf, W = 420, sc = (c) => Math.max(1, Math.min(W, (c / (201 * Cf)) * W));
+            const bar = (y, c, lab, cls) => `<rect x="20" y="${y}" width="${sc(Math.abs(c))}" height="22" rx="4" style="fill:var(${cls})"/>` + S.t(24, y - 6, lab + " = " + si(c, "F", 3), { a: "start", cls: "s" });
+            f.innerHTML = S.svg(460, 150, bar(26, Cf, "C_f", "--muted") + bar(76, Mi, "C_Mi", "--accent") + bar(126, Mo, "C_Mo", "--cool"), { max: 460, label: "Bars comparing C_f with the Miller capacitances" });
+            ro.innerHTML = readout([["A<sub>v</sub>", fmt(A, 3)], ["C<sub>Mi</sub> = (1 − A<sub>v</sub>)C<sub>f</sub>", si(Mi, "F", 3)], ["C<sub>Mo</sub> = (1 − 1/A<sub>v</sub>)C<sub>f</sub>", si(Mo, "F", 3)]]);
+          }
+          host.append(f, slider({ id: id + "-a", label: "Midband gain A_v (C_f = 3 pF)", min: -200, max: -1, step: 1, value: A, show: (v) => fmt(v, 3) }, (v) => { A = v; draw(); }).el, ro);
+          draw();
+        },
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "C_f = 3 pF, A_v = −120. C_Mi?", a: 363, unit: "pF", tol: 0.01, hint: "(1 − A_v)C_f.", why: "121 × 3 pF = 363 pF." },
+        { t: "num", q: "Same amplifier: C_Mo?", a: 3.025, unit: "pF", tol: 0.01, hint: "(1 + 1/120) × 3 pF.", why: "3.025 pF, essentially C_f." },
+        { t: "mcq", q: "Which A_v should go into the formula, given the gain itself falls at high frequency?", opts: [
+          ["The midband value", true, "It's the largest, so it gives the largest C_Mi: the worst case."],
+          ["The gain at f_H", false, "That would be circular: f_H depends on C_Mi."],
+        ]},
+      ]},
+      { k: "whatif", title: "What if it doesn't invert?", b: [
+        { t: "mcq", q: "An emitter follower has A_v = +0.98. C_Mi?", opts: [
+          ["(1 − 0.98)C_f = 0.02C_f: tiny", true, "Input and output move together, so almost no voltage across C_f. Followers and common base don't suffer the Miller effect."],
+          ["1.98C_f", false, "The sign: 1 − (+0.98), not 1 + 0.98."],
+          ["99C_f", false, "That's an inverting gain of −98."],
+        ]},
+        `<p class="aside">For a positive gain above 1 the formula would give a negative capacitance: it only applies to inverting amplifiers.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Explain the Miller effect without a formula.", model: "In an inverting amplifier the output swings the opposite way to the input and many times bigger. A capacitor between them has the input change plus the big output change across it, so it draws far more current than its size suggests. From the input it looks like a capacitor about gain-plus-one times larger, connected to ground." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 8 =============== */
+  const p8 = {
+    id: "p8", title: "BJT high end: C_i, C_o and f_β", mins: 30,
+    blurb: "Shorts for the big capacitors, Thévenin for the small ones. Plus β itself falls with frequency.",
+    takeaway: "High-frequency RC (series R, shunt C) gives A_v = 1/(1 + jf/f_H): −6 dB/octave above f_H. Big capacitors are shorts. Input: f_Hi = 1/(2πR_ThiC_i), R_Thi = R_s ∥ R₁ ∥ R₂ ∥ βr_e, C_i = C_Wi + C_be + (1 − A_v)C_bc. Output: f_Ho = 1/(2πR_ThoC_o), R_Tho = R_C ∥ R_L ∥ r_o, C_o = C_Wo + C_ce + (1 − 1/A_v)C_bc ≈ C_Wo + C_ce + C_bc. β falls too: h_fe = h_femid/(1 + jf/f_β), f_β = 1/[2πβ_midr_e(C_be + C_bc)], so f_β depends on the bias (r_e). f_T = h_femid·f_β, the frequency where β = 1. Common base is far better: f_β = f_α(1 − α). The lowest of f_Hi, f_Ho (and f_β) sets f_H.",
+    steps: [
+      { k: "learn", title: "The other RC", b: [
+        `<p>Now the R is in series and the C goes to ground. As f rises, X<sub>C</sub> falls and the capacitor shorts the signal:</p>`,
+        `<div class="eq">A<sub>v</sub> = 1/(1 + j f/f<sub>H</sub>)    −6 dB/octave above f<sub>H</sub></div>`,
+        fig(bode({ x: [3, 9], xt: [3, 4, 5, 6, 7, 8, 9], series: [curve(hi(1e6))], marks: [{ x: 6, y: -3 }], texts: [{ x: 6.1, y: -1, s: "f_H" }], label: "A high-frequency first-order roll-off" })),
+      ]},
+      { k: "learn", title: "Where the little capacitors are", b: [
+        `<p>Between transistor terminals: C<sub>be</sub> (largest), C<sub>bc</sub>, C<sub>ce</sub> (smallest, often not on the data sheet). Wiring: C<sub>Wi</sub> at the input, C<sub>Wo</sub> at the output. C<sub>s</sub>, C<sub>C</sub>, C<sub>E</sub> are shorts now.</p>`,
+        `<p>C<sub>bc</sub> bridges input (base) and output (collector) of an inverting stage: <b>Miller</b>. Then each side is one R and one C:</p>`,
+        `<div class="eq">f<sub>Hi</sub> = 1/(2πR<sub>Thi</sub>C<sub>i</sub>)    R<sub>Thi</sub> = R<sub>s</sub> ∥ R<sub>1</sub> ∥ R<sub>2</sub> ∥ βr<sub>e</sub>    C<sub>i</sub> = C<sub>Wi</sub> + C<sub>be</sub> + (1 − A<sub>v</sub>)C<sub>bc</sub></div>`,
+        `<div class="eq">f<sub>Ho</sub> = 1/(2πR<sub>Tho</sub>C<sub>o</sub>)    R<sub>Tho</sub> = R<sub>C</sub> ∥ R<sub>L</sub> ∥ r<sub>o</sub>    C<sub>o</sub> = C<sub>Wo</sub> + C<sub>ce</sub> + C<sub>Mo</sub></div>`,
+        seen("Thévenin: everything except the capacitor becomes one source and one resistor.", "03-network-theorems.html#p8", "Chapter 3, Part 8"),
+      ]},
+      { k: "check", title: "My amplifier at the high end", b: [
+        `<p>Part 5's amplifier (A<sub>v</sub> = −96.0, βr<sub>e</sub> = 2.42 kΩ, R<sub>s</sub> = 600 Ω), plus C<sub>be</sub> = 30 pF, C<sub>bc</sub> = 3 pF, C<sub>ce</sub> = 1 pF, C<sub>Wi</sub> = 5 pF, C<sub>Wo</sub> = 6 pF.</p>`,
+        { t: "num", q: "C_i?", a: 326.1, unit: "pF", tol: 0.01, hint: "5 + 30 + 97.0 × 3 pF.", why: "326 pF. The Miller part (291 pF) is nearly all of it." },
+        { t: "num", q: "R_Thi?", a: 454.4, unit: "Ω", tol: 0.01, hint: "600 ∥ 47k ∥ 10k ∥ 2.42k.", why: "454 Ω." },
+        { t: "num", q: "f_Hi?", a: 1.074, unit: "MHz", tol: 0.01, hint: "1/(2πR_ThiC_i).", why: "1.07 MHz." },
+        { t: "num", q: "f_Ho? (C_o = 10.03 pF)", a: 8.184, unit: "MHz", tol: 0.01, hint: "R_Tho = 3.3k ∥ 4.7k = 1.94 kΩ.", why: "8.18 MHz. The input side wins: f_H ≈ 1.07 MHz." },
+      ]},
+      { k: "learn", title: "β falls too", b: [
+        `<div class="eq">h<sub>fe</sub> = h<sub>femid</sub>/(1 + j f/f<sub>β</sub>)    f<sub>β</sub> = 1/[2πβ<sub>mid</sub>r<sub>e</sub>(C<sub>be</sub> + C<sub>bc</sub>)]</div>`,
+        `<p>r<sub>e</sub> comes from the bias, so <b>f<sub>β</sub> depends on the bias design</b>. Where β has fallen all the way to 1 is f<sub>T</sub>:</p>`,
+        `<div class="eq">f<sub>T</sub> = h<sub>femid</sub> f<sub>β</sub> ≅ 1/[2πr<sub>e</sub>(C<sub>be</sub> + C<sub>bc</sub>)]    common base: f<sub>β</sub> = f<sub>α</sub>(1 − α)</div>`,
+        `<p class="aside">α barely changes over the same range: common base has much better high-frequency behaviour, and no Miller effect. That's why high-frequency transistors often quote common-base figures. (Example 9.14(b) says "Eq. (9.63)" but uses (9.62).)</p>`,
+        ch(5, "05-bjt-ac-analysis.html", "p14", "Part 14", "The hybrid-π model those capacitances belong to."),
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "My amplifier (β = 120, r_e = 20.19 Ω): f_β?", a: 1.991, unit: "MHz", tol: 0.01, hint: "C_be + C_bc = 33 pF.", why: "1/(2π × 120 × 20.19 × 33 pF) = 1.99 MHz: above f_Hi, so it doesn't set f_H here." },
+        { t: "num", q: "f_T?", a: 238.9, unit: "MHz", tol: 0.01, hint: "β × f_β.", why: "239 MHz." },
+      ]},
+      { k: "play", title: "The whole picture", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          const p = Object.assign({}, MY);
+          function draw() {
+            const a = bjtAmp(p), g = (ff) => lo(a.fLs)(ff) * lo(a.fLC)(ff) * lo(a.fLE)(ff) * hi(a.fHi)(ff) * hi(a.fHo)(ff);
+            const fL = cross(g, -1, 4, true), fH = cross(g, 4, 9, false);
+            f.innerHTML = bode({ x: [0, 9], xt: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], y: [-40, 5], series: [curve(g)], marks: [{ x: L10(fL), y: -3 }, { x: L10(fH), y: -3 }], texts: [{ x: L10(fL) + 0.15, y: -6, s: "f_L" }, { x: L10(fH) - 0.15, y: -6, s: "f_H", a: "end" }], label: "Full frequency response of the BJT amplifier" });
+            ro.innerHTML = readout([["A<sub>v</sub> (midband)", fmt(a.Av, 3)], ["C<sub>i</sub>", si(a.Ci, "F", 3)], ["f<sub>Hi</sub>", hz(a.fHi)], ["f<sub>Ho</sub>", hz(a.fHo)], ["f<sub>L</sub> / f<sub>H</sub>", hz(fL) + " / " + hz(fH)], ["Bandwidth", hz(fH - fL)]]);
+          }
+          host.append(f,
+            slider({ id: id + "-r", label: "R_s", min: 50, max: 10e3, log: true, value: p.Rs, show: (v) => ohm(v) }, (v) => { p.Rs = v; draw(); }).el,
+            slider({ id: id + "-b", label: "C_bc (Miller)", min: 0.5e-12, max: 10e-12, log: true, value: p.Cbc, show: (v) => si(v, "F", 2) }, (v) => { p.Cbc = v; draw(); }).el, ro);
+          draw();
+        },
+        `<p>A bigger source resistance pulls f<sub>Hi</sub> down: R<sub>Thi</sub> grows. A bigger C<sub>bc</sub> hurts more than it looks, because the gain multiplies it.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why is the input side usually the one that sets f_H in a common-emitter amplifier?", model: "Because the base-collector capacitance is multiplied by one minus the gain, the Miller effect, and adds to the input. That makes the input capacitance hundreds of picofarads, while the output side only gets about the original C_bc. Even with a smaller Thévenin resistance, the input RC ends up larger, so its corner is lower." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 9 =============== */
+  const p9 = {
+    id: "p9", title: "Gain–bandwidth product, and the FET high end", mins: 25,
+    blurb: "Trade gain for bandwidth at a fixed product. Then the FET's version of C_i and C_o.",
+    takeaway: "GBP = A_vmid·BW, and for a single high-frequency corner it stays constant when you change the gain. f_T = A_vmid·f_H is the unity-gain frequency: BW at any gain ≈ f_T/A_vmid. For a transistor alone, f_T = h_femid·f_β. FET high end: f_Hi = 1/(2πR_ThiC_i), R_Thi = R_sig ∥ R_G, C_i = C_Wi + C_gs + (1 − A_v)C_gd; f_Ho = 1/(2πR_ThoC_o), R_Tho = R_D ∥ R_L ∥ r_d, C_o = C_Wo + C_ds + (1 − 1/A_v)C_gd. C_gs, C_gd: 1–10 pF; C_ds: 0.1–1 pF. The input usually sets f_H.",
+    steps: [
+      { k: "play", title: "Trade gain for bandwidth", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          let A = 100; const fT = 100e6;
+          function draw() {
+            const fH = fT / A;
+            f.innerHTML = plot({ x: [3, 9], y: [-10, 65], xt: [3, 4, 5, 6, 7, 8, 9], xtf: (v) => si(Math.pow(10, v), "", 2).trim(), yt: [0, 20, 40, 60], xl: "f (Hz, log scale)", yl: "A_v (dB)",
+              series: [{ f: (x) => db(A * hi(fH)(Math.pow(10, x))), cls: "s1", n: 400 }, { pts: [[6, 40], [8, 0]], cls: "s5" }],
+              marks: [{ x: L10(fH), y: db(A) - 3 }, { x: 8, y: 0, cls: "mk2" }], texts: [{ x: 8.05, y: 4, s: "f_T" }, { x: L10(fH) + 0.1, y: db(A) + 3, s: "f_H" }], label: "Gain against frequency for a fixed gain-bandwidth product" });
+            ro.innerHTML = readout([["A<sub>vmid</sub>", fmt(A, 3) + " (" + fmt(db(A), 3) + " dB)"], ["f<sub>H</sub> = f<sub>T</sub>/A<sub>vmid</sub>", hz(fH)], ["GBP", hz(A * fH)]]);
+          }
+          host.append(f, slider({ id: id + "-a", label: "Midband gain (f_T = 100 MHz)", min: 1, max: 1000, log: true, value: A, show: (v) => fmt(v, 3) }, (v) => { A = v; draw(); }).el, ro);
+          draw();
+        },
+        `<div class="eq">GBP = A<sub>vmid</sub> × BW    f<sub>T</sub> = A<sub>vmid</sub> f<sub>H</sub>    (BW ≈ f<sub>H</sub> when f<sub>L</sub> ≪ f<sub>H</sub>)</div>`,
+        `<p>Every gain lands on the same dashed −20 dB/decade line. Lower gain, wider band; the product is fixed. f<sub>T</sub> is where the gain reaches 1 (0 dB).</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "An amplifier has f_T = 150 MHz. Bandwidth at a gain of 50?", a: 3, unit: "MHz", tol: 0.01, hint: "f_T/A_vmid.", why: "3 MHz." },
+        { t: "num", q: "Same amplifier, you need 6 MHz of bandwidth. Highest gain?", a: 25, tol: 0.01, hint: "A = f_T/BW.", why: "25." },
+      ]},
+      { k: "learn", title: "The FET at high frequency", b: [
+        `<p>Same steps as the BJT: big capacitors shorted, C<sub>gd</sub> bridges gate and drain (Miller), then two Thévenin circuits.</p>`,
+        `<div class="eq">f<sub>Hi</sub> = 1/(2πR<sub>Thi</sub>C<sub>i</sub>)    R<sub>Thi</sub> = R<sub>sig</sub> ∥ R<sub>G</sub>    C<sub>i</sub> = C<sub>Wi</sub> + C<sub>gs</sub> + (1 − A<sub>v</sub>)C<sub>gd</sub></div>`,
+        `<div class="eq">f<sub>Ho</sub> = 1/(2πR<sub>Tho</sub>C<sub>o</sub>)    R<sub>Tho</sub> = R<sub>D</sub> ∥ R<sub>L</sub> ∥ r<sub>d</sub>    C<sub>o</sub> = C<sub>Wo</sub> + C<sub>ds</sub> + (1 − 1/A<sub>v</sub>)C<sub>gd</sub></div>`,
+        `<p class="aside">C<sub>gs</sub> and C<sub>gd</sub> are 1–10 pF; C<sub>ds</sub> is smaller, 0.1–1 pF.</p>`,
+      ]},
+      { k: "check", title: "Part 6's JFET amplifier", b: [
+        `<p>R<sub>sig</sub> = 10 kΩ, R<sub>G</sub> = 2.2 MΩ, R<sub>D</sub> = 3.3 kΩ, R<sub>L</sub> = 10 kΩ, g<sub>m</sub> = 2.5 mS, r<sub>d</sub> = ∞. C<sub>gs</sub> = 5 pF, C<sub>gd</sub> = 2 pF, C<sub>ds</sub> = 0.6 pF, C<sub>Wi</sub> = 4 pF, C<sub>Wo</sub> = 5 pF.</p>`,
+        { t: "num", q: "Midband A_v?", a: -6.203, tol: 0.01, hint: "−g_m(R_D ∥ R_L).", why: "−2.5 mS × 2.48 kΩ = −6.20." },
+        { t: "num", q: "f_Hi?", a: 683.1, unit: "kHz", tol: 0.01, hint: "C_i = 4 + 5 + 7.20 × 2 = 23.4 pF; R_Thi = 9.95 kΩ.", why: "683 kHz." },
+        { t: "num", q: "f_Ho?", a: 8.097, unit: "MHz", tol: 0.01, hint: "C_o = 5 + 0.6 + 1.161 × 2 = 7.92 pF; R_Tho = 2.48 kΩ.", why: "8.10 MHz. The input sets f_H ≈ 683 kHz." },
+      ]},
+      { k: "why", title: "Why the input again?", b: [
+        { t: "mcq", q: "The FET's gain is only about 6, so its Miller capacitance is small. Why is f_Hi still the lower corner?", opts: [
+          ["R_Thi includes R_sig, kilohms, against a much smaller output capacitance", true, "Right. R_Thi ≈ R_sig (R_G is huge) and C_i still has C_gs + C_Wi + C_Mi, while C_o is small."],
+          ["Because the output never has a corner", false, "It does: f_Ho = 8.1 MHz here."],
+          ["Because C_ds is the largest capacitance", false, "C_ds is the smallest."],
+        ]},
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "What does a fixed gain–bandwidth product let you do in a design?", model: "It lets you predict the bandwidth at any gain by dividing the unity-gain frequency f_T by the gain. If you need more bandwidth, you accept less gain, and the other way round; the product stays roughly the same for a given device and design." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 10 =============== */
+  const shrink = (n) => Math.sqrt(Math.pow(2, 1 / n) - 1);
+  const p10 = {
+    id: "p10", title: "Several stages", mins: 20,
+    blurb: "Identical stages in cascade: steeper slopes and a narrower band.",
+    takeaway: "Each extra stage adds its corners: the high cutoff is set by the stage with the lowest f_H and the low cutoff by the one with the highest f_L, and stage 1's output capacitance now includes stage 2's input (wiring, C_be and Miller). For n identical stages, at the single-stage corner the gain is 3n dB down, slopes are 6n dB/octave, and f′_H = √(2^(1/n) − 1)·f_H, f′_L = f_L/√(2^(1/n) − 1). Factor: 0.64 (n=2), 0.51 (3), 0.43 (4), 0.39 (5). If f_β ≈ f_H, double n. But a fixed gain split across more stages (each with lower gain and wider band, fixed GBP) can increase the bandwidth.",
+    steps: [
+      { k: "play", title: "Add stages", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          let n = 2; const fL = 100, fH = 1e6;
+          function draw() {
+            const k = shrink(n), g = (ff) => Math.pow(lo(fL)(ff) * hi(fH)(ff), n);
+            f.innerHTML = bode({ x: [0, 8], y: [-40, 5], series: [curve((ff) => lo(fL)(ff) * hi(fH)(ff), "s5"), curve(g)], marks: [{ x: L10(fL / k), y: -3 }, { x: L10(fH * k), y: -3 }, { x: L10(fH), y: -3 * n, cls: "mk2" }], texts: [{ x: 3.3, y: 2, s: "dashed: one stage" }], label: "Normalized response of n identical stages" });
+            ro.innerHTML = readout([["√(2^(1/n) − 1)", fmt(k, 3)], ["f′<sub>L</sub> = f<sub>L</sub>/factor", hz(fL / k)], ["f′<sub>H</sub> = factor × f<sub>H</sub>", hz(fH * k)], ["Gain at the old f<sub>H</sub>", "−" + 3 * n + " dB"], ["Slope beyond", 6 * n + " dB/octave"]]);
+          }
+          host.append(f, slider({ id: id + "-n", label: "Identical stages n (each f_L = 100 Hz, f_H = 1 MHz)", min: 1, max: 5, step: 1, value: n, show: (v) => String(v) }, (v) => { n = v; draw(); }).el, ro);
+          draw();
+        },
+        `<div class="eq">f′<sub>H</sub> = √(2<sup>1/n</sup> − 1) f<sub>H</sub>    f′<sub>L</sub> = f<sub>L</sub>/√(2<sup>1/n</sup> − 1)</div>`,
+        `<p>Where does it come from? n identical factors multiply: |A/A<sub>mid</sub>| = 1/[1 + (f/f<sub>H</sub>)²]<sup>n/2</sup>. Set that to 1/√2 and solve: [1 + (f/f<sub>H</sub>)²]<sup>n</sup> = 2.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "Three identical stages, each f_H = 2 MHz. Overall f′_H?", a: 1.02, unit: "MHz", tol: 0.01, hint: "Factor 0.51 for n = 3.", why: "2 MHz × 0.510 = 1.02 MHz: half." },
+        { t: "num", q: "Same stages, each f_L = 50 Hz. Overall f′_L?", a: 98.07, unit: "Hz", tol: 0.01, hint: "Divide by 0.510.", why: "98 Hz: almost double." },
+      ]},
+      { k: "whatif", title: "What if the total gain is fixed?", b: [
+        `<p>You need a gain of 400. One stage with GBP = 40 MHz gives 400 at 100 kHz bandwidth.</p>`,
+        { t: "num", q: "Two stages of gain 20 (20 × 20 = 400), each with the same 40 MHz GBP. Each stage's f_H?", a: 2, unit: "MHz", tol: 0.01, hint: "40 MHz/20.", why: "2 MHz per stage." },
+        { t: "num", q: "Overall f′_H of the pair?", a: 1.287, unit: "MHz", tol: 0.01, hint: "× 0.644.", why: "1.29 MHz: thirteen times one stage's 100 kHz. More stages, wider band, when each does less." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why does cascading identical stages shrink the bandwidth?", model: "At each stage's own cutoff, every stage is 3 dB down, so the total is 3 dB times the number of stages. The overall gain therefore reaches 3 dB down sooner: the upper cutoff moves lower and the lower cutoff moves higher, by the factor root of two to the one over n minus one." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 11 =============== */
+  /* Square wave (±1, frequency 1) through a first-order high-pass (fL) then low-pass (fH), both relative to fs. Returns samples of the last two periods. */
+  function sqResponse(rL, rH) {
+    const N = 4000, dt = 1 / N, a = 1 / (TAU * rL), b = 1 / (TAU * rH), A = a / (a + dt), B = dt / (b + dt), out = [];
+    let xp = 1, y = 0, z = 0;
+    for (let i = 0; i < 8 * N; i++) {
+      const x = (i % N) < N / 2 ? 1 : -1;
+      y = A * (y + x - xp); xp = x; z = z + B * (y - z);
+      if (i >= 6 * N && i % 8 === 0) out.push([(i - 6 * N) * dt, z]);
+    }
+    return out;
+  }
+  const p11 = {
+    id: "p11", title: "Square-wave testing", mins: 30,
+    blurb: "Feed a square wave and read the bandwidth off the output shape.",
+    takeaway: "A square wave is a sum of odd harmonics: v = (4V_m/π)[sin 2πf_st + (1/3) sin 2π3f_st + (1/5) sin 2π5f_st + …]. Up to the 9th harmonic (11% of the fundamental) are the main contributors, so a clean output means the amplifier passes about 9f_s: to test a 20 kHz amplifier use f_s ≥ 20 kHz/9 ≈ 2.2 kHz. Tilt (sloping top) = poor low-frequency response; rounded edges = poor high-frequency response. Rise time t_r from 10% to 90%: BW ≅ f_Hi = 0.35/t_r. Tilt P = (V − V′)/V; f_Lo = (P/π)f_s.",
+    steps: [
+      { k: "play", title: "Build a square wave", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`);
+          let N = 3;
+          function draw() {
+            const sum = (t) => { let v = 0; for (let k = 1; k <= 2 * N - 1; k += 2) v += Math.sin(TAU * k * t) / k; return (4 / Math.PI) * v; };
+            f.innerHTML = plot({ x: [0, 2], y: [-1.5, 1.5], xt: [0, 0.5, 1, 1.5, 2], yt: [-1, 0, 1], xl: "time (periods)", h: 220, series: [{ pts: [[0, 1], [0.5, 1], [0.5, -1], [1, -1], [1, 1], [1.5, 1], [1.5, -1], [2, -1]], cls: "s5" }, { f: sum, cls: "s1", n: 800 }], label: "Sum of odd harmonics approaching a square wave" });
+          }
+          host.append(f, slider({ id: id + "-n", label: "Odd harmonics included", min: 1, max: 15, step: 1, value: N, show: (v) => "up to the " + (2 * v - 1) + (2 * v - 1 === 1 ? "st (fundamental)" : (2 * v - 1) % 10 === 3 && 2 * v - 1 !== 13 ? "rd" : "th") }, (v) => { N = v; draw(); }).el);
+          draw();
+        },
+        `<div class="eq">v = (4V<sub>m</sub>/π)[sin 2πf<sub>s</sub>t + ⅓ sin 2π(3f<sub>s</sub>)t + ⅕ sin 2π(5f<sub>s</sub>)t + …]</div>`,
+        `<p>Only <b>odd</b> harmonics, each 1/n as big. Through the 9th (1/9 = 11%) they do most of the work. A clean square wave out means the amplifier passes everything up to about 9f<sub>s</sub>.</p>`,
+        seen("Square waves and RC circuits in the time domain.", "10-first-order-transients.html#p6", "Chapter 10, Part 6"),
+      ]},
+      { k: "play", title: "Through an amplifier", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          let fL = 20, fH = 30e3; const fs = 1000;
+          function draw() {
+            const pts = sqResponse(fL / fs, fH / fs);
+            f.innerHTML = plot({ x: [0, 2], y: [-1.6, 1.6], xt: [0, 0.5, 1, 1.5, 2], yt: [-1, 0, 1], xl: "time (periods of a 1 kHz square wave)", h: 230, series: [{ pts: [[0, 1], [0.5, 1], [0.5, -1], [1, -1], [1, 1], [1.5, 1], [1.5, -1], [2, -1]], cls: "s5" }, { pts, cls: "s1" }], label: "Square wave in (dashed) and amplifier output" });
+            const P = 1 - Math.exp(-TAU * fL * 0.5 / fs), tr = (0.35 / fH);
+            ro.innerHTML = readout([["Tilt P (from f<sub>L</sub>)", fmt(P * 100, 3) + "%"], ["Rise time t<sub>r</sub> ≈ 0.35/f<sub>H</sub>", si(tr, "s", 3)], ["Diagnosis", (P > 0.1 ? "tilt: low end too weak. " : "") + (tr > 0.05 / fs ? "rounded edges: high end too weak." : "") || "a clean copy"]]);
+          }
+          host.append(f,
+            slider({ id: id + "-l", label: "Amplifier f_L", min: 1, max: 1000, log: true, value: fL, show: (v) => hz(v) }, (v) => { fL = v; draw(); }).el,
+            slider({ id: id + "-h", label: "Amplifier f_H", min: 1e3, max: 1e6, log: true, value: fH, show: (v) => hz(v) }, (v) => { fH = v; draw(); }).el, ro);
+          draw();
+        },
+        `<div class="two"><div class="tile"><h3>Sloping top (tilt)</h3><p>The flat part is the lowest frequencies. A weak low end lets it sag: check f<sub>L</sub>.</p></div><div class="tile"><h3>Rounded edges</h3><p>The sharp edges are the highest frequencies. A weak high end slows them: check f<sub>H</sub>.</p></div></div>`,
+      ]},
+      { k: "learn", title: "Measuring off the screen", b: [
+        `<div class="eq">BW ≅ f<sub>Hi</sub> = 0.35/t<sub>r</sub>    (t<sub>r</sub>: 10% to 90% of the step)</div>`,
+        `<div class="eq">P = (V − V′)/V    f<sub>Lo</sub> = (P/π) f<sub>s</sub></div>`,
+        `<p>V is the height at the start of the half-cycle, V′ at the end.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "Output rise time (10–90%) is 8 µs. Bandwidth?", a: 43.75, unit: "kHz", tol: 0.01, hint: "0.35/t_r.", why: "43.75 kHz." },
+        { t: "num", q: "A 2 kHz square wave comes out at 100 mV at the start of each half-cycle and 85 mV at the end. Tilt P (decimal)?", a: 0.15, tol: 0.01, hint: "(V − V′)/V.", why: "0.15, or 15%." },
+        { t: "num", q: "Then f_Lo?", a: 95.49, unit: "Hz", tol: 0.01, hint: "(P/π)f_s.", why: "0.15/π × 2 kHz = 95.5 Hz." },
+        { t: "num", q: "To test an amplifier meant to pass 30 kHz, lowest square-wave frequency?", a: 3333, unit: "Hz", tol: 0.01, hint: "The 9th harmonic should land at 30 kHz.", why: "30 kHz/9 = 3.33 kHz." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why is a square wave a good quick test of an amplifier's frequency response?", model: "Because a square wave contains a fundamental plus a whole series of odd harmonics. One test signal checks many frequencies at once. A sagging top shows the low frequencies aren't passed well; rounded or slow edges show the high frequencies aren't. Measuring the tilt and the rise time gives the low and high cutoff frequencies." },
+      ]},
+    ],
+  };
+
+  window.CHAPTER = {
+    id: "edc9", eyebrow: "Boylestad · Chapter 9", title: "BJT and JFET Frequency Response",
+    intro: `<p>Eleven parts: logs and decibels, what limits the gain at each end, one-RC Bode plots, then the low and high cutoff frequencies of BJT and JFET amplifiers, the Miller effect, gain–bandwidth, multistage effects and square-wave testing.</p><p>It builds on 6.002 Chapter 13 (frequency response) and on Chapters 5 and 8 here. Every amplifier so far lived in the "midband"; now you find where that band ends.</p><p class="aside">The "Computer Analysis" section isn't covered. Arrow keys ← → move between steps.</p>`,
+    after: `<p>Do the chapter's problems in the book. They test whether the ideas stuck, so don't expect them to look like the examples here.</p><p>Stuck? Tell Claude which problem and what you've tried. You'll get a guiding question first, not the answer.</p>`,
+    parts: [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11],
+    summary: `
+      <h3>Logs and decibels</h3>
+      <div class="eq">a = bˣ ⟺ x = log<sub>b</sub> a    ln a = 2.3 log a    log ab = log a + log b    log(a/b) = log a − log b</div>
+      <div class="eq">G<sub>dB</sub> = 10 log(P<sub>2</sub>/P<sub>1</sub>) = 20 log(V<sub>2</sub>/V<sub>1</sub>)    cascades: dB gains add    0 dBm = 1 mW in 600 Ω</div>
+      <h3>One RC</h3>
+      <div class="eq">Low end: A<sub>v</sub> = 1/(1 − j f<sub>L</sub>/f)    High end: A<sub>v</sub> = 1/(1 + j f/f<sub>H</sub>)    f = 1/(2πRC)    −3 dB = 0.707, 6 dB/octave = 20 dB/decade</div>
+      <h3>BJT low end</h3>
+      <div class="eq">f<sub>Ls</sub> = 1/[2π(R<sub>s</sub> + R<sub>i</sub>)C<sub>s</sub>], R<sub>i</sub> = R<sub>1</sub> ∥ R<sub>2</sub> ∥ βr<sub>e</sub>    f<sub>LC</sub> = 1/[2π(R<sub>o</sub> + R<sub>L</sub>)C<sub>C</sub>], R<sub>o</sub> = R<sub>C</sub> ∥ r<sub>o</sub></div>
+      <div class="eq">f<sub>LE</sub> = 1/(2πR<sub>e</sub>C<sub>E</sub>), R<sub>e</sub> = R<sub>E</sub> ∥ (R′<sub>s</sub>/β + r<sub>e</sub>), R′<sub>s</sub> = R<sub>s</sub> ∥ R<sub>1</sub> ∥ R<sub>2</sub>    A<sub>vs</sub> = [R<sub>i</sub>/(R<sub>i</sub> + R<sub>s</sub>)]A<sub>v</sub></div>
+      <h3>FET low end</h3>
+      <div class="eq">f<sub>LG</sub> = 1/[2π(R<sub>sig</sub> + R<sub>G</sub>)C<sub>G</sub>]    f<sub>LC</sub> = 1/[2π(R<sub>D</sub> ∥ r<sub>d</sub> + R<sub>L</sub>)C<sub>C</sub>]    f<sub>LS</sub> = 1/(2πR<sub>eq</sub>C<sub>S</sub>), R<sub>eq</sub> = R<sub>S</sub> ∥ 1/g<sub>m</sub></div>
+      <h3>Miller</h3>
+      <div class="eq">C<sub>Mi</sub> = (1 − A<sub>v</sub>)C<sub>f</sub>    C<sub>Mo</sub> = (1 − 1/A<sub>v</sub>)C<sub>f</sub> ≈ C<sub>f</sub>    inverting amplifiers only</div>
+      <h3>High end</h3>
+      <div class="eq">BJT: R<sub>Thi</sub> = R<sub>s</sub> ∥ R<sub>1</sub> ∥ R<sub>2</sub> ∥ βr<sub>e</sub>, C<sub>i</sub> = C<sub>Wi</sub> + C<sub>be</sub> + C<sub>Mi</sub>; R<sub>Tho</sub> = R<sub>C</sub> ∥ R<sub>L</sub> ∥ r<sub>o</sub>, C<sub>o</sub> = C<sub>Wo</sub> + C<sub>ce</sub> + C<sub>Mo</sub>    f = 1/(2πR<sub>Th</sub>C)</div>
+      <div class="eq">FET: R<sub>Thi</sub> = R<sub>sig</sub> ∥ R<sub>G</sub>, C<sub>i</sub> = C<sub>Wi</sub> + C<sub>gs</sub> + (1 − A<sub>v</sub>)C<sub>gd</sub>; R<sub>Tho</sub> = R<sub>D</sub> ∥ R<sub>L</sub> ∥ r<sub>d</sub>, C<sub>o</sub> = C<sub>Wo</sub> + C<sub>ds</sub> + C<sub>Mo</sub></div>
+      <div class="eq">f<sub>β</sub> = 1/[2πβ<sub>mid</sub>r<sub>e</sub>(C<sub>be</sub> + C<sub>bc</sub>)]    f<sub>T</sub> = h<sub>femid</sub>f<sub>β</sub>    f<sub>β</sub> = f<sub>α</sub>(1 − α)    GBP = A<sub>vmid</sub>BW, f<sub>T</sub> = A<sub>vmid</sub>f<sub>H</sub></div>
+      <h3>Stages and testing</h3>
+      <div class="eq">f′<sub>H</sub> = √(2<sup>1/n</sup> − 1) f<sub>H</sub>    f′<sub>L</sub> = f<sub>L</sub>/√(2<sup>1/n</sup> − 1)    BW ≅ 0.35/t<sub>r</sub>    P = (V − V′)/V, f<sub>Lo</sub> = (P/π)f<sub>s</sub></div>`,
+  };
+  Course.start(window.CHAPTER);
+})();
+</script>
+</body>
+</html>

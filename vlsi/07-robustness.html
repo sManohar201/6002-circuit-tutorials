@@ -1,0 +1,2255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CMOS VLSI Ch 7 · Robustness</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: a chapter map (hub) that opens one part at a time; each part is a rail of single-card steps on graph paper. */
+:root {
+  --paper: #eaf0f4;
+  --grid: rgba(40, 90, 140, 0.08);
+  --card: #ffffff;
+  --ink: #142238;
+  --muted: #56677d;
+  --line: #d2dce6;
+  --accent: #e39a0b;
+  --accent-soft: #fdf1d8;
+  --accent-ink: #7a4d00;
+  --cool: #2b67a3;
+  --cool-soft: #e1ecf7;
+  --good: #1d8656;
+  --good-soft: #def4e9;
+  --bad: #c2412a;
+  --bad-soft: #fbe5e0;
+  --on-accent: #1b1300;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1520; --grid: rgba(120, 170, 220, 0.07); --card: #16212f; --ink: #e5edf6; --muted: #98a8bc;
+    --line: #2a3a4e; --accent: #f3b53c; --accent-soft: #3a2d10; --accent-ink: #f8d68f; --cool: #7db3ea;
+    --cool-soft: #15283d; --good: #43c88d; --good-soft: #123426; --bad: #f2735a; --bad-soft: #3d1c16;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1520; --grid: rgba(120, 170, 220, 0.07); --card: #16212f; --ink: #e5edf6; --muted: #98a8bc;
+  --line: #2a3a4e; --accent: #f3b53c; --accent-soft: #3a2d10; --accent-ink: #f8d68f; --cool: #7db3ea;
+  --cool-soft: #15283d; --good: #43c88d; --good-soft: #123426; --bad: #f2735a; --bad-soft: #3d1c16;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 700px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 56px;
+  display: grid; gap: 16px;
+}
+header.top { display: grid; gap: 10px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.eyebrow button { font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--cool); background: none; border: 0; padding: 0; cursor: pointer; }
+.eyebrow a.book-link { color: var(--cool); text-decoration: none; }
+.eyebrow a.book-link:hover, .eyebrow a.book-link:focus-visible { text-decoration: underline; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(28px, 6.5vw, 40px); line-height: 1.05; margin: 0; text-wrap: balance; }
+.rail { display: flex; gap: 5px; align-items: center; }
+.rail button { flex: 1; height: 8px; border-radius: 4px; border: 0; padding: 0; cursor: pointer; background: var(--line); }
+.rail button.done { background: var(--accent); opacity: 0.5; }
+.rail button.now { background: var(--accent); }
+.rail button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.where { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.where b { color: var(--ink); }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px; display: grid; gap: 16px; min-width: 0; }
+.card > * { min-width: 0; }
+.card h2 { font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1.18; margin: 0; text-wrap: balance; }
+.card h3 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 0; }
+.card p { margin: 0; max-width: 62ch; }
+.card ul, .card ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.tag { justify-self: start; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--ink); }
+.k-predict, .k-play { background: var(--accent-soft); color: var(--accent-ink); }
+.k-why, .k-math { background: var(--cool-soft); color: var(--cool); }
+.k-bug { background: var(--bad-soft); color: var(--bad); }
+.k-whatif, .k-check { background: var(--good-soft); color: var(--good); }
+.k-say { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+
+.mono, code { font-family: var(--mono); font-weight: 700; font-size: 0.92em; }
+.eq { font-family: var(--mono); font-weight: 700; font-size: clamp(20px, 5.4vw, 28px); text-align: center; padding: 8px 0; overflow-x: auto; }
+.eq .a { color: var(--accent); }
+.key { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 10px 10px 0; }
+.key b { color: var(--accent-ink); }
+.aside { font-size: 15px; color: var(--muted); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.two > * { min-width: 0; }
+.tile { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.tile h3 { font-size: 17px; }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; font-size: 16px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+.tbl th { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* controls */
+.btn { font: inherit; font-size: 16px; padding: 10px 16px; border-radius: 10px; cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+.btn.ghost { background: transparent; }
+.btn.small { font-size: 14px; padding: 6px 12px; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); font-weight: 700; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:focus-visible, input:focus-visible, textarea:focus-visible, .hit:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.choices { display: grid; gap: 8px; }
+.choice { text-align: left; width: 100%; }
+.choice.right { border-color: var(--good); background: var(--good-soft); }
+.choice.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.q { display: grid; gap: 10px; }
+.qq { font-weight: 700; }
+.feedback { border-radius: 10px; padding: 12px 14px; font-size: 16px; background: var(--paper); border: 1px solid var(--line); }
+.feedback.ok { background: var(--good-soft); border-color: var(--good); }
+.feedback.no { background: var(--bad-soft); border-color: var(--bad); }
+.num { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.num input { font: inherit; font-family: var(--mono); font-size: 19px; width: 8em; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+textarea { font: inherit; font-size: 17px; width: 100%; min-height: 96px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); resize: vertical; }
+select { font: inherit; font-family: var(--mono); font-size: 15px; max-width: 100%; padding: 8px 10px; margin: 4px 0 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+.model { border: 2px dashed var(--good); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; }
+.model .lbl { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--good); }
+.sort { display: grid; gap: 8px; }
+.sort-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.sort-item > span { min-width: 0; }
+.sort-item.right { border-color: var(--good); background: var(--good-soft); }
+.sort-item.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.sort-item .why { grid-column: 1 / -1; font-size: 15px; }
+@media (max-width: 480px) { .sort-item { grid-template-columns: 1fr; } }
+
+/* sliders + readouts */
+.sliders { display: grid; gap: 10px; }
+.sl { display: grid; gap: 2px; }
+.sl label { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; color: var(--muted); }
+.sl output { font-family: var(--mono); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.sl input[type="range"] { width: 100%; accent-color: var(--accent); }
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.readout > div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; background: var(--paper); min-width: 0; }
+.readout span { display: block; font-size: 13px; color: var(--muted); }
+.readout b { font-family: var(--mono); font-size: 19px; font-variant-numeric: tabular-nums; }
+.verdict { justify-self: start; font-weight: 700; font-size: 15px; padding: 4px 14px; border-radius: 999px; }
+.verdict.ok { background: var(--good-soft); color: var(--good); }
+.verdict.mid { background: var(--accent-soft); color: var(--accent-ink); }
+.verdict.no { background: var(--bad-soft); color: var(--bad); }
+
+/* schematics + plots */
+.fig { overflow-x: auto; }
+.sch, .plot { width: 100%; height: auto; display: block; margin: 0 auto; }
+.sch .w { stroke: var(--ink); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.sch .w.hl { stroke: var(--accent); stroke-width: 3.5; }
+.sch .w.dim { stroke: var(--line); }
+.sch .el { fill: var(--card); stroke: var(--ink); stroke-width: 2.5; }
+.sch .el.hl { stroke: var(--accent); stroke-width: 3.5; }
+.sch .nd { fill: var(--ink); }
+.sch text { fill: var(--ink); font-family: var(--mono); font-size: 14px; }
+.sch text.s { font-size: 12px; }
+.sch text.big { font-size: 18px; font-weight: 700; }
+.sch .m { fill: var(--muted); }
+.sch .a { fill: var(--accent-ink); }
+.sch .c { fill: var(--cool); }
+.sch .g { fill: var(--good); }
+.sch .b { fill: var(--bad); }
+.sch .cur { stroke: var(--cool); stroke-width: 2.2; fill: none; }
+.sch .curh { fill: var(--cool); }
+.sch .flow { stroke: var(--accent); stroke-width: 4; fill: none; stroke-dasharray: 3 13; stroke-linecap: round; animation: flow var(--dur, 1s) linear infinite; }
+.sch .zone { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.sch .box { fill: var(--paper); stroke: var(--ink); stroke-width: 2.5; }
+.sch .hit { cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 18; }
+@keyframes flow { to { stroke-dashoffset: -16; } }
+.plot .grid { stroke: var(--line); stroke-width: 1; }
+.plot .axis { stroke: var(--muted); stroke-width: 1.5; }
+.plot text { fill: var(--muted); font-family: var(--mono); font-size: 12px; }
+.plot text.lab { fill: var(--ink); font-size: 13px; font-weight: 700; }
+.plot .s1 { stroke: var(--accent); stroke-width: 3; fill: none; }
+.plot .s2 { stroke: var(--cool); stroke-width: 3; fill: none; }
+.plot .s3 { stroke: var(--good); stroke-width: 3; fill: none; }
+.plot .s4 { stroke: var(--bad); stroke-width: 2; fill: none; stroke-dasharray: 6 5; }
+.plot .s5 { stroke: var(--muted); stroke-width: 2; fill: none; stroke-dasharray: 4 4; }
+.plot .ar1 { fill: var(--accent); opacity: 0.22; }
+.plot .ar2 { fill: var(--cool); opacity: 0.18; }
+.plot .ar3 { fill: var(--good); opacity: 0.16; }
+.plot .mk { fill: var(--accent); stroke: var(--card); stroke-width: 2; }
+.plot .mk2 { fill: var(--cool); stroke: var(--card); stroke-width: 2; }
+.plot .mkb { fill: var(--bad); stroke: var(--card); stroke-width: 2; }
+
+/* hub */
+.parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.part-btn { width: 100%; text-align: left; display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.part-btn:hover { border-color: var(--ink); }
+.part-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.part-btn > span { min-width: 0; }
+.part-n { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; border: 2px solid var(--line); }
+.part-btn.done .part-n { background: var(--good); border-color: var(--good); color: var(--card); }
+.part-btn.next .part-n { border-color: var(--accent); color: var(--accent-ink); }
+.part-t { font-weight: 700; display: block; }
+.part-d { font-size: 15px; color: var(--muted); display: block; }
+.part-m { font-family: var(--mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+.after { border: 2px solid var(--ink); border-radius: 14px; padding: 16px 18px; display: grid; gap: 8px; background: var(--card); }
+
+nav.bottom { display: flex; justify-content: space-between; gap: 8px; }
+nav.bottom .btn { min-width: 120px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+.ov { text-decoration: overline; }
+.bits { display: flex; flex-wrap: wrap; gap: 6px; }
+.bits .btn { min-width: 44px; font-family: var(--mono); font-weight: 700; }
+
+/* code (HDL and assembly listings) */
+pre.code { font-family: var(--mono); font-size: 14px; line-height: 1.5; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 0; overflow-x: auto; white-space: pre; color: var(--ink); }
+pre.code .kw { color: var(--accent-ink); font-weight: 700; }
+pre.code .cm { color: var(--muted); font-style: italic; }
+pre.code .nm { color: var(--cool); }
+pre.code .hl { background: var(--accent-soft); border-radius: 4px; }
+code { font-family: var(--mono); font-size: .92em; background: var(--paper); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+window.BOOK_KEY = "vlsi";
+</script>
+<script>
+/* 6.002's table of contents. One entry per chapter of Agarwal & Lang.
+   `file` is set once a chapter's tutorial is built; `parts` must match that chapter's part count.
+   `pdf` is the page range in the per-chapter PDF file names; `probs` is the page of that file where the exercises start. */
+(window.BOOKS = window.BOOKS || {})["6002"] = {
+  key: "6002", short: "6.002", home: "6002.html", dir: "chapters",
+  title: "6.002 Circuit Tutorials",
+  pdfFolder: "book by chapters",
+  source: "Agarwal & Lang, Foundations of Analog and Digital Electronic Circuits (2005)",
+  pdfPrefix: "Agarwal - Foundations of Analog and Digital Electronic Circuits Elsevier 2005b-",
+  answers: { pdf: "984-995", label: "Answers to selected problems" },
+  groups: [
+    {
+      name: "Resistive circuits",
+      note: "Wires, resistors, sources, and the methods for solving any resistive network.",
+      items: [
+        { n: 1, id: "ch1", title: "The Circuit Abstraction", pdf: "26-75", probs: 48, file: "01-circuit-abstraction.html", parts: 7,
+          blurb: "Lumping, voltage and current, power, resistors, ideal elements, signals." },
+        { n: 2, id: "ch2", title: "Resistive Networks", pdf: "76-141", probs: 59, file: "02-resistive-networks.html", parts: 9,
+          blurb: "KCL, KVL, dividers, collapsing networks, dependent sources." },
+        { n: 3, id: "ch3", title: "Network Theorems", pdf: "142-215", probs: 62, file: "03-network-theorems.html", parts: 9,
+          blurb: "Node method, superposition, Thévenin and Norton." },
+        { n: 4, id: "ch4", title: "Analysis of Nonlinear Circuits", pdf: "216-266", probs: 40, file: "04-nonlinear-circuits.html", parts: 8,
+          blurb: "Graphical, piecewise-linear and incremental analysis." }
+      ]
+    },
+    {
+      name: "Digital logic and the MOSFET",
+      note: "From noise margins to switches, gates and amplifiers.",
+      items: [
+        { n: 5, id: "ch5", title: "The Digital Abstraction", pdf: "267-307", probs: 33, file: "05-digital-abstraction.html", parts: 7,
+          blurb: "Value discretization, noise margins, logic gates." },
+        { n: 6, id: "ch6", title: "The MOSFET Switch", pdf: "308-354", probs: 40, file: "06-mosfet-switch.html", parts: 8,
+          blurb: "S and SR models, gates built from switches, power in gates." },
+        { n: 7, id: "ch7", title: "The MOSFET Amplifier", pdf: "355-427", probs: 61, file: "07-mosfet-amplifier.html", parts: 9,
+          blurb: "Gain, the switch-current-source model, choosing an operating point." },
+        { n: 8, id: "ch8", title: "The Small-Signal Model", pdf: "428-479", probs: 45, file: "08-small-signal-model.html", parts: 7,
+          blurb: "Linearizing the amplifier around an operating point." }
+      ]
+    },
+    {
+      name: "Energy storage and time",
+      note: "Capacitors and inductors make circuits remember, so voltages change over time.",
+      items: [
+        { n: 9, id: "ch9", title: "Energy Storage Elements", pdf: "480-525", probs: 40, file: "09-energy-storage.html", parts: 7,
+          blurb: "Capacitors, inductors, and conservation of charge and flux." },
+        { n: 10, id: "ch10", title: "First-Order Transients in Linear Electrical Networks", pdf: "526-617", probs: 69, file: "10-first-order-transients.html", parts: 9,
+          blurb: "RC and RL circuits, propagation delay, state, digital memory." },
+        { n: 11, id: "ch11", title: "Energy and Power in Digital Circuits", pdf: "618-647", probs: 26, file: "11-energy-power-digital.html", parts: 6,
+          blurb: "Average power, NMOS and CMOS logic." },
+        { n: 12, id: "ch12", title: "Transients in Second-Order Circuits", pdf: "648-725", probs: 71, file: "12-second-order-transients.html", parts: 8,
+          blurb: "LC and RLC circuits, damping, state-space analysis." }
+      ]
+    },
+    {
+      name: "Frequency, op amps and diodes",
+      note: "Sinusoidal steady state, resonance, and two key devices.",
+      items: [
+        { n: 13, id: "ch13", title: "Sinusoidal Steady State: Impedance and Frequency Response", pdf: "726-799", probs: 67, file: "13-sinusoidal-steady-state.html", parts: 9,
+          blurb: "Impedance, frequency response, filters." },
+        { n: 14, id: "ch14", title: "Sinusoidal Steady State: Resonance", pdf: "800-859", probs: 49, file: "14-resonance.html", parts: 7,
+          blurb: "RLC frequency response, Q, Bode plots, stored energy." },
+        { n: 15, id: "ch15", title: "The Operational Amplifier Abstraction", pdf: "860-927", probs: 39, file: "15-op-amp.html", parts: 9,
+          blurb: "Ideal op amps, feedback, saturation, op amp RC circuits." },
+        { n: 16, id: "ch16", title: "Diodes", pdf: "928-949", probs: 18, file: "16-diodes.html", parts: 6,
+          blurb: "Diode characteristics and nonlinear analysis with RL and RC." }
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Math and physics background, each as a short interactive page. Use them whenever a chapter leans on the math.",
+      items: [
+        { n: "A", id: "appA", title: "Maxwell's Equations and the Lumped Matter Discipline", pdf: "950-965", file: "appA-lumped-matter.html", parts: 4,
+          blurb: "Why voltage and current make sense, and where KVL, KCL and R = ρl/a come from. Background for Chapter 1." },
+        { n: "B", id: "appB", title: "Trigonometric Functions and Identities", pdf: "966-969", file: "appB-trig.html", parts: 3,
+          blurb: "The unit circle, the identities circuits use, Taylor series and Euler. A refresher for Chapters 12–14." },
+        { n: "C", id: "appC", title: "Complex Numbers", pdf: "970-983", file: "appC-complex-numbers.html", parts: 5,
+          blurb: "Polar form, arithmetic, the conjugate and rotation. The toolkit for Chapters 12–15." },
+        { n: "D", id: "appD", title: "Solving Simultaneous Linear Equations", pdf: "970-983", file: "appD-linear-equations.html", parts: 2,
+          blurb: "The 2 × 2 formula and Cramer\'s rule, for node and mesh equations (Chapter 3). In the PDF after Appendix C." }
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Boylestad & Nashelsky's table of contents.
+   `pdf` is the range in the per-chapter PDF file names, `pages` the printed book pages,
+   `probs` the page of that PDF file where PROBLEMS start, `probsBook` the printed page number.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["edc"] = {
+  key: "edc", short: "Boylestad", home: "edc.html", dir: "edc",
+  title: "Electronic Devices Tutorials",
+  pdfFolder: "electroinc_devices_circuit_theory / ilovepdf_split-range",
+  source: "Boylestad & Nashelsky, Electronic Devices and Circuit Theory, 11th edition",
+  pdfPrefix: "Electronic Devices and Circuit Theory - 11th Edition-",
+  answers: { pdf: "914-921", label: "Appendix D: Solutions to selected odd-numbered problems" },
+  intro: `<p>This book assumes you already know circuit laws. 6.002 gave you those. Where a chapter overlaps 6.002, its tutorial starts with a short recap that links back, then spends the time on what's new.</p>
+    <p><b>Two notation traps:</b> here <b>V<sub>T</sub></b> in the diode chapters is the <i>thermal</i> voltage (≈ 26 mV), which 6.002 calls V<sub>TH</sub>. And the MOSFET law I<sub>D</sub> = <b>k</b>(V<sub>GS</sub> − V<sub>T</sub>)² uses k = K/2 from 6.002.</p>`,
+  groups: [
+    {
+      name: "Diodes",
+      note: "How semiconductors work, the diode, and the circuits built from it.",
+      items: [
+        { n: 1, id: "edc1", title: "Semiconductor Diodes", pdf: "22-75", pages: "1-54", probs: 51, probsBook: 51, file: "01-semiconductor-diodes.html", parts: 11,
+          blurb: "Semiconductor materials, the pn junction, diode models, Zener diodes and LEDs." },
+        { n: 2, id: "edc2", title: "Diode Applications", pdf: "76-149", pages: "55-128", probs: 65, probsBook: 119, file: "02-diode-applications.html", parts: 13,
+          blurb: "Load lines, diode networks, rectifiers, clippers, clampers, Zener regulators, multipliers." },
+      ]
+    },
+    {
+      name: "Bipolar junction transistors",
+      note: "The BJT: how it works, how to bias it, and how it amplifies.",
+      items: [
+        { n: 3, id: "edc3", title: "Bipolar Junction Transistors", pdf: "150-180", pages: "129-159", probs: 29, probsBook: 157, file: "03-bjts.html", parts: 10,
+          blurb: "Construction, operation, the three configurations, limits of operation." },
+        { n: 4, id: "edc4", title: "DC Biasing: BJTs", pdf: "181-273", pages: "160-252", probs: 79, probsBook: 238, file: "04-dc-biasing-bjts.html", parts: 15,
+          blurb: "Operating point, the classic bias circuits, current mirrors, switching, stability." },
+        { n: 5, id: "edc5", title: "BJT AC Analysis", pdf: "274-398", pages: "253-377", probs: 109, probsBook: 361, file: "05-bjt-ac-analysis.html", parts: 16,
+          blurb: "The r_e model, gain and impedances for each configuration, cascades, hybrid models." },
+      ]
+    },
+    {
+      name: "Field-effect transistors",
+      note: "JFETs and MOSFETs: characteristics, biasing and amplifiers.",
+      items: [
+        { n: 6, id: "edc6", title: "Field-Effect Transistors", pdf: "399-442", pages: "378-421", probs: 41, probsBook: 418, file: "06-fets.html", parts: 10,
+          blurb: "JFET construction and transfer curve, depletion and enhancement MOSFETs, CMOS." },
+        { n: 7, id: "edc7", title: "FET Biasing", pdf: "443-501", pages: "422-480", probs: 52, probsBook: 473, file: "07-fet-biasing.html", parts: 12,
+          blurb: "Fixed, self and voltage-divider bias, graphically and by formula." },
+        { n: 8, id: "edc8", title: "FET Amplifiers", pdf: "502-565", pages: "481-544", probs: 56, probsBook: 536, file: "08-fet-amplifiers.html", parts: 12,
+          blurb: "The FET small-signal model and the common-source, -gate and -drain amplifiers." },
+      ]
+    },
+    {
+      name: "Frequency response",
+      note: "What happens to gain at low and high frequencies.",
+      items: [
+        { n: 9, id: "edc9", title: "BJT and JFET Frequency Response", pdf: "566-627", pages: "545-606", probs: 57, probsBook: 601, file: "09-frequency-response.html", parts: 11,
+          blurb: "Decibels, Bode plots, low- and high-frequency cutoffs, the Miller effect." },
+      ]
+    },
+    {
+      name: "Op amps",
+      note: "Inside the op amp, its real-world limits, and the circuits built from it.",
+      items: [
+        { n: 10, id: "edc10", title: "Operational Amplifiers", pdf: "628-673", pages: "607-652", probs: 42, probsBook: 648, file: "10-op-amps.html", parts: 11,
+          blurb: "The differential amplifier, op-amp basics, offsets, slew rate, CMRR." },
+        { n: 11, id: "edc11", title: "Op-Amp Applications", pdf: "674-703", pages: "653-682", probs: 26, probsBook: 678, file: "11-op-amp-applications.html", parts: 6,
+          blurb: "Gain blocks, summers, buffers, controlled sources, instrumentation amps, active filters." },
+      ]
+    },
+    {
+      name: "Power, ICs and oscillators",
+      note: "Driving real loads, mixed analog-digital chips, feedback, and power supplies.",
+      items: [
+        { n: 12, id: "edc12", title: "Power Amplifiers", pdf: "704-742", pages: "683-721", probs: 37, probsBook: 719, file: "12-power-amplifiers.html", parts: 9,
+          blurb: "Class A, B, C and D, efficiency, distortion, heat sinking." },
+        { n: 13, id: "edc13", title: "Linear-Digital ICs", pdf: "743-771", pages: "722-750", probs: 27, probsBook: 748, file: "13-linear-digital-ics.html", parts: 8,
+          blurb: "Comparators, DACs and ADCs, the 555 timer, VCOs and phase-locked loops." },
+        { n: 14, id: "edc14", title: "Feedback and Oscillator Circuits", pdf: "772-803", pages: "751-782", probs: 32, probsBook: 782, file: "14-feedback-oscillators.html", parts: 10,
+          blurb: "Feedback types, phase-shift, Wien bridge, tuned and crystal oscillators." },
+        { n: 15, id: "edc15", title: "Power Supplies (Voltage Regulators)", pdf: "804-831", pages: "783-810", probs: 26, probsBook: 808, file: "15-power-supplies.html", parts: 8,
+          blurb: "Capacitor and RC filters, ripple, transistor and IC regulators." },
+      ]
+    },
+    {
+      name: "More devices",
+      note: "Special-purpose diodes, sensors and switching devices.",
+      items: [
+        { n: 16, id: "edc16", title: "Other Two-Terminal Devices", pdf: "832-861", pages: "811-840", probs: 28, probsBook: 838, file: "16-two-terminal-devices.html", parts: 8,
+          blurb: "Schottky, varactor, solar cells, photodiodes, thermistors, tunnel diodes." },
+        { n: 17, id: "edc17", title: "pnpn and Other Devices", pdf: "862-899", pages: "841-878", probs: 35, probsBook: 875, file: "17-pnpn-devices.html", parts: 9,
+          blurb: "SCRs, triacs and other switching devices." },
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Reference material. The tutorials pull from these where a chapter needs them.",
+      items: [
+        { n: "A", id: "edcA", title: "Hybrid Parameters: Graphical Determinations and Conversions", pdf: "900-905", pages: "879-884", file: "appA-hybrid-parameters.html", parts: 3,
+          blurb: "Reading h-parameters off transistor curves. Used with Chapter 5." },
+        { n: "B", id: "edcB", title: "Ripple Factor and Voltage Calculations", pdf: "906-911", pages: "885-890", file: "appB-ripple.html", parts: 3,
+          blurb: "The math behind power-supply ripple. Used with Chapter 15." },
+        { n: "C", id: "edcC", title: "Charts and Tables", pdf: "912-913", pages: "891-892", file: "appC-tables.html", parts: 2,
+          blurb: "Greek letters and standard resistor values." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Patt & Patel's table of contents. One PDF for the whole book, so `pdf` is the PDF page range,
+   `pages` the printed pages (PDF page = printed page + 29), `probs` the PDF page where the exercises start.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["pp"] = {
+  key: "pp", short: "Patt & Patel", home: "pp.html", dir: "pp",
+  title: "Computing Systems Tutorials",
+  pdfFolder: "study / Digital Design",
+  pdfFile: "96a2b94d4be48285f2605d843a1e6db37da9a944.pdf",
+  source: "Patt & Patel, Introduction to Computing Systems: From Bits & Gates to C/C++ & Beyond, 3rd edition",
+  sub: "From transistors to a whole computer you can program, one level at a time. One tutorial per chapter; then the book's exercises.",
+  intro: `<p>This book climbs the levels of a computer: bits, transistors, gates, memory, a small computer called the <b>LC-3</b>, its machine language, assembly, and finally C. By the end you know what every level does and why.</p>
+    <p>It pairs with <b>Harris & Harris</b>: read Patt & Patel's chapter first for the idea, then Harris & Harris for the design detail. The library's suggested order says exactly when.</p>
+    <p class="aside">Chapters 11–20 teach programming in C. They're the software side: worth doing, but optional on the way to chip design.</p>`,
+  flow: [
+    ["Tutorial", "Do the parts in order. About 20 minutes each, with a break after every part."],
+    ["Book exercises", "Open the PDF at the page the tutorial gives and do the exercises at the end of the chapter. They're the real test."],
+    ["Check", "The book's answers to selected exercises are on its website (mhhe.com/patt3), not in the PDF. Commit to your answer first, or ask Claude to check your reasoning."],
+  ],
+  groups: [
+    {
+      name: "Bits and gates",
+      note: "What a computer is, how it stores information as bits, and the transistors and gates that do the work.",
+      items: [
+        { n: 1, id: "pp1", title: "Welcome Aboard", pdf: "30-53", pages: "1-24", probs: 49, probsBook: 20, file: "01-welcome-aboard.html", parts: 7,
+          blurb: "Levels of abstraction, hardware vs software, the two big ideas: universal computers and levels of transformation." },
+        { n: 2, id: "pp2", title: "Bits, Data Types, and Operations", pdf: "54-87", pages: "25-58", probs: 78, probsBook: 49, file: "02-bits-data-types.html", parts: 10,
+          blurb: "Unsigned and 2's complement integers, binary arithmetic, overflow, logic operations, hex, floating point, ASCII." },
+        { n: 3, id: "pp3", title: "Digital Logic Structures", pdf: "88-149", pages: "59-120", probs: 124, probsBook: 95, file: "03-digital-logic-structures.html", parts: 11,
+          blurb: "MOS transistors, gates, decoders, muxes, adders, latches, memory, finite state machines, a first data path." },
+      ]
+    },
+    {
+      name: "A whole computer: the LC-3",
+      note: "The von Neumann model, a real (small) instruction set, and your first programs in machine language.",
+      items: [
+        { n: 4, id: "pp4", title: "The von Neumann Model", pdf: "150-173", pages: "121-144", probs: 168, probsBook: 139, file: "04-von-neumann.html", parts: 8,
+          blurb: "Memory, processing unit, input/output, control unit; the instruction cycle; changing the flow with branches." },
+        { n: 5, id: "pp5", title: "The LC-3", pdf: "174-231", pages: "145-202", probs: 206, probsBook: 177, file: "05-lc3.html", parts: 9,
+          blurb: "The LC-3's ISA: operate, data movement and control instructions, addressing modes, condition codes, the data path." },
+        { n: 6, id: "pp6", title: "Programming", pdf: "232-259", pages: "203-230", probs: 249, probsBook: 220, file: "06-programming.html", parts: 6,
+          blurb: "Systematic decomposition into sequence, decision and loop; debugging with breakpoints and single-stepping." },
+      ]
+    },
+    {
+      name: "Assembly, data structures and I/O",
+      note: "Writing real programs for the LC-3: assembly language, subroutines, stacks, input/output and interrupts.",
+      items: [
+        { n: 7, id: "pp7", title: "Assembly Language", pdf: "260-291", pages: "231-262", probs: 274, probsBook: 245, file: "07-assembly.html", parts: 6,
+          blurb: "Opcodes and labels, pseudo-ops, the two-pass assembler, the symbol table, linking multiple files." },
+        { n: 8, id: "pp8", title: "Data Structures", pdf: "292-341", pages: "263-312", probs: 333, probsBook: 304, file: "08-data-structures.html", parts: 8,
+          blurb: "Subroutines and JSR/RET, the stack, recursion, queues, character strings." },
+        { n: 9, id: "pp9", title: "I/O", pdf: "342-407", pages: "313-378", probs: 381, probsBook: 352, file: "09-io.html", parts: 9,
+          blurb: "Privilege and priority, device registers, polling, TRAP routines, interrupts, the supervisor stack." },
+        { n: 10, id: "pp10", title: "A Calculator", pdf: "408-433", pages: "379-404", probs: 431, probsBook: 402, file: "10-calculator.html", parts: 7,
+          blurb: "ASCII-to-binary conversion and back, arithmetic using a stack, a complete calculator program." },
+      ]
+    },
+    {
+      name: "Programming in C",
+      note: "The same machine one level up: how C is compiled down to the LC-3. Optional on the way to chip design.",
+      items: [
+        { n: 11, id: "pp11", title: "Introduction to C/C++", pdf: "434-453", pages: "405-424", probs: 451, probsBook: 422, file: "11-intro-c.html", parts: 7,
+          blurb: "Bridging from assembly to a high-level language: compilers vs interpreters, the compilation process, a first program." },
+        { n: 12, id: "pp12", title: "Variables and Operators", pdf: "454-485", pages: "425-456", probs: 482, probsBook: 453, file: "12-variables-operators.html", parts: 10,
+          blurb: "Types, scope, storage; operators, precedence; how variables live in memory and on the run-time stack." },
+        { n: 13, id: "pp13", title: "Control Structures", pdf: "486-519", pages: "457-490", probs: 513, probsBook: 484, file: "13-control-structures.html", parts: 8,
+          blurb: "if, if-else, while, for, do-while, switch, break and continue, and the LC-3 code each becomes." },
+        { n: 14, id: "pp14", title: "Functions", pdf: "520-545", pages: "491-516", probs: 540, probsBook: 511, file: "14-functions.html", parts: 6,
+          blurb: "Arguments and return values, the run-time stack and activation records, caller and callee." },
+        { n: 15, id: "pp15", title: "Testing and Debugging", pdf: "546-565", pages: "517-536", probs: 561, probsBook: 532, file: "15-testing-debugging.html", parts: 5,
+          blurb: "Syntactic, semantic and algorithmic errors; black-box and white-box testing; debuggers; defensive programming." },
+      ]
+    },
+    {
+      name: "C in depth",
+      note: "Pointers, arrays, recursion, I/O, dynamic data structures and a first look at C++.",
+      items: [
+        { n: 16, id: "pp16", title: "Pointers and Arrays", pdf: "566-597", pages: "537-568", probs: 592, probsBook: 563, file: "16-pointers-arrays.html", parts: 8,
+          blurb: "Addresses and pointers, pass by reference, arrays, strings, the link between arrays and pointers." },
+        { n: 17, id: "pp17", title: "Recursion", pdf: "598-621", pages: "569-592", probs: 616, probsBook: 587, file: "17-recursion.html", parts: 6,
+          blurb: "Recursion vs iteration, Towers of Hanoi, Fibonacci, binary search, escaping a maze, and the stack under it all." },
+        { n: 18, id: "pp18", title: "I/O in C", pdf: "622-635", pages: "593-606", probs: 634, probsBook: 605, file: "18-io-in-c.html", parts: 5,
+          blurb: "Streams, putchar and getchar, buffering, printf and scanf, files." },
+        { n: 19, id: "pp19", title: "Dynamic Data Structures in C", pdf: "636-661", pages: "607-632", probs: 658, probsBook: 629, file: "19-dynamic-data.html", parts: 6,
+          blurb: "Structures, typedef, the heap, malloc and free, linked lists." },
+        { n: 20, id: "pp20", title: "Introduction to C++", pdf: "662-681", pages: "633-652", probs: 679, probsBook: 650, file: "20-intro-cpp.html", parts: 6,
+          blurb: "Namespaces, references, overloading, classes, constructors, vectors and templates." },
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Appendix C, the LC-3's microarchitecture, is the bridge to Harris & Harris Chapter 7. The others are references.",
+      items: [
+        { n: "A", id: "ppA", title: "The LC-3 ISA", pdf: "682-707", pages: "653-678", file: "appA-lc3-isa.html", parts: 5,
+          blurb: "Every LC-3 instruction defined precisely, plus interrupt and exception processing." },
+        { n: "B", id: "ppB", title: "From LC-3 to x86", pdf: "708-727", pages: "679-698", file: "appB-lc3-to-x86.html", parts: 7,
+          blurb: "How a real, much bigger ISA compares: instruction formats, memory, internal state." },
+        { n: "C", id: "ppC", title: "The Microarchitecture of the LC-3", pdf: "728-749", pages: "699-720", file: "appC-lc3-microarchitecture.html", parts: 5,
+          blurb: "The state machine, data path and microprogrammed control that execute every LC-3 instruction." },
+        { n: "D", id: "ppD", title: "The C Programming Language", pdf: "750-781", pages: "721-752", file: "appD-c-language.html", parts: 8,
+          blurb: "A C reference manual: conventions, types, operators, control, the preprocessor, the standard library." },
+        { n: "E", id: "ppE", title: "Useful Tables", pdf: "782-785", pages: "753-756", file: "appE-tables.html", parts: 3,
+          blurb: "Prefixes, ASCII codes, powers of 2." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Harris & Harris's table of contents (2nd edition). `pdf` is the range in the per-chapter PDF file names,
+   `pages` the printed pages (PDF page = printed page + 25), `probs` the page of that PDF file where the exercises start.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["hh"] = {
+  key: "hh", short: "Harris & Harris", home: "hh.html", dir: "hh",
+  title: "Digital Design Tutorials",
+  pdfFolder: "electroinc_devices_circuit_theory / digital_design",
+  pdfPrefix: "Digital Design and Computer Architecture (Harris, Sarah, Harris, David) (Z-Library)-",
+  source: "Harris & Harris, Digital Design and Computer Architecture, 2nd edition",
+  sub: "Logic design from gates to a pipelined MIPS processor, the way it's done in industry. One tutorial per chapter; then the book's exercises.",
+  intro: `<p>This book takes you from a single gate to a working processor: Boolean logic, sequential circuits, hardware description languages, arithmetic blocks, the MIPS instruction set, and three ways to build the processor that runs it.</p>
+    <p>It pairs with <b>Patt & Patel</b> (the ideas, a level at a time) and leads into <b>CMOS VLSI Design</b> (how each gate becomes transistors and wires). The library's suggested order says when to read which.</p>
+    <p class="aside">The book shows every HDL example in both SystemVerilog and VHDL. The tutorials use SystemVerilog, which the CMOS VLSI book and most chip companies use.</p>`,
+  flow: [
+    ["Tutorial", "Do the parts in order. About 20 minutes each, with a break after every part."],
+    ["Book exercises", "Open the PDF at the page the tutorial gives and do the exercises. The interview questions after them are a good final test."],
+    ["Check", "The PDF has no answers. Commit to your answer, then ask Claude to check your reasoning. You'll get a guiding question first, not the answer."],
+  ],
+  groups: [
+    {
+      name: "Digital logic",
+      note: "Bits and gates, combinational logic, and circuits with memory.",
+      items: [
+        { n: 1, id: "hh1", title: "From Zero to One", pdf: "1-79", pages: "3-54", probs: 62, probsBook: 37, file: "01-zero-to-one.html", parts: 10,
+          blurb: "Abstraction, number systems, logic gates, logic levels and noise margins, CMOS transistors, power." },
+        { n: 2, id: "hh2", title: "Combinational Logic Design", pdf: "80-133", pages: "55-108", probs: 122, probsBook: 97, file: "02-combinational-logic.html", parts: 10,
+          blurb: "Boolean equations and algebra, bubble pushing, X and Z, Karnaugh maps, muxes and decoders, timing and glitches." },
+        { n: 3, id: "hh3", title: "Sequential Logic Design", pdf: "134-197", pages: "109-172", probs: 187, probsBook: 162, file: "03-sequential-logic.html", parts: 11,
+          blurb: "Latches and flip-flops, synchronous design, finite state machines, setup and hold, skew, metastability, parallelism." },
+      ]
+    },
+    {
+      name: "Describing and building hardware",
+      note: "Writing hardware as code, then the standard blocks every chip is built from.",
+      items: [
+        { n: 4, id: "hh4", title: "Hardware Description Languages", pdf: "198-263", pages: "173-238", probs: 251, probsBook: 226, file: "04-hdl.html", parts: 10,
+          blurb: "SystemVerilog modules, operators, structural models, registers, case and if, blocking vs nonblocking, FSMs, testbenches." },
+        { n: 5, id: "hh5", title: "Digital Building Blocks", pdf: "264-319", pages: "239-294", probs: 307, probsBook: 282, file: "05-building-blocks.html", parts: 9,
+          blurb: "Adders, subtractors, comparators, ALUs, shifters, multipliers, fixed and floating point, counters, memories, FPGAs." },
+      ]
+    },
+    {
+      name: "Computer architecture",
+      note: "The MIPS instruction set, the processors that run it, and the memory system that feeds them.",
+      items: [
+        { n: 6, id: "hh6", title: "Architecture", pdf: "320-395", pages: "295-370", probs: 382, probsBook: 357, file: "06-architecture.html", parts: 11,
+          blurb: "MIPS assembly and machine language, programming, addressing modes, compiling, assembling and loading, a look at x86." },
+        { n: 7, id: "hh7", title: "Microarchitecture", pdf: "396-499", pages: "371-474", probs: 492, probsBook: 467, file: "07-microarchitecture.html", parts: 13,
+          blurb: "Performance, single-cycle, multicycle and pipelined MIPS processors, hazards, exceptions, advanced techniques." },
+        { n: 8, id: "hh8", title: "Memory and I/O Systems", pdf: "500-607", pages: "475-582", probs: 595, probsBook: 570, file: "08-memory-systems.html", parts: 13,
+          blurb: "Locality, caches, virtual memory, memory-mapped I/O, embedded I/O on a real microcontroller, PC I/O." },
+      ]
+    },
+    {
+      name: "Appendices",
+      note: "Appendix A shows how designs become real hardware. B is a reference table; C is a C primer (Patt & Patel teaches C in more depth).",
+      items: [
+        { n: "A", id: "hhA", title: "Digital System Implementation", pdf: "608-699", pages: "583-618", file: "appA-implementation.html", parts: 13,
+          blurb: "74xx logic, FPGAs, ASICs, data sheets, logic families, packaging, transmission lines, economics." },
+        { n: "B", id: "hhB", title: "MIPS Instructions", pdf: "608-699", pages: "619-622", file: "appB-mips-instructions.html", parts: 3,
+          blurb: "Opcode and funct tables for every MIPS instruction in the book." },
+        { n: "C", id: "hhC", title: "C Programming", pdf: "608-699", pages: "623-674", file: "appC-c-programming.html", parts: 9,
+          blurb: "C for hardware people: variables, operators, functions, control flow, pointers, structures, libraries." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Weste & Harris's table of contents. `pdf` is the range in the per-chapter PDF file names,
+   `pages` the printed pages (PDF page = printed page + 27), `probs` the page of that PDF file where the exercises start.
+   `file` and `parts` are set once a chapter's tutorial is built. */
+(window.BOOKS = window.BOOKS || {})["vlsi"] = {
+  key: "vlsi", short: "CMOS VLSI", home: "vlsi.html", dir: "vlsi",
+  title: "CMOS VLSI Tutorials",
+  pdfFolder: "electroinc_devices_circuit_theory / cmos_vlsi",
+  source: "Weste & Harris, CMOS VLSI Design: A Circuits and Systems Perspective, 4th edition",
+  pdfPrefix: "CMOS VLSI Design A Circuits and Systems Perspective (4th Edition) by Neil H. E. Weste, David Money Harris (z-lib.org)-",
+  sub: "How logic becomes transistors, wires and silicon, and how to make it fast, low-power and reliable. One tutorial per chapter; then the book's exercises.",
+  intro: `<p>This is the chip designer's book. Every gate from Harris & Harris becomes transistors you size, wires you route, and delay, power and variation you budget.</p>
+    <p>It builds on three things in this library: the <b>MOSFET</b> (Boylestad Chapter 6, 6.002 Chapters 6–7), <b>digital logic</b> (Harris & Harris 1–5) and the <b>chip-design math</b> (Math 24–39). Each chapter page says which ones it uses.</p>
+    <p class="aside">The book marks some sections “Optional” or puts them on its website. The tutorials skip the web-only sections and keep optional ones short.</p>`,
+  flow: [
+    ["Tutorial", "Do the parts in order. About 20 minutes each, with a break after every part."],
+    ["Book exercises", "Open that chapter's PDF and do the exercises at the end. They're the real test, and many are small design problems."],
+    ["Check", "The PDFs have no answers. Commit to your answer, then ask Claude to check your reasoning. You'll get a guiding question first, not the answer."],
+  ],
+  groups: [
+    {
+      name: "Foundations",
+      note: "The whole field in one chapter, then the transistor model and how chips are made.",
+      items: [
+        { n: 1, id: "vlsi1", title: "Introduction", pdf: "1-87", pages: "1-60", probs: 84, probsBook: 57, file: "01-introduction.html", parts: 11,
+          blurb: "Transistors as switches, CMOS gates, layout, design partitioning, and an 8-bit MIPS processor from logic to silicon." },
+        { n: 2, id: "vlsi2", title: "MOS Transistor Theory", pdf: "88-125", pages: "61-98", probs: 122, probsBook: 95, file: "02-mos-transistor.html", parts: 10,
+          blurb: "Long-channel I-V, capacitances, velocity saturation, leakage, body effect, and the inverter's DC transfer curve." },
+        { n: 3, id: "vlsi3", title: "CMOS Processing Technology", pdf: "126-167", pages: "99-140", probs: 166, probsBook: 139, file: "03-processing.html", parts: 10,
+          blurb: "Wafers, wells, oxides, lithography, metal layers, design rules, process enhancements, manufacturing issues." },
+      ]
+    },
+    {
+      name: "Delay, power, wires and robustness",
+      note: "The four things every chip designer budgets. This is the heart of the book.",
+      items: [
+        { n: 4, id: "vlsi4", title: "Delay", pdf: "168-207", pages: "141-180", probs: 203, probsBook: 176, file: "04-delay.html", parts: 10,
+          blurb: "Transient response, the RC delay model, Elmore delay, the linear delay model, logical effort of paths." },
+        { n: 5, id: "vlsi5", title: "Power", pdf: "208-237", pages: "181-210", probs: 236, probsBook: 209, file: "05-power.html", parts: 9,
+          blurb: "Dynamic power, activity factor, static leakage, energy-delay trade-offs, low-power architectures." },
+        { n: 6, id: "vlsi6", title: "Interconnect", pdf: "238-267", pages: "211-240", probs: 265, probsBook: 238, file: "06-interconnect.html", parts: 9,
+          blurb: "Wire resistance and capacitance, wire delay, crosstalk, repeaters, logical effort with wires." },
+        { n: 7, id: "vlsi7", title: "Robustness", pdf: "268-313", pages: "241-286", probs: 311, probsBook: 284, file: "07-robustness.html", parts: 9,
+          blurb: "Process, voltage and temperature variation, reliability, scaling, statistical analysis, variation-tolerant design." },
+      ]
+    },
+    {
+      name: "Simulation and circuit design",
+      note: "SPICE, then how real gates and flip-flops are built.",
+      items: [
+        { n: 8, id: "vlsi8", title: "Circuit Simulation", pdf: "314-353", pages: "287-326", probs: 351, probsBook: 324, file: "08-simulation.html", parts: 8,
+          blurb: "A SPICE tutorial, device models, characterizing transistors and gates, interconnect simulation." },
+        { n: 9, id: "vlsi9", title: "Combinational Circuit Design", pdf: "354-402", pages: "327-375", probs: 397, probsBook: 370, file: "09-combinational.html", parts: 11,
+          blurb: "Static CMOS, ratioed, dynamic and pass-transistor circuits; circuit pitfalls; SOI and subthreshold design." },
+        { n: 10, id: "vlsi10", title: "Sequential Circuit Design", pdf: "403-455", pages: "376-428", probs: 452, probsBook: 425, file: "10-sequential.html", parts: 11,
+          blurb: "Sequencing methods, timing constraints, latch and flip-flop circuits, synchronizers." },
+      ]
+    },
+    {
+      name: "Subsystems",
+      note: "The big blocks of a chip: arithmetic, memories, and the circuits around them.",
+      items: [
+        { n: 11, id: "vlsi11", title: "Datapath Subsystems", pdf: "456-523", pages: "429-496", probs: 521, probsBook: 494, file: "11-datapath.html", parts: 12,
+          blurb: "Adders (ripple, carry-lookahead, prefix), comparators, counters, shifters, multipliers." },
+        { n: 12, id: "vlsi12", title: "Array Subsystems", pdf: "524-575", pages: "497-548", probs: 573, probsBook: 546, file: "12-arrays.html", parts: 10,
+          blurb: "SRAM cells and periphery, DRAM, ROM, CAMs, PLAs, robust memory design." },
+        { n: 13, id: "vlsi13", title: "Special-Purpose Subsystems", pdf: "576-641", pages: "549-614", probs: 641, probsBook: 614, file: "13-special-purpose.html", parts: 11,
+          blurb: "Packaging and cooling, power distribution, clocks, PLLs and DLLs, I/O, high-speed links." },
+      ]
+    },
+    {
+      name: "Methodology and test",
+      note: "How real chips are designed in teams, and how you know they work.",
+      items: [
+        { n: 14, id: "vlsi14", title: "Design Methodology and Tools", pdf: "642-685", pages: "615-658", probs: 684, probsBook: 657, file: "14-methodology.html", parts: 9,
+          blurb: "Structured design, design methods, design flows from RTL to GDS, design economics." },
+        { n: 15, id: "vlsi15", title: "Testing, Debugging, and Verification", pdf: "686-725", pages: "659-698", probs: 724, probsBook: 697, file: "15-testing.html", parts: 9,
+          blurb: "Testers, logic verification, silicon debug, manufacturing test, fault models, design for testability." },
+      ]
+    },
+    {
+      name: "Appendix",
+      note: "An HDL reference by the same author as Harris & Harris Chapter 4.",
+      items: [
+        { n: "A", id: "vlsiA", title: "Hardware Description Languages", pdf: "726-811", pages: "699-784", probs: 803, probsBook: 776, file: "appA-hdl.html", parts: 8,
+          blurb: "SystemVerilog and VHDL side by side: combinational and sequential logic, FSMs, parameterized modules, testbenches." },
+      ]
+    }
+  ]
+};
+</script>
+<script>
+/* Math Toolkit: the math both books lean on, one module per tool.
+   No PDF: modules are original. `needs` lists the chapter ids (6.002 "chN"/"appX", Boylestad "edcN") that use the tool,
+   so a module can say where it's used and each chapter page can list the math it needs.
+   Items with `ref` are already taught by a 6.002 appendix: `file` points at that page and `id` is its id, so progress is shared. */
+(window.BOOKS = window.BOOKS || {})["math"] = {
+  key: "math", short: "Math Toolkit", home: "math.html", dir: "math", unit: "Module", noPdf: true,
+  title: "Math Toolkit",
+  source: "The math behind both books and chip design, one tool at a time",
+  sub: "Every math tool the two books use, then the math a chip designer needs, all taught with circuits. Do a module just before the chapter that needs it, or work through the chip-design track in order.",
+  intro: `<p>Each module says which chapters use it, and each chapter page lists the modules it needs (look for “Math you'll use”).</p>
+    <p>Nothing here assumes you remember school algebra. Each module starts from the basics and goes only as far as the circuits need.</p>
+    <p>Modules 24–39 are the <b>chip-design track</b>: linear algebra, calculus for design, signals, probability and noise, feedback, and fields. Each ends with a “Master it” part of harder mixed problems, because these topics have no book problems to fall back on.</p>`,
+  flow: [
+    ["Pick a module", "Either the next one in order or one a chapter page points you to. Each part takes 10–20 minutes."],
+    ["Practise", "Every part ends with questions using circuit numbers. Work them on paper first, then type the answer."],
+    ["Use it", "Go back to the chapter. The module's “Used in” line links straight there."],
+  ],
+  groups: [
+    {
+      name: "Numbers and algebra",
+      note: "The everyday tools: every chapter uses these.",
+      items: [
+        { n: 1, id: "m1", title: "Numbers, Prefixes and Units", file: "01-numbers-units.html", parts: 3,
+          needs: ["ch1", "ch2", "edc1", "edc3"],
+          blurb: "Powers of ten, k/m/µ/n/p, units that check your answer, and quick estimates." },
+        { n: 2, id: "m2", title: "Rearranging Formulas", file: "02-rearranging.html", parts: 4,
+          needs: ["ch1", "ch2", "ch3", "edc3", "edc4"],
+          blurb: "Get any letter on its own, the balance-scale way. Squares, roots, reciprocals and exponent rules." },
+        { n: 3, id: "m3", title: "Fractions, Ratios and Percent", file: "03-ratios-percent.html", parts: 3,
+          needs: ["ch2", "ch3", "edc2", "edc4", "edc5", "edc12", "edc15"],
+          blurb: "Parallel resistors, divider ratios, percent error, regulation and efficiency." },
+        { n: 4, id: "m4", title: "Approximations", file: "04-approximations.html", parts: 3,
+          needs: ["ch8", "ch15", "edc4", "edc5", "edc8", "edc10", "edc14"],
+          blurb: "When ≫ lets you drop a term, the 10× rule, and how much error that costs." },
+      ]
+    },
+    {
+      name: "Graphs and equations",
+      note: "Reading and solving: load lines, node equations, square laws.",
+      items: [
+        { n: 5, id: "m5", title: "Lines, Graphs and Load Lines", file: "05-lines.html", parts: 3,
+          needs: ["ch3", "ch4", "ch7", "ch16", "edc2", "edc4", "edc7"],
+          blurb: "Slope and intercept, drawing a line from two points, where two curves cross." },
+        { n: 6, id: "appD", ref: "6002", title: "Simultaneous Equations", file: "../chapters/appD-linear-equations.html", parts: 2,
+          needs: ["ch2", "ch3", "edc4", "edcA"],
+          blurb: "Already in 6.002 Appendix D: two or three unknowns, elimination and Cramer's rule." },
+        { n: 7, id: "m7", title: "Quadratic Equations", file: "07-quadratics.html", parts: 3,
+          needs: ["ch7", "ch12", "edc6", "edc7"],
+          blurb: "Expand a square, use the formula, and pick the root that makes physical sense." },
+      ]
+    },
+    {
+      name: "Exponentials and logarithms",
+      note: "Diodes, time constants, decibels: anything that grows or decays.",
+      items: [
+        { n: 8, id: "m8", title: "Exponentials and Logarithms", file: "08-exp-log.html", parts: 3,
+          needs: ["ch4", "ch10", "ch16", "edc1", "edc13", "edc16", "edc17"],
+          blurb: "e^x and its shape, ln undoes it, the log rules, and solving for a time or a voltage." },
+        { n: 9, id: "m9", title: "Decibels and Log Scales", file: "09-decibels.html", parts: 3,
+          needs: ["ch13", "ch14", "edc9", "edc10", "edc11"],
+          blurb: "dB for power and voltage, why gains add in dB, decades, octaves and log axes." },
+      ]
+    },
+    {
+      name: "Waves and complex numbers",
+      note: "Everything ac: sine waves, phase, and the numbers that handle them.",
+      items: [
+        { n: 10, id: "m10", title: "Sinusoids", file: "10-sinusoids.html", parts: 3,
+          needs: ["ch12", "ch13", "edc2", "edc9", "edc12", "edc15"],
+          blurb: "Radians, amplitude, frequency, ω = 2πf, phase shift, and right triangles." },
+        { n: 11, id: "appB", ref: "6002", title: "Trig Identities and Taylor Series", file: "../chapters/appB-trig.html", parts: 3,
+          needs: ["ch12", "ch13"],
+          blurb: "Already in 6.002 Appendix B: sin and cos from a circle, the identities, Euler's formula." },
+        { n: 12, id: "appC", ref: "6002", title: "Complex Numbers", file: "../chapters/appC-complex-numbers.html", parts: 5,
+          needs: ["ch12", "ch13", "ch14", "edc9", "edc14"],
+          blurb: "Already in 6.002 Appendix C: points in a plane, polar form, multiply and divide, rotation." },
+      ]
+    },
+    {
+      name: "Calculus",
+      note: "Rates of change and areas: capacitors, inductors, small signals, transients.",
+      items: [
+        { n: 13, id: "m13", title: "Derivatives", file: "13-derivatives.html", parts: 5,
+          needs: ["ch4", "ch8", "ch9", "edc1", "edc4", "edc5", "edc8", "edc10"],
+          blurb: "Slope at a point, the rules (product, quotient, chain), tangent lines, and partial derivatives." },
+        { n: 14, id: "m14", title: "Integrals and Averages", file: "14-integrals.html", parts: 5,
+          needs: ["ch9", "ch11", "ch16", "edc2", "edc12", "edc15", "edcB"],
+          blurb: "Areas, averages and rms, then antiderivatives, substitution, integration by parts and ∫ to ∞." },
+        { n: 15, id: "m15", title: "Differential Equations", file: "15-diff-eqs.html", parts: 5,
+          needs: ["ch10", "ch11", "ch12"],
+          blurb: "First-order recipe, second order and damping, forced (sinusoidal) response, fitting initial conditions." },
+      ]
+    },
+    {
+      name: "Frequency response and logic",
+      note: "Two specialised tools: Bode plots and Boolean algebra.",
+      items: [
+        { n: 16, id: "m16", title: "Transfer Functions and Bode Plots", file: "16-bode.html", parts: 3,
+          needs: ["ch13", "ch14", "edc9", "edc11", "edc14"],
+          blurb: "H(jω) as a ratio, break frequencies, straight-line asymptotes and phase." },
+        { n: 17, id: "m17", title: "Binary and Boolean Algebra", file: "17-binary-boolean.html", parts: 3,
+          needs: ["ch5", "ch6", "edc13"],
+          blurb: "Counting in binary, 2^n levels, AND/OR/NOT algebra and De Morgan." },
+      ]
+    },
+    {
+      name: "Laplace transforms (optional track)",
+      note: "Neither book teaches these; both only mention them in passing. They turn differential equations into algebra and tie transients, impedance and Bode plots into one method. Do Modules 13–15 first.",
+      items: [
+        { n: 18, id: "m18", title: "Polynomials and Partial Fractions", file: "18-partial-fractions.html", parts: 4,
+          also: ["ch12", "ch13"],
+          blurb: "Roots and factors, completing the square, and splitting a fraction into simple pieces." },
+        { n: 19, id: "m19", title: "Laplace: the Idea and the Table", file: "19-laplace-intro.html", parts: 4,
+          also: ["ch10", "ch12", "ch13"],
+          blurb: "Why transform, the defining integral, building the table, and what pole positions mean." },
+        { n: 20, id: "m20", title: "Laplace Properties", file: "20-laplace-properties.html", parts: 4,
+          also: ["ch10", "ch12"],
+          blurb: "Derivatives become ×s, shifts and delays, ×t, and the initial and final value theorems." },
+        { n: 21, id: "m21", title: "Inverse Laplace Transforms", file: "21-inverse-laplace.html", parts: 4,
+          also: ["ch10", "ch12"],
+          blurb: "Back to time: real poles, repeated poles, complex poles, and checking your answer." },
+        { n: 22, id: "m22", title: "Solving Differential Equations with Laplace", file: "22-laplace-odes.html", parts: 4,
+          also: ["ch10", "ch12", "ch13"],
+          blurb: "Initial conditions built in: first order, second order, ringing, and a sinusoidal input." },
+        { n: 23, id: "m23", title: "Circuits in the s-Domain", file: "23-s-domain.html", parts: 4,
+          also: ["ch10", "ch12", "ch13", "ch14", "edc9", "edc10", "edc11", "edc14"],
+          blurb: "Impedances in s, transfer functions, poles and zeros, impulse response and stability." },
+      ]
+    },
+    {
+      name: "Chip design 1: linear algebra",
+      note: "Beyond both books: the start of the chip-design track. Every simulator turns a schematic into a matrix, and eigenvalues are a circuit's natural frequencies. Do Module 6 first.",
+      items: [
+        { n: 24, id: "m24", title: "Vectors and Matrices", file: "24-matrices.html", parts: 6,
+          also: ["ch2", "ch3", "appD"],
+          blurb: "Vectors and the dot product, a matrix as a machine, products, determinants and the inverse, with pictures first." },
+        { n: 25, id: "m25", title: "Solving Circuits with Matrices", file: "25-circuit-matrices.html", parts: 6,
+          also: ["ch3", "ch8", "edc5"],
+          blurb: "Build G by inspection, Gaussian elimination, LU and sparsity, Modified Nodal Analysis, transistors as matrix stamps: what SPICE does." },
+        { n: 26, id: "m26", title: "Eigenvalues and Eigenvectors", file: "26-eigenvalues.html", parts: 6,
+          also: ["ch10", "ch12", "ch13"],
+          blurb: "Directions a matrix doesn't turn, det(A − λI) = 0, complex eigenvalues as rotation, x′ = Ax, modes and on-chip wire delay." },
+      ]
+    },
+    {
+      name: "Chip design 2: calculus for real design",
+      note: "Real chips vary, real circuits are nonlinear, and simulators approximate. These modules make that precise. Do Modules 13–15 first.",
+      items: [
+        { n: 27, id: "m27", title: "Sensitivity and Error Budgets", file: "27-sensitivity.html", parts: 6,
+          also: ["ch8", "edc4", "edc7", "edc10"],
+          blurb: "Partial derivatives as knobs, percent-per-percent sensitivity, small-signal models as total differentials, worst case vs RSS, optimal sizing." },
+        { n: 28, id: "m28", title: "Numerical Methods: How Simulators Think", file: "28-numerical-methods.html", parts: 6,
+          also: ["ch4", "ch10", "ch16"],
+          blurb: "Bisection, Newton's method, companion models and convergence, Euler and trapezoidal time-stepping, error and step control." },
+        { n: 29, id: "m29", title: "Series and Approximations", file: "29-series.html", parts: 6,
+          also: ["ch8", "appB", "edc5", "edc10"],
+          blurb: "Taylor series, how small ‘small signal’ is, harmonic distortion from device curves, geometric series in DACs and feedback, limits." },
+      ]
+    },
+    {
+      name: "Chip design 3: signals and spectra",
+      note: "How signals look in frequency, and what happens when a chip samples them. Do Modules 10, 12 and 16 first.",
+      items: [
+        { n: 30, id: "m30", title: "Fourier Series", file: "30-fourier-series.html", parts: 6,
+          also: ["ch13", "edc12", "edc15"],
+          blurb: "Any periodic wave as a sum of sines: harmonics, finding coefficients, symmetry, power per harmonic and THD." },
+        { n: 31, id: "m31", title: "The Fourier Transform and Spectra", file: "31-fourier-transform.html", parts: 6,
+          also: ["ch13", "ch14", "edc9"],
+          blurb: "From series to transform, pulse and sinc, time–bandwidth trade-off, convolution and filtering, the link to Laplace." },
+        { n: 32, id: "m32", title: "Sampling, Aliasing and Quantization", file: "32-sampling.html", parts: 6,
+          also: ["edc13"],
+          blurb: "Sampling and Nyquist, aliasing, sample-and-hold, quantization noise, SNR = 6.02N + 1.76 dB, and the DFT." },
+        { n: 33, id: "m33", title: "Discrete-Time Systems and the z-Transform", file: "33-z-transform.html", parts: 6,
+          also: ["edc13"],
+          blurb: "Difference equations, z⁻¹ as a delay, poles inside the unit circle, FIR and IIR filters, and switched-capacitor circuits." },
+      ]
+    },
+    {
+      name: "Chip design 4: probability, statistics and noise",
+      note: "Every chip is a random sample from a process, and every signal carries noise. These modules make randomness something you can design with.",
+      items: [
+        { n: 34, id: "m34", title: "Probability and Random Variables", file: "34-probability.html", parts: 6,
+          also: [],
+          blurb: "Probability rules, distributions, mean and variance, and why independent variances add." },
+        { n: 35, id: "m35", title: "The Normal Distribution, Mismatch and Yield", file: "35-normal-yield.html", parts: 6,
+          also: ["edc10"],
+          blurb: "The bell curve and why it appears, σ and yield, Pelgrom's mismatch law, Monte Carlo, process corners." },
+        { n: 36, id: "m36", title: "Random Signals and Noise", file: "36-noise.html", parts: 6,
+          also: ["edc9", "edc10"],
+          blurb: "Noise spectral density, thermal, shot and 1/f noise, kT/C, noise bandwidth, input-referred noise and SNR." },
+      ]
+    },
+    {
+      name: "Chip design 5: feedback and stability",
+      note: "The math behind every op amp, regulator and PLL on a chip. Do Modules 16 and 23 first.",
+      items: [
+        { n: 37, id: "m37", title: "Feedback Systems", file: "37-feedback.html", parts: 6,
+          also: ["ch15", "edc10", "edc14"],
+          blurb: "Loop gain, desensitisation, bandwidth and distortion with feedback, impedances, and the four feedback types." },
+        { n: 38, id: "m38", title: "Stability and Compensation", file: "38-stability.html", parts: 6,
+          also: ["edc10", "edc14"],
+          blurb: "When 1 + T = 0, phase and gain margin, overshoot and peaking, root locus, dominant-pole and Miller compensation." },
+      ]
+    },
+    {
+      name: "Chip design 6: fields for device physics",
+      note: "What happens inside a transistor: fields, charge and diffusion. The math for semiconductor physics.",
+      items: [
+        { n: 39, id: "m39", title: "Fields, Flux and Diffusion", file: "39-fields.html", parts: 6,
+          also: ["edc1", "ch16", "appA"],
+          blurb: "Field as slope of potential, Gauss's law, Poisson's equation and the depletion region, current density, diffusion." },
+      ]
+    },
+  ],
+};
+</script>
+<script>
+/* Library registry. Each book manifest adds itself to window.BOOKS; this file (loaded after them)
+   adds the shared helpers and sets window.BOOK to the book this page belongs to (window.BOOK_KEY). */
+(function () {
+  const all = window.BOOKS || {};
+  Object.values(all).forEach((B) => {
+    B.all = () => B.groups.flatMap((g) => g.items);
+    B.chapters = () => B.all().filter((c) => typeof c.n === "number");
+    B.find = (id) => B.all().find((c) => c.id === id);
+    B.pdfName = (c) => B.pdfFile || B.pdfPrefix + c.pdf + ".pdf"; /* one-file books name the whole PDF */
+    /* "pp. 26–75" for books whose file names are PDF pages, "pp. 1–54" (printed pages) when a chapter lists `pages`. */
+    B.pagesLabel = (c) => (c.pages ? "book pp. " + c.pages : "pp. " + c.pdf).replace("-", "–") + (B.pdfFile && c.pages ? ", PDF pp. " + c.pdf.replace("-", "–") : "");
+    B.probsLabel = (c) => (c.probs ? `page ${c.probs} of that PDF${c.probsBook && c.probsBook !== c.probs ? ` (book page ${c.probsBook})` : ""}` : "");
+  });
+  window.BOOK = all[window.BOOK_KEY] || null;
+})();
+</script>
+<script>
+/* Progress store shared by the contents page and every chapter page.
+   Each chapter's state is { done: {p1: true}, last: {part, step} | null, say: {key: text}, t: ms }.
+   It lives in two places:
+     - localStorage "course-<id>": instant first paint, and the fallback when nothing else works.
+     - the artifact's db, at data/users/<viewer id>/<chapter id>: private to the viewer, follows them
+       across browsers and sessions. Only available when the page runs inside the claude.ai viewer. */
+window.Progress = (function () {
+  const LKEY = (id) => "course-" + id;
+  const local = {
+    get(id) { try { const v = localStorage.getItem(LKEY(id)); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+    set(id, v) { try { localStorage.setItem(LKEY(id), JSON.stringify(v)); } catch (e) {} },
+  };
+  const blank = () => ({ done: {}, last: null, say: {}, t: 0 });
+  const norm = (s) => Object.assign(blank(), s || {}, { done: Object.assign({}, s && s.done), say: Object.assign({}, s && s.say) });
+
+  /* Combine two copies: parts finished anywhere stay finished; the newer copy wins for position and text. */
+  function merge(a, b) {
+    a = norm(a); b = norm(b);
+    const [old, neu] = a.t >= b.t ? [b, a] : [a, b];
+    return { done: Object.assign({}, old.done, neu.done), last: neu.last, say: Object.assign({}, old.say, neu.say), t: neu.t };
+  }
+  const same = (a, b) => JSON.stringify(norm(a)) === JSON.stringify(norm(b));
+
+  /* ---------- cloud ---------- */
+  let status = "local"; // "local" | "cloud"
+  const statusFns = [];
+  const setStatus = (s) => { status = s; statusFns.forEach((f) => f(s)); };
+  const cloud = (async () => {
+    try {
+      if (!window.claude || !window.claude.use) return null;
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      if (!db || !user) return null;
+      const uid = await user.id();
+      if (!uid) return null;
+      const col = db.collection("data/users/" + uid);
+      await col.limit(1).get(); // proves the store answers before we claim "saved to your account"
+      setStatus("cloud");
+      return col;
+    } catch (e) { return null; }
+  })();
+
+  /* One write in flight per chapter; bursts collapse into the latest state. */
+  const pending = {}, busy = {};
+  async function flush(id) {
+    const col = await cloud;
+    if (!col || busy[id] || !pending[id]) return;
+    busy[id] = true;
+    const body = pending[id]; pending[id] = null;
+    try { await col.doc(id).set(body); }
+    catch (e) {
+      if (e && e.code === "unavailable") { pending[id] = pending[id] || body; setTimeout(() => flush(id), 1500 + Math.random() * 1500); }
+      else if (e && (e.code === "invalid_argument" || e.code === "revoked" || e.code === "not_granted")) setStatus("local");
+    }
+    busy[id] = false;
+    if (pending[id]) flush(id);
+  }
+  const timers = {};
+  function push(id, state, delay) {
+    pending[id] = JSON.parse(JSON.stringify(norm(state)));
+    clearTimeout(timers[id]);
+    timers[id] = setTimeout(() => flush(id), delay);
+  }
+
+  return {
+    /* Synchronous best guess from this browser. */
+    load(id) { return norm(local.get(id)); },
+    /* Save locally now, to the account shortly after. `delay` batches typing. */
+    save(id, state, delay = 400) {
+      state.t = Date.now();
+      local.set(id, state);
+      push(id, state, delay);
+    },
+    /* Once the account copy arrives, merge it into `state` (mutating it) and call onChange if anything moved. */
+    async sync(id, state, onChange) {
+      const col = await cloud;
+      if (!col) return;
+      let remote = null;
+      try { const snap = await col.doc(id).get(); remote = snap.exists ? snap.data() : null; } catch (e) { return; }
+      const m = merge(state, remote);
+      const changed = !same(m, state);
+      Object.keys(state).forEach((k) => delete state[k]);
+      Object.assign(state, m);
+      local.set(id, state);
+      if (!same(m, remote)) push(id, state, 0); // this browser had something the account didn't
+      if (changed && onChange) onChange();
+    },
+    /* Contents page: every chapter's state, local first, then merged with the account. */
+    async all(ids, onReady) {
+      const out = {};
+      ids.forEach((id) => (out[id] = norm(local.get(id))));
+      onReady(out);
+      const col = await cloud;
+      if (!col) return;
+      let snap;
+      try { snap = await col.get(); } catch (e) { return; }
+      const remote = {};
+      snap.docs.forEach((d) => (remote[d.id] = d.data()));
+      let changed = false;
+      ids.forEach((id) => {
+        const m = merge(out[id], remote[id]);
+        if (!same(m, out[id])) { changed = true; out[id] = m; local.set(id, m); }
+        if (!same(m, remote[id]) && (m.t || Object.keys(m.done).length)) push(id, m, 0);
+      });
+      if (changed) onReady(out);
+    },
+    status: () => status,
+    onStatus(fn) { statusFns.push(fn); fn(status); },
+  };
+})();
+</script>
+<script>
+/* Course engine: chapter map -> parts -> one-card steps. Content files call Course.start(CHAPTER). */
+window.Course = (function () {
+  const reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  };
+  const el = (html) => { const t = document.createElement("template"); t.innerHTML = String(html).trim(); return t.content.firstElementChild; };
+
+  /* ---------- number formatting ---------- */
+  function fmt(n, d = 3) {
+    if (n === Infinity) return "∞";
+    if (n === -Infinity) return "−∞";
+    if (!isFinite(n)) return "—";
+    const a = Math.abs(n);
+    let s = a !== 0 && (a < 1e-3 || a >= 1e6) ? n.toExponential(2) : String(+n.toPrecision(d));
+    return s.replace("-", "−");
+  }
+  function si(n, unit, d = 3) {
+    if (!isFinite(n)) return (n < 0 ? "−∞ " : "∞ ") + unit;
+    if (n === 0) return "0 " + unit;
+    const P = [[1e9, "G"], [1e6, "M"], [1e3, "k"], [1, ""], [1e-3, "m"], [1e-6, "µ"], [1e-9, "n"], [1e-12, "p"]];
+    const a = Math.abs(n);
+    for (const [v, p] of P) if (a >= v * 0.99995) return fmt(n / v, d) + " " + p + unit;
+    return fmt(n / 1e-12, d) + " p" + unit;
+  }
+
+  /* ---------- schematic drawing helpers (SVG strings) ---------- */
+  const S = {
+    svg(w, h, inner, o = {}) {
+      return `<svg class="sch" viewBox="0 0 ${w} ${h}" style="max-width:${o.max || w}px" role="img" aria-label="${o.label || "Circuit diagram"}">${inner}</svg>`;
+    },
+    wire(...pts) { return `<polyline class="w${pts.cls ? " " + pts.cls : ""}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`; },
+    wc(cls, ...pts) { return `<polyline class="w ${cls}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`; },
+    res(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, L = horiz ? x2 - x1 : y2 - y1, s = Math.sign(L) || 1, AL = Math.abs(L);
+      const body = Math.min(40, AL - 8), a = (AL - body) / 2;
+      const P = (t, off) => (horiz ? [x1 + s * t, y1 + off] : [x1 + off, y1 + s * t]);
+      const pts = [P(0, 0), P(a, 0)];
+      for (let k = 0; k < 6; k++) pts.push(P(a + (body * (k + 0.5)) / 6, (k % 2 ? -1 : 1) * 7));
+      pts.push(P(a + body, 0), P(AL, 0));
+      let out = `<path class="w${o.cls ? " " + o.cls : ""}" d="M${pts.map((p) => p.join(" ")).join(" L")}"/>`;
+      if (label) {
+        const m = P(AL / 2, 0);
+        let lx, ly, an;
+        if (horiz) { lx = m[0]; ly = o.side === "below" ? m[1] + 26 : m[1] - 14; an = "middle"; }
+        else { lx = o.side === "left" ? m[0] - 14 : m[0] + 14; ly = m[1] + 5; an = o.side === "left" ? "end" : "start"; }
+        out += `<text x="${lx}" y="${ly}" text-anchor="${an}" class="${o.tcls || ""}">${label}</text>`;
+      }
+      return out;
+    },
+    vsrc(cx, cy, label, o = {}) {
+      const top = o.flip ? "−" : "+", bot = o.flip ? "+" : "−";
+      let out = `<circle class="el${o.cls ? " " + o.cls : ""}" cx="${cx}" cy="${cy}" r="18"/>`;
+      out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="s">${top}</text><text x="${cx}" y="${cy + 13}" text-anchor="middle" class="s">${bot}</text>`;
+      if (label) out += `<text x="${o.side === "right" ? cx + 26 : cx - 26}" y="${cy + 5}" text-anchor="${o.side === "right" ? "start" : "end"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    isrc(cx, cy, label, o = {}) {
+      const d = o.down ? 1 : -1;
+      let out = `<circle class="el${o.cls ? " " + o.cls : ""}" cx="${cx}" cy="${cy}" r="18"/>`;
+      out += `<line class="w" x1="${cx}" y1="${cy - d * 10}" x2="${cx}" y2="${cy + d * 6}"/><polygon class="nd" points="${cx - 5},${cy + d * 4} ${cx + 5},${cy + d * 4} ${cx},${cy + d * 11}"/>`;
+      if (label) out += `<text x="${o.side === "right" ? cx + 26 : cx - 26}" y="${cy + 5}" text-anchor="${o.side === "right" ? "start" : "end"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    dep(cx, cy, label, o = {}) {
+      let out = `<polygon class="el${o.cls ? " " + o.cls : ""}" points="${cx},${cy - 22} ${cx + 17},${cy} ${cx},${cy + 22} ${cx - 17},${cy}"/>`;
+      if (o.kind === "v") out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="s">+</text><text x="${cx}" y="${cy + 13}" text-anchor="middle" class="s">−</text>`;
+      else {
+        const d = o.down ? 1 : -1;
+        out += `<line class="w" x1="${cx}" y1="${cy - d * 10}" x2="${cx}" y2="${cy + d * 6}"/><polygon class="nd" points="${cx - 5},${cy + d * 4} ${cx + 5},${cy + d * 4} ${cx},${cy + d * 11}"/>`;
+      }
+      if (label) out += `<text x="${o.side === "left" ? cx - 26 : cx + 26}" y="${cy + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    // Capacitor between two points on a horizontal or vertical line: two plates in the middle.
+    cap(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, m = horiz ? (x1 + x2) / 2 : (y1 + y2) / 2, s = Math.sign(horiz ? x2 - x1 : y2 - y1) || 1, g = 5, c = o.cls ? " " + o.cls : "";
+      let out = horiz
+        ? `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${m - s * g}" y2="${y1}"/><line class="w${c}" x1="${m + s * g}" y1="${y1}" x2="${x2}" y2="${y1}"/><line class="w${c}" x1="${m - g}" y1="${y1 - 16}" x2="${m - g}" y2="${y1 + 16}" style="stroke-width:3.5"/><line class="w${c}" x1="${m + g}" y1="${y1 - 16}" x2="${m + g}" y2="${y1 + 16}" style="stroke-width:3.5"/>`
+        : `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${x1}" y2="${m - s * g}"/><line class="w${c}" x1="${x1}" y1="${m + s * g}" x2="${x1}" y2="${y2}"/><line class="w${c}" x1="${x1 - 16}" y1="${m - g}" x2="${x1 + 16}" y2="${m - g}" style="stroke-width:3.5"/><line class="w${c}" x1="${x1 - 16}" y1="${m + g}" x2="${x1 + 16}" y2="${m + g}" style="stroke-width:3.5"/>`;
+      if (label) out += horiz ? `<text x="${m}" y="${o.side === "below" ? y1 + 34 : y1 - 22}" text-anchor="middle" class="${o.tcls || ""}">${label}</text>` : `<text x="${o.side === "left" ? x1 - 24 : x1 + 24}" y="${m + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    // Inductor: four humps between two points on a horizontal or vertical line.
+    ind(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, L = horiz ? x2 - x1 : y2 - y1, s = Math.sign(L) || 1, AL = Math.abs(L), body = Math.min(48, AL - 8), a = (AL - body) / 2, r = body / 8, c = o.cls ? " " + o.cls : "";
+      let d;
+      if (horiz) { d = `M${x1} ${y1} H${x1 + s * a}`; for (let k = 0; k < 4; k++) d += ` a${r} ${r} 0 0 ${s > 0 ? 1 : 0} ${s * 2 * r} 0`; d += ` H${x2}`; }
+      else { d = `M${x1} ${y1} V${y1 + s * a}`; for (let k = 0; k < 4; k++) d += ` a${r} ${r} 0 0 ${s > 0 ? 1 : 0} 0 ${s * 2 * r}`; d += ` V${y2}`; }
+      let out = `<path class="w${c}" d="${d}"/>`;
+      const mx = horiz ? (x1 + x2) / 2 : x1, my = horiz ? y1 : (y1 + y2) / 2;
+      if (label) out += horiz ? `<text x="${mx}" y="${o.side === "below" ? my + 30 : my - 16}" text-anchor="middle" class="${o.tcls || ""}">${label}</text>` : `<text x="${o.side === "left" ? mx - 18 : mx + 18}" y="${my + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${label}</text>`;
+      return out;
+    },
+    // Diode from (x1,y1) [anode] to (x2,y2) [cathode]; horizontal or vertical. The triangle points along the forward current.
+    diode(x1, y1, x2, y2, label, o = {}) {
+      const horiz = y1 === y2, s = Math.sign(horiz ? x2 - x1 : y2 - y1) || 1, m = horiz ? (x1 + x2) / 2 : (y1 + y2) / 2, c = o.cls ? " " + o.cls : "";
+      let out;
+      if (horiz) out = `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${m - s * 9}" y2="${y1}"/><line class="w${c}" x1="${m + s * 9}" y1="${y1}" x2="${x2}" y2="${y1}"/><polygon class="el${c}" points="${m - s * 9},${y1 - 10} ${m - s * 9},${y1 + 10} ${m + s * 9},${y1}"/><line class="w${c}" x1="${m + s * 9}" y1="${y1 - 11}" x2="${m + s * 9}" y2="${y1 + 11}"/>`;
+      else out = `<line class="w${c}" x1="${x1}" y1="${y1}" x2="${x1}" y2="${m - s * 9}"/><line class="w${c}" x1="${x1}" y1="${m + s * 9}" x2="${x1}" y2="${y2}"/><polygon class="el${c}" points="${x1 - 10},${m - s * 9} ${x1 + 10},${m - s * 9} ${x1},${m + s * 9}"/><line class="w${c}" x1="${x1 - 11}" y1="${m + s * 9}" x2="${x1 + 11}" y2="${m + s * 9}"/>`;
+      if (label) {
+        if (horiz) out += `<text x="${m}" y="${o.side === "below" ? y1 + 30 : y1 - 16}" text-anchor="middle">${label}</text>`;
+        else out += `<text x="${o.side === "left" ? x1 - 18 : x1 + 18}" y="${m + 5}" text-anchor="${o.side === "left" ? "end" : "start"}">${label}</text>`;
+      }
+      return out;
+    },
+    // Logic gate with its left edge at x and vertical center y. kind: and|or|not|buf|nand|nor. Output tip at S.gateOut(kind, x).
+    gate(kind, x, y, o = {}) {
+      const c = o.cls ? " " + o.cls : "";
+      let body;
+      if (kind === "and" || kind === "nand") body = `<path class="el${c}" d="M${x} ${y - 20} H${x + 25} A20 20 0 0 1 ${x + 25} ${y + 20} H${x} Z"/>`;
+      else if (kind === "or" || kind === "nor") body = `<path class="el${c}" d="M${x} ${y - 20} Q${x + 38} ${y - 20} ${x + 55} ${y} Q${x + 38} ${y + 20} ${x} ${y + 20} Q${x + 12} ${y} ${x} ${y - 20} Z"/>`;
+      else body = `<path class="el${c}" d="M${x} ${y - 18} L${x + 40} ${y} L${x} ${y + 18} Z"/>`;
+      const tip = { and: 45, nand: 45, or: 55, nor: 55, not: 40, buf: 40 }[kind];
+      if (kind === "nand" || kind === "nor" || kind === "not") body += `<circle class="el${c}" cx="${x + tip + 5}" cy="${y}" r="5"/>`;
+      if (o.label) body += `<text x="${x + 20}" y="${y + 5}" text-anchor="middle" class="s m">${o.label}</text>`;
+      return body;
+    },
+    // n-channel MOSFET. Terminals: G (x-30, y), D (x+14, y-40), S (x+14, y+40). o.p = true draws a p-channel (bubble on the gate).
+    nmos(x, y, o = {}) {
+      const c = o.cls ? " " + o.cls : "";
+      let s = `<line class="w${c}" x1="${x - 30}" y1="${y}" x2="${x - (o.p ? 20 : 10)}" y2="${y}"/>` + (o.p ? `<circle class="el${c}" cx="${x - 15}" cy="${y}" r="5"/>` : "") +
+        `<line class="w${c}" x1="${x - 10}" y1="${y - 18}" x2="${x - 10}" y2="${y + 18}"/><line class="w${c}" x1="${x - 3}" y1="${y - 22}" x2="${x - 3}" y2="${y + 22}" style="stroke-width:3.5"/>` +
+        `<polyline class="w${c}" points="${x - 3},${y - 14} ${x + 14},${y - 14} ${x + 14},${y - 40}"/><polyline class="w${c}" points="${x - 3},${y + 14} ${x + 14},${y + 14} ${x + 14},${y + 40}"/>`;
+      if (o.labels) s += `<text x="${x + 22}" y="${y - 26}" class="s m">D</text><text x="${x + 22}" y="${y + 34}" class="s m">S</text><text x="${x - 28}" y="${y - 8}" class="s m">G</text>`;
+      if (o.label) s += `<text x="${x + 22}" y="${y + 5}" class="${o.tcls || ""}">${o.label}</text>`;
+      return s;
+    },
+    // Vertical switch from (x,y1) down to (x,y2). closed = true draws the blade shut.
+    sw(x, y1, y2, closed, o = {}) {
+      const c = o.cls ? " " + o.cls : "", a = y1 + 14, b = y2 - 14;
+      let s = `<line class="w${c}" x1="${x}" y1="${y1}" x2="${x}" y2="${a}"/><line class="w${c}" x1="${x}" y1="${b}" x2="${x}" y2="${y2}"/>`;
+      s += closed ? `<line class="w${c}" x1="${x}" y1="${b}" x2="${x}" y2="${a}"/>` : `<line class="w${c}" x1="${x}" y1="${b}" x2="${x + 18}" y2="${a + 4}"/>`;
+      s += `<circle class="el" cx="${x}" cy="${a}" r="3.5"/><circle class="el" cx="${x}" cy="${b}" r="3.5"/>`;
+      if (o.label) s += `<text x="${x + (o.side === "left" ? -14 : 26)}" y="${(a + b) / 2 + 5}" text-anchor="${o.side === "left" ? "end" : "start"}" class="${o.tcls || ""}">${o.label}</text>`;
+      return s;
+    },
+    gateOut(kind, x) { return x + { and: 45, nand: 55, or: 55, nor: 65, not: 50, buf: 40 }[kind]; },
+    dot(x, y) { return `<circle class="nd" cx="${x}" cy="${y}" r="4"/>`; },
+    t(x, y, s, o = {}) { return `<text x="${x}" y="${y}" text-anchor="${o.a || "middle"}" class="${o.cls || ""}">${s}</text>`; },
+    pm(x, y, top = "+", gap = 34) { return `<text x="${x}" y="${y}" text-anchor="middle" class="big">${top}</text><text x="${x}" y="${y + gap}" text-anchor="middle" class="big">${top === "+" ? "−" : "+"}</text>`; },
+    arrow(x1, y1, x2, y2, label, o = {}) {
+      const ang = Math.atan2(y2 - y1, x2 - x1), h = 9, w = 5;
+      const bx = x2 - h * Math.cos(ang), by = y2 - h * Math.sin(ang);
+      const p1 = [bx + w * Math.sin(ang), by - w * Math.cos(ang)], p2 = [bx - w * Math.sin(ang), by + w * Math.cos(ang)];
+      let out = `<line class="cur" x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}"/><polygon class="curh" points="${x2},${y2} ${p1.join(",")} ${p2.join(",")}"/>`;
+      if (label) out += `<text x="${o.lx != null ? o.lx : (x1 + x2) / 2}" y="${o.ly != null ? o.ly : (y1 + y2) / 2 - 8}" text-anchor="${o.a || "middle"}" class="c">${label}</text>`;
+      return out;
+    },
+    flow(pts, amps, k = 1, width) {
+      if (reduce || !amps || !isFinite(amps)) return "";
+      const dur = Math.max(0.18, Math.min(4, k / Math.abs(amps)));
+      return `<polyline class="flow" style="--dur:${dur.toFixed(2)}s${amps < 0 ? ";animation-direction:reverse" : ""}${width ? ";stroke-width:" + width.toFixed(1) : ""}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`;
+    },
+    gnd(x, y) { return `<line class="w" x1="${x}" y1="${y}" x2="${x}" y2="${y + 10}"/><line class="w" x1="${x - 14}" y1="${y + 10}" x2="${x + 14}" y2="${y + 10}"/><line class="w" x1="${x - 9}" y1="${y + 16}" x2="${x + 9}" y2="${y + 16}"/><line class="w" x1="${x - 4}" y1="${y + 22}" x2="${x + 4}" y2="${y + 22}"/>`; },
+    supply(x, y, label) { return `<line class="w" x1="${x}" y1="${y}" x2="${x}" y2="${y - 22}"/><polygon class="nd" points="${x - 7},${y - 18} ${x + 7},${y - 18} ${x},${y - 30}"/><text x="${x + 12}" y="${y - 20}" text-anchor="start">${label}</text>`; },
+    box(x, y, w, h, label, o = {}) { return `<rect class="box${o.cls ? " " + o.cls : ""}" x="${x}" y="${y}" width="${w}" height="${h}" rx="8"/>${label ? `<text x="${x + w / 2}" y="${y + h / 2 + 5}" text-anchor="middle">${label}</text>` : ""}`; },
+    bulb(cx, cy, glow = 0) {
+      return `<circle cx="${cx}" cy="${cy}" r="22" style="fill:var(--accent);opacity:${Math.min(0.85, glow).toFixed(2)}"/><circle class="el" cx="${cx}" cy="${cy}" r="18" style="fill:none"/><path class="w" d="M${cx - 8} ${cy + 18} L${cx - 8} ${cy} Q${cx - 4} ${cy - 10} ${cx} ${cy} Q${cx + 4} ${cy - 10} ${cx + 8} ${cy} L${cx + 8} ${cy + 18}"/>`;
+    },
+  };
+
+  /* ---------- simple x-y plot (SVG string) ---------- */
+  let clipN = 0;
+  function plot(o) {
+    const W = o.w || 520, H = o.h || 290, L = o.padL || 54, R = 14, T = 14, B = 40;
+    const [x0, x1] = o.x, [y0, y1] = o.y;
+    const X = (x) => L + ((x - x0) / (x1 - x0)) * (W - L - R);
+    const Y = (y) => T + ((y1 - y) / (y1 - y0)) * (H - T - B);
+    let s = "";
+    (o.xt || []).forEach((v) => { s += `<line class="grid" x1="${X(v)}" y1="${T}" x2="${X(v)}" y2="${H - B}"/><text x="${X(v)}" y="${H - B + 16}" text-anchor="middle">${o.xtf ? o.xtf(v) : fmt(v)}</text>`; });
+    (o.yt || []).forEach((v) => { s += `<line class="grid" x1="${L}" y1="${Y(v)}" x2="${W - R}" y2="${Y(v)}"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${o.ytf ? o.ytf(v) : fmt(v)}</text>`; });
+    const ay = y0 <= 0 && y1 >= 0 ? Y(0) : H - B, ax = x0 <= 0 && x1 >= 0 ? X(0) : L;
+    s += `<line class="axis" x1="${L}" y1="${ay}" x2="${W - R}" y2="${ay}"/><line class="axis" x1="${ax}" y1="${T}" x2="${ax}" y2="${H - B}"/>`;
+    if (o.xl) s += `<text class="lab" x="${W - R}" y="${H - 6}" text-anchor="end">${o.xl}</text>`;
+    if (o.yl) s += `<text class="lab" x="${L + 6}" y="${T + 12}" text-anchor="start">${o.yl}</text>`;
+    const cid = "clip" + ++clipN;
+    s += `<clipPath id="${cid}"><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}"/></clipPath><g clip-path="url(#${cid})">`;
+    const sample = (f, a, b, n) => { const pts = []; for (let i = 0; i <= n; i++) { const x = a + ((b - a) * i) / n; const y = f(x); if (isFinite(y)) pts.push([X(x), Y(Math.max(y0 - (y1 - y0), Math.min(y1 + (y1 - y0), y)))]); } return pts; };
+    (o.areas || []).forEach((ar) => {
+      const a = ar.from != null ? ar.from : x0, b = ar.to != null ? ar.to : x1;
+      const pts = sample(ar.f, a, b, ar.n || 240), base = ar.base != null ? ar.base : 0;
+      s += `<polygon class="${ar.cls || "ar1"}" points="${X(a)},${Y(base)} ${pts.map((p) => p.join(",")).join(" ")} ${X(b)},${Y(base)}"/>`;
+    });
+    (o.series || []).forEach((se) => {
+      const pts = se.pts ? se.pts.map(([x, y]) => [X(x), Y(y)]) : sample(se.f, se.from != null ? se.from : x0, se.to != null ? se.to : x1, se.n || 300);
+      if (pts.length) s += `<polyline class="${se.cls || "s1"}" points="${pts.map((p) => p.map((v) => v.toFixed(1)).join(",")).join(" ")}"/>`;
+    });
+    s += "</g>";
+    (o.marks || []).forEach((m) => {
+      if (m.x < x0 || m.x > x1 || m.y < y0 || m.y > y1) return;
+      s += `<circle class="${m.cls || "mk"}" cx="${X(m.x)}" cy="${Y(m.y)}" r="${m.r || 6}"/>`;
+      if (m.label) s += `<text class="lab" x="${X(m.x) + (m.dx || 10)}" y="${Y(m.y) + (m.dy || -10)}" text-anchor="${m.a || "start"}">${m.label}</text>`;
+    });
+    (o.texts || []).forEach((tx) => { s += `<text class="lab" x="${X(tx.x)}" y="${Y(tx.y)}" text-anchor="${tx.a || "start"}">${tx.s}</text>`; });
+    return `<svg class="plot" viewBox="0 0 ${W} ${H}" style="max-width:${W}px" role="img" aria-label="${o.label || "Graph"}">${s}</svg>`;
+  }
+
+  /* ---------- UI helpers for widgets ---------- */
+  function slider(o, onChange) {
+    const wrap = el(`<div class="sl"><label for="${o.id}"><span>${o.label}</span><output></output></label><input type="range" id="${o.id}"></div>`);
+    const inp = wrap.querySelector("input"), out = wrap.querySelector("output");
+    if (o.log) { inp.min = 0; inp.max = 1000; inp.step = 1; }
+    else { inp.min = o.min; inp.max = o.max; inp.step = o.step || (o.max - o.min) / 100; }
+    const toT = (v) => (1000 * Math.log(v / o.min)) / Math.log(o.max / o.min);
+    const get = () => (o.log ? o.min * Math.pow(o.max / o.min, inp.value / 1000) : +inp.value);
+    const show = () => { out.textContent = o.show ? o.show(get()) : fmt(get()); };
+    inp.value = o.log ? toT(o.value) : o.value;
+    show();
+    inp.addEventListener("input", () => { show(); onChange && onChange(get()); });
+    return { el: wrap, get, set(v) { inp.value = o.log ? toT(v) : v; show(); onChange && onChange(get()); } };
+  }
+  function toggle(labels, onPick, start = 0) {
+    const r = el(`<div class="row" role="group"></div>`);
+    labels.forEach((lab, i) => {
+      const b = el(`<button type="button" class="btn small" aria-pressed="${i === start}">${lab}</button>`);
+      b.addEventListener("click", () => { r.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); onPick(i); });
+      r.appendChild(b);
+    });
+    return r;
+  }
+  const readout = (pairs) => `<div class="readout">${pairs.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>`;
+
+  /* ---------- blocks ---------- */
+  function mcq(b) {
+    const n = el(`<div class="q">${b.q ? `<p class="qq">${b.q}</p>` : ""}${b.fig || ""}<div class="choices"></div><div class="feedback" aria-live="polite" hidden></div></div>`);
+    const ch = n.querySelector(".choices"), fb = n.querySelector(".feedback");
+    b.opts.forEach(([txt, ok, why]) => {
+      const btn = el(`<button type="button" class="btn choice">${txt}</button>`);
+      btn.addEventListener("click", () => {
+        fb.hidden = false;
+        fb.className = "feedback " + (ok ? "ok" : "no");
+        fb.innerHTML = (ok ? "<b>Yes.</b> " : "<b>Not this one.</b> ") + (why || "");
+        btn.classList.add(ok ? "right" : "wrong");
+        if (ok) ch.querySelectorAll("button").forEach((x) => (x.disabled = x !== btn));
+      });
+      ch.appendChild(btn);
+    });
+    return n;
+  }
+  function num(b, id) {
+    const n = el(`<div class="q"><p class="qq">${b.q}</p>${b.fig || ""}<form class="num" novalidate><input id="${id}" inputmode="decimal" autocomplete="off" aria-label="Your answer"><span class="mono">${b.unit || ""}</span><button class="btn primary" type="submit">Check</button></form><div class="feedback" aria-live="polite" hidden></div></div>`);
+    const fb = n.querySelector(".feedback"), inp = n.querySelector("input");
+    let tries = 0;
+    n.querySelector("form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = parseFloat(String(inp.value).replace(",", ".").replace("−", "-"));
+      fb.hidden = false;
+      if (isNaN(v)) { fb.className = "feedback"; fb.textContent = "Type a number first."; return; }
+      const tol = b.tol != null ? b.tol : 0.02;
+      const ok = b.a === 0 ? Math.abs(v) < 1e-9 : Math.abs(v - b.a) <= Math.abs(b.a) * tol;
+      tries++;
+      if (ok) { fb.className = "feedback ok"; fb.innerHTML = "<b>Yes.</b> " + (b.why || ""); }
+      else { fb.className = "feedback no"; fb.innerHTML = "<b>Not yet.</b> " + (tries >= 2 && b.hint2 ? b.hint2 : b.hint || "Check your units and signs."); }
+    });
+    return n;
+  }
+  /* Say-it-back answers live in the chapter's progress state; start() points this at it. */
+  let says = { get: (k) => store.get(k, ""), set: (k, v) => store.set(k, v) };
+  function say(b, id, key) {
+    const n = el(`<div class="q"><p class="qq">${b.q}</p><textarea id="${id}" placeholder="Type your answer in your own words. Rough is fine."></textarea><div class="row"><button type="button" class="btn primary">Compare with mine</button></div><div class="model" hidden><span class="lbl">One good answer</span><div>${b.model}</div><p class="aside">Did yours get the same core idea? Wording doesn't matter. If you're unsure, paste yours into the chat and ask for feedback.</p></div></div>`);
+    const ta = n.querySelector("textarea");
+    ta.value = says.get(key);
+    ta.addEventListener("input", () => says.set(key, ta.value));
+    n.querySelector("button").addEventListener("click", () => { n.querySelector(".model").hidden = false; });
+    return n;
+  }
+  function sort(b) {
+    const n = el(`<div class="q">${b.q ? `<p class="qq">${b.q}</p>` : ""}<div class="sort"></div><div class="row"><button type="button" class="btn primary sort-check">Check my sorting</button></div><div class="feedback" aria-live="polite" hidden></div></div>`);
+    const box = n.querySelector(".sort"), picks = [];
+    b.items.forEach(([label], i) => {
+      const it = el(`<div class="sort-item"><span>${label}</span></div>`);
+      it.appendChild(toggle(b.bins, (k) => (picks[i] = k), -1));
+      it.appendChild(el(`<div class="why" hidden></div>`));
+      box.appendChild(it);
+    });
+    n.querySelector(".sort-check").addEventListener("click", () => {
+      let right = 0;
+      b.items.forEach(([, bin, why], i) => {
+        const it = box.children[i], ok = picks[i] === bin;
+        if (ok) right++;
+        it.classList.toggle("right", ok); it.classList.toggle("wrong", !ok);
+        const w = it.querySelector(".why"); w.hidden = false;
+        w.innerHTML = (picks[i] == null ? "<b>Not sorted yet.</b> " : "") + (ok ? "" : `<b>Belongs in “${b.bins[bin]}”.</b> `) + (why || "");
+      });
+      const fb = n.querySelector(".feedback"); fb.hidden = false;
+      fb.className = "feedback " + (right === b.items.length ? "ok" : "no");
+      fb.innerHTML = `<b>${right} of ${b.items.length}</b> sorted correctly. ${right === b.items.length ? "" : "Read the notes on the red ones."}`;
+    });
+    return n;
+  }
+  function reveal(b) {
+    const n = el(`<div class="q"><div class="row"><button type="button" class="btn">${b.label || "Show me"}</button></div><div hidden>${b.html}</div></div>`);
+    n.querySelector("button").addEventListener("click", (e) => { n.lastElementChild.hidden = false; e.currentTarget.disabled = true; });
+    return n;
+  }
+  function renderBlock(b, id, key) {
+    if (typeof b === "string") return el(`<div>${b}</div>`);
+    if (typeof b === "function") { const h = el(`<div class="widget" style="display:grid;gap:12px;min-width:0"></div>`); b(h, id); return h; }
+    if (b.t === "mcq") return mcq(b);
+    if (b.t === "num") return num(b, id);
+    if (b.t === "say") return say(b, id, key);
+    if (b.t === "sort") return sort(b);
+    if (b.t === "reveal") return reveal(b);
+    return el(`<div>${b.html || ""}</div>`);
+  }
+
+  /* ---------- subscripts: "v_TH" in any text renders as v<sub>TH</sub> (tspan inside SVG).
+     A subscript stops before a letter that starts the next subscripted name, so "g_mR_D" reads g<sub>m</sub>R<sub>D</sub>. ---------- */
+  const SUBRE = /([A-Za-zΔβμαθωφτγ′])_([A-Za-z0-9]+?)(?=[A-Za-zΔβμαθωφτγ′]_|[^A-Za-z0-9]|$)/g, SVGNS = "http://www.w3.org/2000/svg";
+  function subify(root) {
+    if (!root || !document.createTreeWalker) return;
+    const w = document.createTreeWalker(root, 4 /* text */), hits = [];
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      const p = n.parentNode;
+      if (n.nodeValue.indexOf("_") < 0 || !p || /^(script|style|textarea|sub|tspan|title|code|pre)$/i.test(p.nodeName) || (p.closest && p.closest("pre, code"))) continue;
+      SUBRE.lastIndex = 0;
+      if (SUBRE.test(n.nodeValue)) hits.push(n);
+    }
+    hits.forEach((n) => {
+      const svg = n.parentNode.namespaceURI === SVGNS, s = n.nodeValue, frag = document.createDocumentFragment();
+      let last = 0, m;
+      SUBRE.lastIndex = 0;
+      while ((m = SUBRE.exec(s))) {
+        frag.appendChild(document.createTextNode(s.slice(last, m.index) + m[1]));
+        const sub = svg ? document.createElementNS(SVGNS, "tspan") : document.createElement("sub");
+        if (svg) { sub.setAttribute("baseline-shift", "sub"); sub.setAttribute("font-size", "75%"); }
+        sub.textContent = m[2];
+        frag.appendChild(sub);
+        last = m.index + m[0].length;
+      }
+      frag.appendChild(document.createTextNode(s.slice(last)));
+      n.parentNode.replaceChild(frag, n);
+    });
+  }
+  function watchSubs(root) {
+    subify(root);
+    if (!window.MutationObserver) return;
+    new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((a) => subify(a.nodeType === 3 ? a.parentNode : a)))).observe(root, { childList: true, subtree: true });
+  }
+
+  /* ---------- app ---------- */
+  const KIND = { learn: "Learn", play: "Play", predict: "Predict first", why: "Why?", whatif: "What if…", bug: "Spot the mistake", check: "Quick check", say: "Say it back", math: "Math boost" };
+
+  function start(C) {
+    const KEY = "course-" + C.id, P = window.Progress;
+    const state = P ? P.load(C.id) : store.get(KEY, { done: {}, last: null, say: {} });
+    state.say = state.say || {};
+    const save = (delay) => (P ? P.save(C.id, state, delay) : store.set(KEY, state));
+    says = {
+      get: (k) => (k in state.say ? state.say[k] : store.get(k, "")), // older builds kept answers under their own keys
+      set: (k, v) => { state.say[k] = v; save(1500); },
+    };
+    const root = document.getElementById("app");
+    watchSubs(root);
+    let view = { part: null, step: 0 };
+
+    /* Book navigation: chapter pages sit in the book's folder, its contents page one level up. */
+    const B = window.BOOK;
+    const bookLink = () => (B ? `<a class="book-link" href="../${B.home}">← Contents</a> · ` : "");
+    /* Where this chapter lives in the real book, so the problems are easy to find afterwards. */
+    const U = (B && B.unit) || "Chapter", u = U.toLowerCase();
+    /* Cross-book links: a math module lists the chapters that use it; a chapter lists the math modules it needs. */
+    const BOOKS = Object.values(window.BOOKS || {});
+    function chapterRef(id) {
+      for (const K of BOOKS) {
+        if (K.key === "math" || !K.find) continue;
+        const c = K.find(id);
+        if (c && c.file) return `<a href="../${K.dir}/${c.file}" title="${c.title}">${K.short} ${typeof c.n === "number" ? "Ch" : "App"} ${c.n}</a>`;
+      }
+      return "";
+    }
+    function mathLinks() {
+      const M = window.BOOKS && window.BOOKS.math;
+      if (!M || !M.all || (B && B.key === "math")) return "";
+      const href = (m) => (m.file.startsWith("../") ? m.file : "../math/" + m.file);
+      const list = (key) => M.all().filter((m) => m.file && (m[key] || []).includes(C.id)).map((m) => `<a href="${href(m)}">${m.title}</a>`).join(" · ");
+      const need = list("needs"), also = list("also");
+      return (need ? `<p class="aside where-book">Math you'll use: ${need}</p>` : "") + (also ? `<p class="aside where-book">Going further (optional): ${also}</p>` : "");
+    }
+    function whereInBook() {
+      const me = B && B.find(C.id);
+      if (me && B.noPdf) {
+        const used = (me.needs || []).map(chapterRef).filter(Boolean), pairs = (me.also || []).map(chapterRef).filter(Boolean);
+        return (used.length ? `<p class="aside where-book">Used in: ${used.join(" · ")}</p>` : "") + (pairs.length ? `<p class="aside where-book">Not in the books, but pairs with: ${pairs.join(" · ")}</p>` : "");
+      }
+      if (!me || !me.pdf) return mathLinks();
+      return `<p class="aside where-book">${B.short}, ${typeof me.n === "number" ? "Chapter" : "Appendix"} ${me.n} · ${B.pagesLabel(me)}${B.pdfFile ? "" : ` · PDF file ending “-${me.pdf}.pdf”`}${me.probs ? ` · problems from ${B.probsLabel(me)}` : ""}</p>` + mathLinks();
+    }
+    function problemsNote() {
+      const me = B && B.find(C.id);
+      if (!me || !me.probs) return "";
+      return `<div class="key"><b>Your book problems:</b> open <span class="mono">${B.pdfName(me)}</span> and go to ${B.probsLabel(me)}.</div>`;
+    }
+    const isAppPage = () => { const m = B && B.find(C.id); return !!m && typeof m.n !== "number"; };
+    function nextChapter() {
+      if (!B) return "";
+      const me = B.find(C.id), isApp = !!me && typeof me.n !== "number";
+      const list = isApp ? B.all().filter((c) => typeof c.n !== "number" && c.file) : B.chapters(), i = list.findIndex((c) => c.id === C.id), nx = list[i + 1];
+      const ans = B.answers && !isApp ? `<p class="aside">The book has short answers to some problems (${B.answers.label}, pages ${B.answers.pdf.replace("-", "–")}). Look only after you've committed to your own answer.</p>` : "";
+      if (!nx) return ans + `<p><a href="../${B.home}">← Back to the contents</a></p>`;
+      return ans + (nx.file
+        ? `<p>Then: <a href="${nx.file}">${isApp ? "Appendix" : U} ${nx.n} · ${nx.title} →</a></p>`
+        : `<p>Next up: ${U} ${nx.n} · ${nx.title}. Its tutorial isn't built yet. Ask Claude for it when you're ready.</p>`);
+    }
+
+    function hub() {
+      view = { part: null, step: 0 };
+      const firstOpen = C.parts.findIndex((p) => !state.done[p.id]);
+      const node = el(`<div class="wrap">
+        <header class="top"><div class="eyebrow">${bookLink()}${C.eyebrow}</div><h1>${C.title}</h1>${whereInBook()}</header>
+        <section class="card"><span class="tag">How this ${isAppPage() ? "appendix" : u} works</span>${C.intro}</section>
+        <ol class="parts" aria-label="Parts of this ${u}"></ol>
+        <section class="after"><h3 style="font-family:var(--display);margin:0">After the last part</h3>${problemsNote()}${C.after}${nextChapter()}</section>
+        <p class="aside save-note"></p>
+      </div>`);
+      if (P) P.onStatus((s) => { const n = node.querySelector(".save-note"); if (n) n.textContent = s === "cloud" ? "Progress saves to your Claude account, so it follows you to any browser." : "Progress saves in this browser only."; });
+      const list = node.querySelector(".parts");
+      C.parts.forEach((p, i) => {
+        const done = !!state.done[p.id];
+        const cls = done ? "done" : i === firstOpen ? "next" : "";
+        const b = el(`<li><button type="button" class="part-btn ${cls}"><span class="part-n">${done ? "✓" : i + 1}</span><span><span class="part-t">${p.title}</span><span class="part-d">${p.blurb}</span></span><span class="part-m">${p.mins} min</span></button></li>`);
+        b.querySelector("button").addEventListener("click", () => openPart(i, state.last && state.last.part === i ? state.last.step : 0));
+        list.appendChild(b);
+      });
+      const sum = el(`<li><button type="button" class="part-btn"><span class="part-n">Σ</span><span><span class="part-t">${U} summary</span><span class="part-d">Every key idea and formula on one page. Keep it open while you do the problems.</span></span><span class="part-m">ref</span></button></li>`);
+      sum.querySelector("button").addEventListener("click", summary);
+      list.appendChild(sum);
+      if (state.last && state.last.part != null && C.parts[state.last.part]) {
+        const p = C.parts[state.last.part];
+        const cont = el(`<div class="row"><button type="button" class="btn primary">Continue: Part ${state.last.part + 1}, step ${state.last.step + 1}</button><span class="aside">${p.title}</span></div>`);
+        cont.querySelector("button").addEventListener("click", () => openPart(state.last.part, state.last.step));
+        node.querySelector(".card").after(cont);
+      }
+      root.replaceChildren(node);
+      window.scrollTo(0, 0);
+    }
+
+    function summary() {
+      view = { part: null, step: 0 };
+      const node = el(`<div class="wrap"><header class="top"><div class="eyebrow"><button type="button">← ${C.eyebrow}</button></div><h1>${U} summary</h1></header><section class="card">${C.summary}</section><nav class="bottom"><button type="button" class="btn ghost">← ${U} map</button><span></span></nav></div>`);
+      node.querySelectorAll(".eyebrow button, nav .btn").forEach((b) => b.addEventListener("click", hub));
+      root.replaceChildren(node);
+      window.scrollTo(0, 0);
+    }
+
+    function openPart(pi, si0 = 0) {
+      const P = C.parts[pi];
+      const node = el(`<div class="wrap">
+        <header class="top"><div class="eyebrow"><button type="button">← ${C.eyebrow}</button> · Part ${pi + 1} of ${C.parts.length}</div><h1>${P.title}</h1>
+        <div class="rail" aria-label="Steps"></div><div class="where"></div></header>
+        <main></main>
+        <nav class="bottom"><button type="button" class="btn ghost" data-back>← Back</button><button type="button" class="btn primary" data-next>Next →</button></nav></div>`);
+      node.querySelector(".eyebrow button").addEventListener("click", hub);
+      root.replaceChildren(node);
+      const rail = node.querySelector(".rail"), where = node.querySelector(".where"), main = node.querySelector("main");
+      const back = node.querySelector("[data-back]"), next = node.querySelector("[data-next]");
+      const N = P.steps.length;
+
+      function show(i) {
+        i = Math.max(0, Math.min(N, i));
+        view = { part: pi, step: i };
+        if (i === N) return finish();
+        state.last = { part: pi, step: i }; save();
+        const st = P.steps[i];
+        const card = el(`<section class="card"><span class="tag k-${st.k}">${KIND[st.k] || st.k}</span>${st.title ? `<h2>${st.title}</h2>` : ""}</section>`);
+        (st.b || []).forEach((b, j) => card.appendChild(renderBlock(b, `${C.id}-${P.id}-s${i}-b${j}`, `${KEY}-say-${P.id}-${i}-${j}`)));
+        main.replaceChildren(card);
+        rail.innerHTML = P.steps.map((s, k) => `<button type="button" class="${k < i ? "done" : k === i ? "now" : ""}" aria-label="Step ${k + 1}" ${k === i ? 'aria-current="step"' : ""} data-i="${k}"></button>`).join("");
+        rail.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => show(+b.dataset.i)));
+        where.innerHTML = `Step <b>${i + 1}</b> of ${N} · ${KIND[st.k] || st.k}`;
+        back.disabled = i === 0;
+        next.hidden = false;
+        next.textContent = i === N - 1 ? "Finish part ✓" : "Next →";
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+      }
+      function finish() {
+        state.done[P.id] = true;
+        state.last = pi + 1 < C.parts.length ? { part: pi + 1, step: 0 } : null;
+        save();
+        const hasNext = pi + 1 < C.parts.length;
+        const card = el(`<section class="card"><span class="tag k-check">Part ${pi + 1} complete</span><h2>Your takeaway</h2><div class="key">${P.takeaway}</div>
+          <p class="aside">Good moment for a short break. Stand up, drink some water, then come back.</p>
+          <div class="row">${hasNext ? `<button type="button" class="btn primary" data-np>Part ${pi + 2}: ${C.parts[pi + 1].title} →</button>` : `<button type="button" class="btn primary" data-sum>Open the ${u} summary</button>`}<button type="button" class="btn ghost" data-hub>Chapter map</button></div></section>`);
+        main.replaceChildren(card);
+        rail.querySelectorAll("button").forEach((b) => (b.className = "done"));
+        where.innerHTML = `<b>Done</b> · ${N} steps`;
+        back.disabled = false;
+        next.hidden = true;
+        card.querySelector("[data-hub]").addEventListener("click", hub);
+        if (hasNext) card.querySelector("[data-np]").addEventListener("click", () => openPart(pi + 1, 0));
+        else card.querySelector("[data-sum]").addEventListener("click", summary);
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+      }
+      back.addEventListener("click", () => show(view.step - 1));
+      next.addEventListener("click", () => show(view.step + 1));
+      show(si0);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (view.part == null) return;
+      if (e.target.closest && e.target.closest("input, textarea, select")) return;
+      const nb = document.querySelector("[data-next]"), bb = document.querySelector("[data-back]");
+      if (e.key === "ArrowRight" && nb && !nb.hidden) nb.click();
+      if (e.key === "ArrowLeft" && bb && !bb.disabled) bb.click();
+    });
+
+    const m = /^#p(\d+)$/.exec(location.hash || "");
+    /* #resume (from the library's Resume card): the saved step, else the first unfinished part, else the map. */
+    const L = state.last, todo = C.parts.findIndex((p) => !state.done[p.id]);
+    if (m && C.parts[+m[1] - 1]) openPart(+m[1] - 1, 0);
+    else if (location.hash === "#resume" && L && C.parts[L.part]) openPart(L.part, L.step);
+    else if (location.hash === "#resume" && todo >= 0) openPart(todo, 0);
+    else hub();
+    if (P) P.sync(C.id, state, () => { if (view.part == null) hub(); });
+  }
+
+  return { start, S, plot, slider, toggle, readout, fmt, si, el, reduce, store };
+})();
+</script>
+<script>
+/* Shared drawing and logic helpers for the digital books (Patt & Patel, Harris & Harris, CMOS VLSI).
+   Loaded after engine.js on those books' chapter pages: window.Digital. */
+window.Digital = (function () {
+  const { S, el } = Course;
+
+  /* ---------- bit patterns ---------- */
+  const bits = (v, k) => { const m = 2 ** k; return (((v % m) + m) % m).toString(2).padStart(k, "0"); };
+  const uval = (b) => parseInt(b, 2);
+  const sval = (b) => (b[0] === "1" ? uval(b) - 2 ** b.length : uval(b));
+  const flip = (b) => b.replace(/[01]/g, (c) => (c === "0" ? "1" : "0"));
+  const hex = (b) => b.padStart(Math.ceil(b.length / 4) * 4, "0").match(/.{4}/g).map((g) => uval(g).toString(16).toUpperCase()).join("");
+
+  /* Row of bit boxes (SVG string). o.top: labels above; o.hot: highlighted indices from the left; o.sign: tint the leftmost box;
+     o.w box size; o.W svg width to centre in; o.y top edge; o.x0 left edge (overrides centring). */
+  function bitRow(b, o = {}) {
+    const k = b.length, w = o.w || Math.min(40, 400 / k), x0 = o.x0 != null ? o.x0 : (o.W || 420) / 2 - (k * w) / 2, y = o.y || 34;
+    let s = "";
+    b.split("").forEach((c, i) => {
+      const hot = o.hot && o.hot.includes(i), sg = o.sign && i === 0;
+      s += `<rect x="${x0 + i * w}" y="${y}" width="${w}" height="${w}" style="fill:${hot ? "var(--accent-soft)" : sg ? "var(--cool-soft)" : "var(--card)"};stroke:var(--ink)"/>`;
+      s += S.t(x0 + i * w + w / 2, y + w * 0.68, c, { cls: (w > 30 ? "big " : w < 20 ? "s " : "") + "m" });
+      if (o.top) s += S.t(x0 + i * w + w / 2, y - 8, o.top[i], { cls: "s" });
+    });
+    return s;
+  }
+  /* Clickable bit buttons: { el, get(), set(str) }. onChange(str) after each click. */
+  function bitButtons(init, onChange, o = {}) {
+    const row = el(`<div class="row" role="group" aria-label="${o.label || "bits"}" style="gap:4px"></div>`);
+    let b = init.split("");
+    const btns = b.map((c, i) => {
+      const btn = el(`<button type="button" class="btn small mono" style="min-width:34px;padding:6px 0">${c}</button>`);
+      btn.setAttribute("aria-pressed", String(c === "1"));
+      btn.addEventListener("click", () => { b[i] = b[i] === "1" ? "0" : "1"; btn.textContent = b[i]; btn.setAttribute("aria-pressed", String(b[i] === "1")); onChange(b.join("")); });
+      row.appendChild(btn);
+      return btn;
+    });
+    return { el: row, get: () => b.join(""), set(str) { b = str.split(""); btns.forEach((x, i) => { x.textContent = b[i]; x.setAttribute("aria-pressed", String(b[i] === "1")); }); onChange(str); } };
+  }
+
+  /* ---------- truth tables ---------- */
+  /* Every input combination of n variables in counting order, as arrays of 0/1. */
+  const combos = (n) => Array.from({ length: 2 ** n }, (_, r) => bits(r, n).split("").map(Number));
+  /* HTML truth table. ins: input names; outs: output names; f(row) -> array of outputs (or one value). o.hot: highlighted row. */
+  function truthTable(ins, outs, f, o = {}) {
+    const rows = combos(ins.length).map((r, i) => {
+      const y = [].concat(f(r));
+      return `<tr${o.hot === i ? ' style="background:var(--accent-soft)"' : ""}>${r.map((v) => `<td class="mono">${v}</td>`).join("")}${y.map((v) => `<td class="mono"><b>${v}</b></td>`).join("")}</tr>`;
+    }).join("");
+    return `<div class="tbl"><table><thead><tr>${ins.map((n) => `<th>${n}</th>`).join("")}${outs.map((n) => `<th>${n}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  /* ---------- gate symbols ---------- */
+  /* Gate symbol with input leads. kind: and|or|nand|nor|xor|xnor|not|buf. Left edge of the body at x, centre y, n inputs.
+     Returns { s, ins: [[x,y]...], out: [x,y] }. o.cls styles the body; o.label writes inside. */
+  function gate(kind, x, y, n = 2, o = {}) {
+    const c = o.cls ? " " + o.cls : "", one = kind === "not" || kind === "buf", base = kind.replace(/^x?n(?=and|or)/, "").replace("xnor", "xor");
+    let s = "";
+    if (kind === "xor" || kind === "xnor") {
+      s += S.gate("or", x + 8, y, { cls: o.cls });
+      s += `<path class="w${c}" d="M${x} ${y - 20} Q${x + 12} ${y} ${x} ${y + 20}" style="fill:none"/>`;
+      if (kind === "xnor") s += `<circle class="el${c}" cx="${x + 68}" cy="${y}" r="5"/>`;
+    } else s += S.gate(kind, x, y, { cls: o.cls });
+    const tipX = kind === "xor" ? x + 63 : kind === "xnor" ? x + 73 : S.gateOut(kind, x);
+    const ins = [];
+    const m = one ? 1 : n, sp = m === 1 ? 0 : Math.min(20, 34 / (m - 1));
+    for (let i = 0; i < m; i++) {
+      const yy = y + (i - (m - 1) / 2) * sp, xi = x - 22;
+      const bodyX = base === "or" || kind === "xor" || kind === "xnor" ? x + 4 + (kind.includes("xor") ? 4 : 0) : x;
+      s += `<line class="w${c}" x1="${xi}" y1="${yy}" x2="${bodyX}" y2="${yy}"/>`;
+      ins.push([xi, yy]);
+    }
+    if (o.label) s += S.t(x + 22, y + 5, o.label, { cls: "s m" });
+    return { s, ins, out: [tipX, y] };
+  }
+
+  /* ---------- timing diagrams ---------- */
+  /* sigs: [{ name, v: [0/1 or string per slot] , cls }]. o.dx slot width, o.x0 left edge for waves, o.h row height, o.marks: [{t, label}] vertical lines at slot t.
+     Strings draw as a bus (hexagon-ish lanes with the value written). Returns an SVG string. */
+  function wave(sigs, o = {}) {
+    const dx = o.dx || 34, x0 = o.x0 || 70, h = o.h || 40, n = Math.max(...sigs.map((g) => g.v.length)), W = o.W || x0 + n * dx + 16, H = sigs.length * h + 22;
+    let s = "";
+    for (let t = 0; t <= n; t++) s += `<line x1="${x0 + t * dx}" y1="8" x2="${x0 + t * dx}" y2="${H - 14}" style="stroke:var(--line);stroke-width:1"/>`;
+    sigs.forEach((g, r) => {
+      const yb = 14 + r * h + h - 12, yt = 14 + r * h + 4, ym = (yb + yt) / 2;
+      s += S.t(x0 - 10, ym + 5, g.name, { a: "end", cls: "s" });
+      const cls = g.cls || "";
+      if (g.v.some((v) => typeof v === "string")) {
+        g.v.forEach((v, t) => {
+          const a = x0 + t * dx, b = a + dx, prev = t > 0 ? g.v[t - 1] : null, ch = t === 0 || v !== prev, e = 5;
+          if (v === "x" || v === "X") s += `<rect x="${a}" y="${yt}" width="${dx}" height="${yb - yt}" style="fill:var(--line);opacity:.5"/>`;
+          s += `<line class="w ${cls}" x1="${a + (ch ? e : 0)}" y1="${yt}" x2="${b}" y2="${yt}" style="stroke-width:2"/><line class="w ${cls}" x1="${a + (ch ? e : 0)}" y1="${yb}" x2="${b}" y2="${yb}" style="stroke-width:2"/>`;
+          if (ch) s += `<polyline class="w ${cls}" points="${a},${ym} ${a + e},${yt}" style="stroke-width:2"/><polyline class="w ${cls}" points="${a},${ym} ${a + e},${yb}" style="stroke-width:2"/>`;
+          if (ch && v !== "x" && v !== "X") { let k = t + 1; while (k < g.v.length && g.v[k] === v) k++; s += S.t((a + x0 + k * dx) / 2 + 2, ym + 5, String(v), { cls: "s" }); }
+        });
+      } else {
+        let pts = [];
+        g.v.forEach((v, t) => { const y = v ? yt : yb; pts.push([x0 + t * dx, y], [x0 + (t + 1) * dx, y]); });
+        s += `<polyline class="w ${cls}" points="${pts.map((p) => p.join(",")).join(" ")}" style="stroke-width:2.2"/>`;
+      }
+    });
+    (o.marks || []).forEach((m) => { const x = x0 + m.t * dx; s += `<line x1="${x}" y1="6" x2="${x}" y2="${H - 10}" style="stroke:var(--accent);stroke-width:2;stroke-dasharray:5 4"/>` + (m.label ? S.t(x + 4, H - 2, m.label, { a: "start", cls: "s a" }) : ""); });
+    return S.svg(W, H, s, { max: W, label: o.label || "Timing diagram" });
+  }
+
+  /* ---------- CMOS gate schematics ---------- */
+  /* Each takes input values (0/1) and returns an SVG string with ON transistors and the conducting path highlighted.
+     Transistor helper: S.nmos(x, y, { p }) has gate at (x−30, y), top terminal (x+14, y−40), bottom (x+14, y+40). */
+  const on = (isP, v) => (isP ? v === 0 : v === 1);
+  const T = (x, y, p, v, lab) => S.nmos(x, y, { p, cls: on(p, v) ? "hl" : "dim" }) + S.t(x - 36, y + 5, lab, { a: "end", cls: "s" });
+  const rail = (x1, x2, y, lab) => `<line class="w" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" style="stroke-width:3"/>` + S.t(x2 + 6, y + 5, lab, { a: "start", cls: "s" });
+  const outLine = (x, y, x2, val) => `<line class="w" x1="${x}" y1="${y}" x2="${x2}" y2="${y}"/>` + S.dot(x, y) + S.t(x2 + 6, y + 5, `Y = ${val}`, { a: "start", cls: "big" });
+  function inverter(a) {
+    let s = rail(160, 240, 24, "V_DD") + S.wire([200, 40], [200, 24]) + T(186, 80, true, a, "A") + S.wire([200, 120], [200, 140]) + T(186, 180, false, a, "A") + S.gnd(200, 220);
+    s += outLine(200, 130, 280, 1 - a);
+    return S.svg(380, 250, s, { max: 380, label: "CMOS inverter with the ON transistor highlighted" });
+  }
+  function nand2(a, b) {
+    let s = rail(150, 300, 24, "V_DD") + S.wire([180, 40], [180, 24]) + S.wire([280, 40], [280, 24]);
+    s += T(166, 80, true, a, "A") + T(266, 80, true, b, "B");
+    s += S.wire([180, 120], [180, 140], [280, 140], [280, 120]) + S.wire([230, 140], [230, 150]);
+    s += T(216, 190, false, a, "A") + S.wire([230, 230], [230, 240]) + T(216, 280, false, b, "B") + S.gnd(230, 320);
+    s += outLine(280, 140, 330, a & b ? 0 : 1);
+    return S.svg(420, 350, s, { max: 420, label: "CMOS two-input NAND gate with ON transistors highlighted" });
+  }
+  function nor2(a, b) {
+    let s = rail(190, 270, 20, "V_DD") + S.wire([230, 30], [230, 20]);
+    s += T(216, 70, true, a, "A") + S.wire([230, 110], [230, 120]) + T(216, 160, true, b, "B") + S.wire([230, 200], [230, 210]);
+    s += S.wire([180, 220], [180, 210], [280, 210], [280, 220]);
+    s += T(166, 260, false, a, "A") + T(266, 260, false, b, "B");
+    s += S.wire([180, 300], [180, 310], [280, 310], [280, 300]) + S.gnd(230, 310);
+    s += outLine(280, 210, 330, a | b ? 0 : 1);
+    return S.svg(420, 340, s, { max: 420, label: "CMOS two-input NOR gate with ON transistors highlighted" });
+  }
+
+  /* ---------- state diagrams ---------- */
+  /* nodes: [{ id, x, y, label, sub }]; edges: [{ from, to, label, bend (px, + bends left of travel), ang (self-loop direction in degrees, default −90 = up) }].
+     o.cur: highlighted node id; o.r node radius; o.W, o.H svg size. Returns an SVG string. */
+  function fsm(nodes, edges, o = {}) {
+    const R = o.r || 26, N = Object.fromEntries(nodes.map((n) => [n.id, n]));
+    const unit = (x, y) => { const L = Math.hypot(x, y) || 1; return [x / L, y / L]; };
+    const head = (x, y, ux, uy, hot) => `<polygon points="${x},${y} ${x - 10 * ux + 5 * uy},${y - 10 * uy - 5 * ux} ${x - 10 * ux - 5 * uy},${y - 10 * uy + 5 * ux}" style="fill:${hot ? "var(--accent)" : "var(--ink)"}"/>`;
+    let s = "";
+    edges.forEach((e) => {
+      const a = N[e.from], b = N[e.to], hot = o.hotEdge && o.hotEdge === e, st = hot ? "stroke:var(--accent);stroke-width:3" : "stroke:var(--ink);stroke-width:1.8";
+      if (a === b) {
+        const g = ((e.ang != null ? e.ang : -90) * Math.PI) / 180, d1 = g - 0.45, d2 = g + 0.45;
+        const p1 = [a.x + R * Math.cos(d1), a.y + R * Math.sin(d1)], p2 = [a.x + R * Math.cos(d2), a.y + R * Math.sin(d2)];
+        const c1 = [a.x + 2.6 * R * Math.cos(d1 - 0.25), a.y + 2.6 * R * Math.sin(d1 - 0.25)], c2 = [a.x + 2.6 * R * Math.cos(d2 + 0.25), a.y + 2.6 * R * Math.sin(d2 + 0.25)];
+        const [ux, uy] = unit(p2[0] - c2[0], p2[1] - c2[1]);
+        s += `<path d="M${p1} C${c1} ${c2} ${p2}" style="fill:none;${st}"/>` + head(p2[0], p2[1], ux, uy, hot);
+        if (e.label) s += S.t(a.x + 2.45 * R * Math.cos(g), a.y + 2.45 * R * Math.sin(g) + 4 + (Math.sin(g) < -0.5 ? -4 : 6), e.label, { cls: "s" });
+      } else {
+        const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L, bend = e.bend || 0;
+        const c = [(a.x + b.x) / 2 + nx * bend, (a.y + b.y) / 2 + ny * bend];
+        const [sx, sy] = unit(c[0] - a.x, c[1] - a.y), [ex, ey] = unit(c[0] - b.x, c[1] - b.y);
+        const p1 = [a.x + R * sx, a.y + R * sy], p2 = [b.x + R * ex, b.y + R * ey];
+        const [ux, uy] = unit(p2[0] - c[0], p2[1] - c[1]);
+        s += `<path d="M${p1} Q${c} ${p2}" style="fill:none;${st}"/>` + head(p2[0], p2[1], ux, uy, hot);
+        if (e.label) { const mx = 0.25 * p1[0] + 0.5 * c[0] + 0.25 * p2[0], my = 0.25 * p1[1] + 0.5 * c[1] + 0.25 * p2[1], off = e.lo != null ? e.lo : 12, sg = bend >= 0 ? 1 : -1; s += S.t(mx + nx * off * sg, my + ny * off * sg + 4, e.label, { cls: "s" }); }
+      }
+    });
+    nodes.forEach((n) => {
+      const hot = o.cur === n.id;
+      s += `<circle cx="${n.x}" cy="${n.y}" r="${R}" style="fill:${hot ? "var(--accent-soft)" : "var(--card)"};stroke:${hot ? "var(--accent)" : "var(--ink)"};stroke-width:${hot ? 3 : 2}"/>`;
+      s += S.t(n.x, n.y + (n.sub ? 0 : 5), n.label, { cls: hot ? "b" : "" });
+      if (n.sub) s += S.t(n.x, n.y + 15, n.sub, { cls: "s m" });
+    });
+    return S.svg(o.W || 420, o.H || 260, s, { max: o.W || 420, label: o.label || "State diagram" });
+  }
+
+  /* ---------- logic minimization (Quine–McCluskey + smallest cover) ---------- */
+  /* n variables; ones, dcs: arrays of minterm numbers. Returns implicant patterns like "1-0" (one char per variable, msb first),
+     the smallest set that covers every 1, ties broken by fewest literals. */
+  function minimize(n, ones, dcs = []) {
+    if (!ones.length) return [];
+    if (ones.length + dcs.length === 2 ** n) return ["-".repeat(n)];
+    let cur = [...new Set([...ones, ...dcs])].map((m) => bits(m, n));
+    const primes = new Set();
+    while (cur.length) {
+      const used = new Set(), next = new Set();
+      for (let i = 0; i < cur.length; i++) for (let j = i + 1; j < cur.length; j++) {
+        const a = cur[i], b = cur[j];
+        let d = -1, ok = true;
+        for (let k = 0; k < n && ok; k++) if (a[k] !== b[k]) { if (a[k] === "-" || b[k] === "-" || d >= 0) ok = false; else d = k; }
+        if (ok && d >= 0) { next.add(a.slice(0, d) + "-" + a.slice(d + 1)); used.add(a); used.add(b); }
+      }
+      cur.forEach((t) => { if (!used.has(t)) primes.add(t); });
+      cur = [...next];
+    }
+    const covers = (p, m) => { const b = bits(m, n); for (let k = 0; k < n; k++) if (p[k] !== "-" && p[k] !== b[k]) return false; return true; };
+    const P = [...primes].filter((p) => ones.some((m) => covers(p, m)));
+    const lits = (p) => p.replace(/-/g, "").length;
+    let best = null;
+    for (let mask = 1; mask < 1 << P.length; mask++) {
+      const pick = P.filter((_, i) => mask & (1 << i));
+      if (best && pick.length > best.length) continue;
+      if (!ones.every((m) => pick.some((p) => covers(p, m)))) continue;
+      if (!best || pick.length < best.length || pick.reduce((s, p) => s + lits(p), 0) < best.reduce((s, p) => s + lits(p), 0)) best = pick;
+    }
+    return best || P;
+  }
+  /* Implicant pattern → text with combining overlines: "1-0" with names ABC → "AC̅". */
+  const implText = (p, names) => p.split("").map((c, i) => (c === "-" ? "" : names[i] + (c === "0" ? "̅" : ""))).join("") || "1";
+  const implCovers = (p, m) => { const b = bits(m, p.length); for (let k = 0; k < p.length; k++) if (p[k] !== "-" && p[k] !== b[k]) return false; return true; };
+
+  /* ---------- code listings ---------- */
+  const SVKW = /\b(module|endmodule|input|output|logic|tri|assign|always_ff|always_comb|always_latch|always|posedge|negedge|if|else|case|casez|endcase|default|begin|end|typedef|enum|parameter|genvar|generate|endgenerate|for|initial|signed|assert|integer)\b/g;
+  const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  /* SystemVerilog listing with keywords, numbers and // comments coloured. o.hl: line numbers (1-based) to highlight. */
+  function sv(code, o = {}) {
+    const lines = code.replace(/^\n/, "").split("\n").map((ln, i) => {
+      const k = ln.indexOf("//"), body = k >= 0 ? ln.slice(0, k) : ln, cm = k >= 0 ? ln.slice(k) : "";
+      let h = esc(body).replace(SVKW, '<span class="kw">$1</span>').replace(/(\d+'[bodh][0-9a-fA-FxzXZ_?]+|'[01])/g, '<span class="nm">$1</span>');
+      h += cm ? `<span class="cm">${esc(cm)}</span>` : "";
+      return o.hl && o.hl.includes(i + 1) ? `<span class="hl">${h}</span>` : h;
+    });
+    return `<pre class="code">${lines.join("\n")}</pre>`;
+  }
+  /* Plain listing (assembly, C): escaped; comments (from o.comment, default ";") muted. */
+  function listing(code, o = {}) {
+    const c = o.comment || ";";
+    const lines = code.replace(/^\n/, "").split("\n").map((ln, i) => {
+      const k = ln.indexOf(c), h = esc(k >= 0 ? ln.slice(0, k) : ln) + (k >= 0 ? `<span class="cm">${esc(ln.slice(k))}</span>` : "");
+      return o.hl && o.hl.includes(i + 1) ? `<span class="hl">${h}</span>` : h;
+    });
+    return `<pre class="code">${lines.join("\n")}</pre>`;
+  }
+
+  /* ---------- series–parallel switch networks (static CMOS) ----------
+     tree: "A" (one transistor driven by input A) | { s: [...] } (series) | { p: [...] } (parallel).
+     v: { A: 0/1, ... }. isP: pMOS (ON when its input is 0). */
+  const spOn = (t, v, isP) => (typeof t === "string" ? (isP ? !v[t] : !!v[t]) : t.s ? t.s.every((c) => spOn(c, v, isP)) : t.p.some((c) => spOn(c, v, isP)));
+  const spDual = (t) => (typeof t === "string" ? t : t.s ? { p: t.s.map(spDual) } : { s: t.p.map(spDual) });
+  const spCount = (t) => (typeof t === "string" ? 1 : (t.s || t.p).reduce((n, c) => n + spCount(c), 0));
+  function spSize(t) {
+    if (typeof t === "string") return { w: 50, h: 46 };
+    const cs = (t.s || t.p).map(spSize);
+    return t.s ? { w: Math.max(...cs.map((c) => c.w)), h: cs.reduce((a, c) => a + c.h, 0) } : { w: cs.reduce((a, c) => a + c.w, 0), h: Math.max(...cs.map((c) => c.h)) };
+  }
+  const ln = (x1, y1, x2, y2, cls) => `<line class="w${cls ? " " + cls : ""}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+  /* Draw the network with its top terminal at (cx, y). */
+  function spDraw(t, cx, y, v, isP) {
+    const sz = spSize(t);
+    if (typeof t === "string") {
+      const on = isP ? !v[t] : !!v[t], cls = on ? "hl" : "dim";
+      let s = ln(cx, y, cx, y + 8, cls) + `<rect x="${cx - 17}" y="${y + 8}" width="34" height="30" rx="5" style="fill:${on ? "var(--accent-soft)" : "var(--card)"};stroke:${on ? "var(--accent)" : "var(--line)"};stroke-width:2"/>` + ln(cx, y + 38, cx, y + 46, cls);
+      s += S.t(cx + (isP ? 4 : 0), y + 28, t, { cls: on ? "b" : "m" });
+      if (isP) s += `<circle cx="${cx - 9}" cy="${y + 23}" r="4" style="fill:var(--card);stroke:${on ? "var(--accent)" : "var(--line)"};stroke-width:1.5"/>`;
+      return s;
+    }
+    if (t.s) { let yy = y, s = ""; t.s.forEach((c) => { s += spDraw(c, cx, yy, v, isP); yy += spSize(c).h; }); return s; }
+    let s = "", x = cx - sz.w / 2;
+    const xs = [];
+    t.p.forEach((c) => { const cs = spSize(c), ccx = x + cs.w / 2; xs.push(ccx); s += spDraw(c, ccx, y, v, isP); if (cs.h < sz.h) s += ln(ccx, y + cs.h, ccx, y + sz.h); x += cs.w; });
+    return s + ln(xs[0], y, xs[xs.length - 1], y) + ln(xs[0], y + sz.h, xs[xs.length - 1], y + sz.h);
+  }
+  /* A static CMOS gate: pull-up (pMOS, default = dual of pd) from V_DD to Y, pull-down (nMOS) from Y to GND.
+     Returns { svg, y } where y is 1, 0, "Z" (both off) or "X" (both on). */
+  function cmosGate(pd, v, o = {}) {
+    const pu = o.pu || spDual(pd), su = spSize(pu), sd = spSize(pd), W = Math.max(300, Math.max(su.w, sd.w) + 200), cx = W / 2 - 20;
+    const upOn = spOn(pu, v, true), dnOn = spOn(pd, v, false), y = upOn && !dnOn ? 1 : dnOn && !upOn ? 0 : upOn ? "X" : "Z";
+    const top = 34, yo = top + su.h + 14, bot = yo + 14 + sd.h;
+    let s = `<line class="w" x1="${cx - 60}" y1="20" x2="${cx + 60}" y2="20" style="stroke-width:3"/>` + S.t(cx + 66, 25, "V_DD", { a: "start", cls: "s" }) + ln(cx, 20, cx, top);
+    s += spDraw(pu, cx, top, v, true) + ln(cx, top + su.h, cx, yo) + ln(cx, yo, cx, yo + 14) + spDraw(pd, cx, yo + 14, v, false) + ln(cx, bot, cx, bot + 6) + S.gnd(cx, bot + 6);
+    s += S.dot(cx, yo) + ln(cx, yo, cx + Math.max(su.w, sd.w) / 2 + 40, yo) + S.t(cx + Math.max(su.w, sd.w) / 2 + 46, yo + 6, "Y = " + y, { a: "start", cls: "big" + (y === "X" || y === "Z" ? " b" : "") });
+    s += S.t(16, top + su.h / 2, "pull-up", { a: "start", cls: "s c" }) + S.t(16, top + su.h / 2 + 15, "(pMOS)", { a: "start", cls: "s m" }) + S.t(16, yo + 14 + sd.h / 2, "pull-down", { a: "start", cls: "s c" }) + S.t(16, yo + 14 + sd.h / 2 + 15, "(nMOS)", { a: "start", cls: "s m" });
+    return { svg: S.svg(W, bot + 30, s, { max: W, label: "Static CMOS gate with ON transistors highlighted" }), y };
+  }
+
+  return { spOn, spDual, spCount, cmosGate, sv, listing, bits, uval, sval, flip, hex, bitRow, bitButtons, combos, truthTable, gate, wave, inverter, nand2, nor2, fsm, minimize, implText, implCovers };
+})();
+</script>
+<script>
+(function () {
+  const { S, plot, slider, toggle, readout, fmt, si, el } = Course;
+  const btn = (label, cls = "") => el(`<button type="button" class="btn ${cls}">${label}</button>`);
+  const seenV = (html, href, where) => `<div class="key"><b>Seen earlier:</b> ${html} <a href="${href}">${where} →</a></div>`;
+  const mathLink = (html, href, where) => `<p class="aside">${html} <a href="../math/${href}">${where} →</a></p>`;
+  function erf(x) { const t = 1 / (1 + 0.3275911 * Math.abs(x)); const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; }
+  const tail = (z) => 0.5 * (1 - erf(z / Math.SQRT2));
+  const gauss = () => { const u = Math.random() || 1e-9, v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+
+  /* =============== PART 1 =============== */
+  const p1 = {
+    id: "p1", title: "Process, voltage, temperature", mins: 20,
+    blurb: "Three sources of variation, two ways to describe them, and why memory cells need 6σ.",
+    takeaway: "Chips must work for ~10¹⁸ cycles despite tiny-transistor variation, temperature extremes, oxide breakdown, electromigration and cosmic rays; static CMOS is well suited (big noise margins, insensitive to parameters, recovers from noise). Variation sources: Process, Voltage, Temperature (PVT). Uniform distributions are given by a half-range a (e.g. V_DD = 1.0 V ± 10%): all parts must work across it. Normal distributions by standard deviation σ: rejecting parts beyond ±3σ loses 0.26%, ±2σ 4.56%, ±1σ 31.7% (one-sided limits halve these). Circuits replicated millions of times (memory cells) must tolerate 5–7σ. Supply: regulator tolerance, IR drop and di/dt noise: typically ±10% at each gate, varying in space and time; delay ∝ ~1/V_DD, so ~±10% delay. Temperature: junction = ambient + package rise; ambient ranges commercial 0–70 °C, industrial −40–85 °C, military −55–125 °C; commercial parts verified to 125 °C junction; varies gradually across the die (hot spots > 100 °C in an Itanium 2 core, caches < 70 °C) and over milliseconds.",
+    steps: [
+      { k: "learn", title: "Three sources", b: [
+        `<p>A chip must run a billion billion cycles without error. Three things vary, summed up as <b>PVT</b>:</p>`,
+        `<ul><li><b>Process:</b> every transistor comes out slightly different.</li><li><b>Voltage:</b> the supply sags and bounces: usually specified ±10% at each gate.</li><li><b>Temperature:</b> from a cold start to a hot spot well over 100 °C.</li></ul>`,
+        `<div class="tbl"><table><thead><tr><th>Grade</th><th>Ambient</th></tr></thead><tbody><tr><td>Commercial</td><td>0 to 70 °C</td></tr><tr><td>Industrial</td><td>−40 to 85 °C</td></tr><tr><td>Military</td><td>−55 to 125 °C</td></tr></tbody></table></div>`,
+        `<p class="aside">The transistors themselves (junction temperature) run hotter than the air around the package; commercial parts are checked up to 125 °C junction.</p>`,
+      ]},
+      { k: "learn", title: "Uniform or normal", b: [
+        `<div class="two"><div class="tile"><h3>Uniform</h3><p>Anywhere in ±a, e.g. V<sub>DD</sub> = 1.0 V ± 10%. Every part must work over the whole range.</p></div><div class="tile"><h3>Normal</h3><p>Bell curve with standard deviation σ. Process parameters look like this. You choose how many σ to cover.</p></div></div>`,
+        mathLink("The normal distribution and yield:", "35-normal-yield.html", "Math 35"),
+      ]},
+      { k: "play", title: "How many sigma?", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          let k = 3, lgN = 3;
+          function draw() {
+            const pdf = (x) => Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI), N = Math.pow(10, lgN), p2 = 2 * tail(k);
+            f.innerHTML = plot({ x: [-6, 6], y: [0, 0.42], xt: [-6, -4, -2, 0, 2, 4, 6], yt: [0, 0.2, 0.4], xl: "deviation (σ)", yl: "probability density", series: [{ f: pdf, cls: "s1" }, { pts: [[k, 0], [k, 0.4]], cls: "s4" }, { pts: [[-k, 0], [-k, 0.4]], cls: "s4" }], label: "Normal distribution with acceptance limits" });
+            ro.innerHTML = readout([["Fraction outside ±" + fmt(k, 2) + "σ", fmt(p2 * 100, 3) + "%"], ["Copies on the chip", fmt(N, 3)], ["Chance that ALL copies are inside", fmt(Math.pow(1 - p2, N) * 100, 3) + "%"]]);
+          }
+          host.append(f, slider({ id: id + "-k", label: "Acceptance limit", min: 1, max: 7, step: 0.05, value: k, show: (x) => "±" + fmt(x, 3) + "σ" }, (x) => { k = x; draw(); }).el,
+            slider({ id: id + "-n", label: "Number of identical copies (log₁₀)", min: 3, max: 9, step: 0.1, value: lgN, show: (x) => fmt(Math.pow(10, x), 2) }, (x) => { lgN = x; draw(); }).el, ro);
+          draw();
+        },
+        `<p class="aside">One part at ±3σ: 0.26% fail. A million memory cells at ±3σ: essentially no chip works. That's why replicated circuits are designed for 5–7σ.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "A parameter is normal. You reject parts outside ±2σ. What percentage is rejected?", a: 4.55, tol: 0.02, unit: "%", why: "2 × 2.28% = 4.55%." },
+        { t: "mcq", q: "Only 'too slow' matters (one direction). Rejecting beyond +3σ loses…", opts: [["0.135%: half of the two-sided 0.27%", true, "One tail only."], ["0.27%", false, "That's both tails."], ["3%", false, "Much less."]] },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why must a memory cell tolerate far more sigma of variation than a single logic gate?", model: "A memory has millions of identical cells and the chip fails if any one of them fails. Even a tiny per-cell failure probability, multiplied across millions of cells, gives a high chance that at least one fails. So each cell must work out to 5, 6 or 7 standard deviations to keep the chip's yield acceptable." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 2 =============== */
+  const p2 = {
+    id: "p2", title: "Process variation and design corners", mins: 25,
+    blurb: "Lot, wafer, die, within-die. FF, SS, FS, SF. Derating a datasheet.",
+    takeaway: "Process variation: film thickness, lateral dimensions, doping. For devices L and V_t matter most (lithography, etch, dopant counts, oxide charge, wearout); for wires width, spacing, thickness, contact resistance. Levels: lot-to-lot, wafer-to-wafer, die-to-die (D2D, inter-die; e.g. ring oscillator speed varying 20% radially across a wafer), within-die (WID, intra-die; some spatially correlated: 'process tilt'). Nearby transistors match better than distant ones and same-die better than different dice. D2D is handled with margins (2–3σ) and rejects; WID is harder (billions of transistors). Design corners combine process (nMOS, pMOS, wire: fast/typical/slow) with environment (V_DD, temperature: F = high V, low T): five letters, e.g. TTTSS, SSSSS for conservative timing, FFFFF for races/hold and dynamic power, FFFFS for leakage and noise, SF/FS for ratioed circuits. Parts may be binned by speed. Example derating: SS +27% delay, 71%/V and 0.13%/°C, multiplying to 1.62× in SSSS. FO4 ≈ 0.36 ps/nm × L_eff (TTTT), 0.50 (TTSS), 0.60 (SSSS); L_eff ≈ 0.5–0.7 L_drawn. Burn-in corner (125–140 °C, 1.3–1.7× V_DD): must still function. Multiple V_t and oxides multiply the corners.",
+    steps: [
+      { k: "learn", title: "Four levels of process variation", b: [
+        `<div class="tbl"><table><tbody>
+          <tr><td><b>Lot-to-lot</b></td><td>a batch processed after the furnace was cleaned</td></tr>
+          <tr><td><b>Wafer-to-wafer</b></td><td>one wafer implanted slightly longer</td></tr>
+          <tr><td><b>Die-to-die</b></td><td>edge dice etch differently from centre dice: one whole chip is fast or slow</td></tr>
+          <tr><td><b>Within-die</b></td><td>neighbouring transistors differ (random dopants, local patterns)</td></tr></tbody></table></div>`,
+        `<p>Die-to-die variation makes whole chips faster or slower: handle it with margin and by rejecting the few outliers. Within-die variation is harder: with a billion transistors, some will be far from typical.</p>`,
+        `<p class="aside">Matching rule: neighbours match better than distant transistors; same die better than different dice.</p>`,
+      ]},
+      { k: "learn", title: "Design corners", b: [
+        `<p>Letters for nMOS, pMOS, wire, V<sub>DD</sub>, temperature: <b>F</b>ast, <b>T</b>ypical, <b>S</b>low. (Fast environment = high V<sub>DD</sub>, low temperature.)</p>`,
+        `<div class="tbl"><table><tbody>
+          <tr><td>TTTSS / SSSSS</td><td>timing specs (binned / conservative)</td></tr>
+          <tr><td>FFFFF</td><td>races, hold times, dynamic power</td></tr>
+          <tr><td>FFFFS</td><td>leakage and noise (fast edges, low V<sub>t</sub>, hot)</td></tr>
+          <tr><td>SF?FF, FS?FF</td><td>ratioed circuits, memory read/write: one transistor type racing the other</td></tr></tbody></table></div>`,
+        `<p class="aside">Plus a <b>burn-in</b> corner: 125–140 °C and 1.3–1.7× V<sub>DD</sub>, where it needn't be fast but must still work.</p>`,
+      ]},
+      { k: "play", title: "Derate a datasheet", b: [
+        (host, id) => {
+          const ro = el(`<div></div>`);
+          let pr = 25, vc = 80, tc = 0.15;
+          function draw() { const a = 1 + pr / 100, b = 1 + (vc / 100) * 0.1, c = 1 + (tc / 100) * 100; ro.innerHTML = readout([["Slow process", fmt(a, 3) + "×"], ["10% low supply", fmt(b, 3) + "×"], ["100 °C hotter", fmt(c, 3) + "×"], ["Worst corner (multiply)", fmt(a * b * c, 3) + "× typical"]]); }
+          host.append(slider({ id: id + "-p", label: "SS process penalty", min: 10, max: 40, step: 1, value: pr, show: (x) => "+" + x + "%" }, (x) => { pr = x; draw(); }).el,
+            slider({ id: id + "-v", label: "Voltage derating", min: 40, max: 120, step: 1, value: vc, show: (x) => x + "% per volt" }, (x) => { vc = x; draw(); }).el,
+            slider({ id: id + "-t", label: "Temperature derating", min: 0.05, max: 0.3, step: 0.01, value: tc, show: (x) => fmt(x, 2) + "% per °C" }, (x) => { tc = x; draw(); }).el, ro);
+          draw();
+        },
+        `<p class="aside">Datasheets quote the typical corner at 25 °C. The penalties multiply. The book's library: 27%, 71%/V, 0.13%/°C gives 1.62× in the slow corner. Always ask which corner a number is for.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "SS process +25%, 80%/V derating at 10% low supply on 1 V, 0.15%/°C over 100 °C. Worst-case delay factor?", a: 1.5525, tol: 0.01, why: "1.25 × 1.08 × 1.15 = 1.55." },
+        { t: "mcq", q: "Which corner do you use to check hold-time races?", opts: [["Fast everything (FFFFF): data arrives as early as possible", true, "Races fail when things are too fast."], ["SSSSS", false, "That's for setup / max delay."], ["TTTTT", false, "Races must work in every corner."]] },
+      ]},
+      { k: "learn", title: "Quick FO4 estimates", b: [
+        `<div class="eq">FO4 ≈ L<sub>eff</sub> × 0.36 ps/nm (TTTT), 0.50 (TTSS), 0.60 (SSSS)</div>`,
+        `<p>L<sub>eff</sub> is usually 0.5–0.7 of drawn length. A 180 nm process with L<sub>eff</sub> = 100–140 nm: FO4 ≈ 50–70 ps in the TTSS corner where design usually happens.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why aren't all four combinations of fast and slow nMOS and pMOS equally likely?", model: "Some parameters, like oxide thickness, are shared by both transistor types, so they move together. You can't get a slow nMOS with thick oxide and a fast pMOS with thin oxide on the same die at the same time. The corners form a skewed box rather than a square, and the FS and SF corners are less extreme than FF and SS." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 3 =============== */
+  const p3 = {
+    id: "p3", title: "Reliability and oxide wearout", mins: 20,
+    blurb: "FIT and MTBF, the bathtub curve, accelerated testing, hot carriers, NBTI, TDDB.",
+    takeaway: "Failure: deviation from spec; caused by faults (bugs, defects, wearout, disturbances, abuse); some faults are masked. MTBF = (devices × hours)/failures. FIT = failures per 10⁹ device-hours: 1000 FIT = one failure per 10⁶ h (114 years) per chip, but systems multiply it (100 chips × 1000 FIT × 10 systems = 10⁶ FIT: one failure per 1000 h). Target < 100 FIT. Bathtub curve: infant mortality, useful life, wearout; burn-in (high V, T) ages parts past infant mortality. Wearout is exponential in V and T, so accelerated life tests extrapolate to 10 years (IBM 32 nm oxides: > 10 years at 10% above 0.9 V). Oxide wearout shifts V_t and raises gate leakage; processes specify a maximum voltage. Hot carriers: energetic electrons trapped in the oxide (nMOS slower, pMOS faster); worst for large V_ds while on (inverters, NORs with fast inputs and heavy loads); limit input rise time and stage effort; dangerous to matched circuits. NBTI: traps form at the Si-SiO₂ interface under strong negative gate bias (pMOS with gate 0, source V_DD) at high temperature; ΔV_t = k·e^(E_ox/E₀)·t^0.25; the dominant nanometer wearout; burn-in locks in most of it; simulate with end-of-life shifts. TDDB: stress-induced leakage current grows until breakdown; exponential in temperature and thickness; keep E_ox = V_DD/t_ox below ~0.7 V/nm for 10 years at 125 °C; overshoot on supplies and I/O makes it worse.",
+    steps: [
+      { k: "learn", title: "Speaking reliability", b: [
+        `<ul><li><b>MTBF</b>: mean time between failures = device-hours ÷ failures.</li><li><b>FIT</b>: failures per 10<sup>9</sup> device-hours. 1000 FIT = one failure per million hours per chip: 114 years. Sounds great…</li><li>…until you build a system of 100 chips and sell many: <b>FITs add</b>. Target under 100 FIT per chip.</li></ul>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "A customer installs 20 systems, each with 50 chips rated at 200 FIT. Expected hours between failures across their fleet?", a: 5000, tol: 0.01, unit: "hours", hint: "Total FIT = 200 × 50 × 20.", why: "200,000 FIT = 2×10⁵ failures per 10⁹ h → one per 5000 h (about 7 months)." },
+      ]},
+      { k: "learn", title: "The bathtub", b: [
+        `<div class="two"><div class="tile"><h3>Infant mortality</h3><p>Weak parts fail early. <b>Burn-in</b> (hot, high voltage) ages them before shipping.</p></div><div class="tile"><h3>Wearout</h3><p>After the useful life, failures rise again. Wearout speeds up exponentially with voltage and temperature, so <b>accelerated tests</b> extrapolate 10 years from weeks.</p></div></div>`,
+      ]},
+      { k: "learn", title: "How gate oxides wear out", b: [
+        `<div class="tbl"><table><tbody>
+          <tr><td><b>Hot carriers</b></td><td>Energetic electrons get stuck in the oxide: nMOS get slower. Worst with large V<sub>ds</sub> while on: fast inputs, heavy loads. Limit rise times and stage effort.</td></tr>
+          <tr><td><b>NBTI</b></td><td>pMOS with gate at 0 and source at V<sub>DD</sub>, hot: interface traps build up, |V<sub>t</sub>| rises as t<sup>0.25</sup>. The biggest wearout effect in nanometer processes.</td></tr>
+          <tr><td><b>TDDB</b></td><td>Leakage through the oxide slowly grows until it breaks down and shorts. Keep E<sub>ox</sub> = V<sub>DD</sub>/t<sub>ox</sub> below ~0.7 V/nm for 10 years at 125 °C.</td></tr></tbody></table></div>`,
+        seenV("Gate oxide thickness and tunnelling.", "02-mos-transistor.html#p6", "Chapter 2, Part 6"),
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "NBTI shift grows as t^0.25. If a pMOS shifts 20 mV in its first year, roughly how much by 10 years?", a: 35.6, tol: 0.02, unit: "mV", why: "20 × 10^0.25 = 20 × 1.78 = 35.6 mV. Most of the shift happens early." },
+        { t: "num", q: "An oxide is 1.2 nm thick. Highest V_DD that keeps E_ox under 0.7 V/nm?", a: 0.84, tol: 0.01, unit: "V", why: "0.7 × 1.2 = 0.84 V." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "How can a company promise a 10-year life without testing for 10 years?", model: "Wearout mechanisms speed up exponentially with voltage and temperature. So they stress parts at much higher voltage and temperature, measure how long they take to fail, and fit the exponential relationship. Extrapolating back to normal operating conditions predicts the lifetime, which must exceed 10 years with margin." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 4 =============== */
+  const p4 = {
+    id: "p4", title: "Wires wear out too", mins: 20,
+    blurb: "Electromigration in DC lines, self-heating in AC lines.",
+    takeaway: "High current density J = I/(wt) damages wires. Unidirectional (DC) currents: electromigration, an 'electron wind' that moves metal atoms and forms voids (worst in aluminium, eased with Al-Cu/Al-Si alloys; copper much better). Black's equation: MTTF ∝ J_dc^(−n)·e^(E_a/kT), n ≈ 2. Conservative limits: aluminium 1–2 mA/µm² at 110 °C; copper ~10 mA/µm²; contacts may be tighter. Since I_dc = αCV_DDf, a DC-limited wire can switch at most C = I_dc,max/(αV_DDf). Bidirectional currents: self-heating (oxide insulates, wire heats, resistance and EM get worse; peaks may melt it); set by RMS current: I_rms ≈ 1.26·C·V_DD·√(αf/t_r) for triangular switching pulses (t_r is the 20–80% rise time); conservative J_rms < 15 mA/µm² for Al; so C < I_rms,max/(1.26 V_DD √(αf/t_r)). EM limits power and ground lines and the lines from supplies to transistors; RMS limits signal lines; fix by widening wires or shrinking transistors.",
+    steps: [
+      { k: "learn", title: "Electromigration", b: [
+        `<p>A strong one-way current blows metal atoms downstream like a wind, leaving voids that eventually open the wire. Black's equation:</p>`,
+        `<div class="eq">MTTF ∝ J<sub>dc</sub><sup>−2</sup> · e<sup>E<sub>a</sub>/kT</sup></div>`,
+        `<p>Double the current density: a quarter of the life. Rough limits: aluminium 1–2 mA/µm², copper ~10 mA/µm². It hits <b>power and ground</b> wires, and the short wires from the rails to transistors.</p>`,
+      ]},
+      { k: "learn", title: "Self-heating", b: [
+        `<p>Signal wires carry current both ways, so electromigration is mild. But current heats the wire, and the surrounding dielectric is a thermal insulator. Hot wires are more resistive and electromigrate faster. This depends on the <b>RMS</b> current:</p>`,
+        `<div class="eq">I<sub>rms</sub> ≈ 1.26 C V<sub>DD</sub> √(αf / t<sub>r</sub>)</div>`,
+        `<p class="aside">From modelling each switching edge as a triangular current pulse. Faster edges and higher frequency both raise it.</p>`,
+      ]},
+      { k: "play", title: "How much can one wire drive?", b: [
+        (host, id) => {
+          const ro = el(`<div></div>`);
+          let C = 500, f = 2, tr = 25, a = 1;
+          function draw() { const Irms = 1.26 * C * 1e-15 * 1 * Math.sqrt((a * f * 1e9) / (tr * 1e-12)), Idc = a * C * 1e-15 * 1 * f * 1e9; ro.innerHTML = readout([["Average (DC-like) current αCVf", si(Idc, "A")], ["RMS current", si(Irms, "A")], ["Width needed at J_rms 10 mA/µm² (1 µm thick)", fmt((Irms * 1e3) / 10, 3) + " µm"]]); }
+          host.append(slider({ id: id + "-c", label: "Wire + load capacitance", min: 50, max: 3000, step: 10, value: C, show: (x) => x + " fF" }, (x) => { C = x; draw(); }).el,
+            slider({ id: id + "-f", label: "Frequency", min: 0.2, max: 5, step: 0.1, value: f, show: (x) => fmt(x, 2) + " GHz" }, (x) => { f = x; draw(); }).el,
+            slider({ id: id + "-t", label: "Rise time t_r", min: 5, max: 100, step: 1, value: tr, show: (x) => x + " ps" }, (x) => { tr = x; draw(); }).el,
+            toggle(["Clock (α = 1)", "Data (α = 0.1)"], (i) => { a = [1, 0.1][i]; draw(); }), ro);
+          draw();
+        },
+        `<p class="aside">V<sub>DD</sub> = 1 V. Clocks are the worst case: they switch every cycle with sharp edges.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "A clock (α = 1) at 2 GHz, 1 V, 25 ps rise time drives 500 fF. RMS current?", a: 5.63, tol: 0.02, unit: "mA", why: "1.26 × 500 fF × 1 V × √(2×10⁹/25×10⁻¹²) = 1.26 × 5×10⁻¹³ × 8.94×10⁹ = 5.6 mA." },
+        { t: "num", q: "A power strap is limited to 1 mA DC. With α = 0.1, V_DD = 1 V, f = 2 GHz, how much switched capacitance can it feed?", a: 5, tol: 0.01, unit: "pF", hint: "C = I/(αVf).", why: "10⁻³/(0.1 × 1 × 2×10⁹) = 5 pF." },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why is electromigration mainly a problem for power wires while self-heating limits signal wires?", model: "Electromigration needs a steady one-way flow of electrons to keep pushing atoms the same direction, which is what power and ground wires carry. Signal wires carry current back and forth, so the push largely cancels, but every pulse still heats the wire, so their limit is set by the RMS current and the resulting temperature rise." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 5 =============== */
+  const p5 = {
+    id: "p5", title: "Soft errors, overvoltage, latchup", mins: 25,
+    blurb: "Cosmic rays flip bits. Too many volts break oxides. Parasitic thyristors short the supplies.",
+    takeaway: "Soft errors: random, non-recurring upsets from radiation: originally alpha particles from trace uranium/thorium in packages (DRAMs in the 1970s; now purified), today mostly high-energy neutrons from cosmic rays shattering silicon nuclei into ions that leave electron-hole trails; carriers are collected at junctions (up to hundreds of fC) causing a single-event transient; if charge exceeds Q_crit (∝ node C × V, plus feedback) it's a single-event upset. Shrinking C and V reduce Q_crit; collected charge shrinks too, but net error rates rise. SRAM: 100–2000 FIT/Mb at sea level, ~100× more at flight altitude; ~1% of hits upset multiple nodes (substrate current turns on parasitic bipolars: use plenty of taps). Memories use error-correcting codes; registers increasingly need hardening; logic glitches are masked logically (path not sensitized), temporally (not sampled) or electrically (filtered) but less so at 65 nm and below. Overvoltage: supply transients and ESD; oxide breakdown V_bd ≈ a·t_ox + b/T + V₀ (a = 1.5 V/nm, b = 533 V·K): ~3 V hot at 65 nm; punchthrough between source and drain; processes specify V_max, and I/O uses thick-oxide, long-channel transistors. Latchup: the substrate/well/diffusions form a parasitic pnp + npn thyristor (SCR) with substrate and well resistances; a substrate current turns on the npn, which pulls the well down, turning on the pnp, which feeds the substrate: positive feedback shorts V_DD to GND until power is removed or wires melt. Prevent by small R_sub, R_well: taps close to every transistor (every 5–10), taps tied directly in metal, nMOS clustered near GND and pMOS near V_DD, epitaxial wafers, guard rings around I/O transistors (double rings for the paranoid). SOI and V_DD below ~1.4–2 V are immune.",
+    steps: [
+      { k: "learn", title: "Soft errors", b: [
+        `<p>A cosmic-ray neutron smashes a silicon nucleus; the fragments leave a trail of electrons and holes. A nearby junction collects them: a brief current spike. If the charge exceeds the node's <b>Q<sub>crit</sub></b> (about C × V), the bit flips: a <b>single-event upset</b>. Nothing is damaged; rewrite it and it's fine.</p>`,
+        `<ul><li>SRAM at sea level: 100–2000 FIT per megabit; ~100× more on an aeroplane.</li><li>Smaller nodes store less charge, so error rates keep rising.</li><li>Memories fix it with error-correcting codes; registers need hardening.</li><li>Logic glitches are often masked: the path isn't sensitized, the register isn't sampling, or the gate filters a too-short pulse.</li></ul>`,
+        `<p class="aside">History: in the 1970s Intel traced mysterious DRAM bit flips to alpha particles from traces of uranium in the package.</p>`,
+      ]},
+      { k: "learn", title: "Overvoltage", b: [
+        `<div class="eq">V<sub>bd</sub> ≈ a t<sub>ox</sub> + b/T + V<sub>0</sub>     (a ≈ 1.5 V/nm, b ≈ 533 V·K)</div>`,
+        `<p>Thin oxides break down at just a few volts, and any overvoltage accelerates wearout. So each process has a V<sub>max</sub>, and I/O pads use separate thick-oxide, long-channel transistors. Electrostatic discharge is the classic killer (Chapter 13).</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "Oxide 1.2 nm, temperature 400 K, V₀ ≈ 0. Breakdown voltage estimate?", a: 3.13, tol: 0.02, unit: "V", why: "1.5 × 1.2 + 533/400 = 1.8 + 1.33 = 3.1 V." },
+      ]},
+      { k: "learn", title: "Latchup", b: [
+        `<p>Inside every CMOS inverter hides a <b>thyristor</b>: the n+ source, p-substrate and n-well form an npn; the p+ source, n-well and substrate form a pnp. With the substrate and well resistances they're cross-coupled:</p>`,
+        `<ol><li>Some current raises the substrate voltage → the npn turns on.</li><li>Its current through the well resistance pulls the well down → the pnp turns on.</li><li>The pnp feeds more current into the substrate → back to 1. Positive feedback: V<sub>DD</sub> shorted to GND until the power is cut or the metal melts.</li></ol>`,
+        `<p><b>Prevention</b> is all about small R<sub>sub</sub> and R<sub>well</sub>: substrate and well taps close to every transistor, tied straight to the rails in metal; cluster nMOS by GND and pMOS by V<sub>DD</sub>; <b>guard rings</b> around I/O transistors, whose pins can ring outside the rails.</p>`,
+        `<p class="aside">SOI has no parasitic bipolars, and below about 1.4–2 V the loop can't sustain itself, so latchup is now a minor concern, except at I/O.</p>`,
+        seenV("Taps in the inverter cross-section.", "01-introduction.html#p7", "Chapter 1, Part 7"),
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "mcq", q: "Why does placing substrate taps close to every nMOS help prevent latchup?", opts: [["It lowers the substrate resistance, so stray current can't raise the substrate enough to turn on the parasitic npn", true, "Breaks the feedback loop at its first step."], ["It makes the nMOS faster", false, "It's about the parasitic bipolar."], ["Taps absorb cosmic rays", false, "Taps help with multi-node upsets a bit, but that's not latchup."]] },
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "What's the difference between a soft error and a hard failure?", model: "A soft error is a transient upset, typically radiation flipping a stored bit; the hardware isn't damaged, and rewriting the value fixes it. A hard failure, like oxide breakdown, electromigration voids or latchup burnout, permanently damages the circuit." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 6 =============== */
+  const SCALE = [
+    ["Length L, width W, t_ox", ["1/S", "1/S", "L only: 1/S"], null],
+    ["Supply V_DD, threshold V_t", ["1/S", "1", "1"], null],
+    ["Gate delay τ = RC", ["1/S", "1/S²", "1/S²"], [-1, -2, -2]],
+    ["Clock frequency f", ["S", "S²", "S²"], [1, 2, 2]],
+    ["Energy per gate CV²", ["1/S³", "1/S", "1/S"], [-3, -1, -1]],
+    ["Power per gate", ["1/S²", "S", "S"], [-2, 1, 1]],
+    ["Area per gate", ["1/S²", "1/S²", "1/S"], [-2, -2, -1]],
+    ["Power density", ["1", "S³", "S²"], [0, 3, 2]],
+  ];
+  const p6 = {
+    id: "p6", title: "Scaling", mins: 25,
+    blurb: "Dennard's rules: shrink everything, voltage too. What happens to delay, energy, power and wires.",
+    takeaway: "Feature size has shrunk ~30% every 2–3 years: faster, lower power, cheaper per transistor. Dennard (constant-field) scaling divides all dimensions, voltages by S and multiplies doping by S: delay 1/S, frequency S, energy per gate 1/S³, power per gate 1/S², area 1/S², power density constant, current density S. Constant-voltage scaling (5 V era, down to ~1 µm) gave quadratic delay improvement but higher fields (velocity saturation, breakdown, power), so Dennard scaling ruled from 0.5 µm. Lateral scaling (gate shrink, ~5% on mature processes). Generations use S = √2 (30% shrink: half the area per transistor; ~40% faster, half the power per gate). Voltage scaling slowed after 90 nm because of leakage. FO4 ≈ 0.5 ps/nm of L_eff. Unit transistor resistance ≈ 16.6 kΩ independent of feature size (C per µm constant, R·µm shrinks). Wires: scaled equally in w and t (aspect ratio ~2), R per length ∝ S², C per length constant (~0.2 fF/µm, ~1/5 of gate C per length); local wires shrink and keep up with gates; semiglobal repeated wires improve, but slower than gates; global wires don't shrink (dies grow slightly) and get slower: crossing the die takes multiple cycles; the reachable radius per cycle shrinks; more metal layers (TSMC: 3 at 500 nm to 10 at 65 nm); partition into 50–100 k-gate blocks. ITRS roadmap. Impacts: cost per transistor (100,000 per cent by 2008), power (power density soared with deep pipelining; ~150 W cap; leakage forced V_t ~300 mV, V_DD/V_t from ~5 toward 3; slowing V_DD scaling raises fields), variability, productivity (synthesis, IP reuse, big teams), physical limits (repeatedly predicted, repeatedly passed).",
+    steps: [
+      { k: "learn", title: "Dennard scaling", b: [
+        `<p>Shrink every dimension <b>and</b> the voltages by the same factor S, and raise doping by S. Fields stay constant, so the transistor behaves the same, just smaller and faster.</p>`,
+        `<p>A process generation is S = √2 (a “30% shrink”): each transistor takes half the area.</p>`,
+      ]},
+      { k: "play", title: "Three ways to scale", b: [
+        (host, id) => {
+          const tb = el(`<div class="tbl"></div>`), ro = el(`<div></div>`);
+          let m = 0, Sv = Math.SQRT2;
+          function draw() {
+            tb.innerHTML = `<table><thead><tr><th>Quantity</th><th>Factor</th></tr></thead><tbody>${SCALE.map(([q, fs]) => `<tr><td>${q}</td><td><b>${fs[m]}</b></td></tr>`).join("")}</tbody></table>`;
+            ro.innerHTML = readout(SCALE.slice(2).map(([q, , ex]) => [q, fmt(Math.pow(Sv, ex[m]), 3) + "×"]));
+          }
+          host.append(toggle(["Dennard (constant field)", "Constant voltage", "Lateral (gate shrink)"], (i) => { m = i; draw(); }), tb,
+            slider({ id: id + "-s", label: "Scale factor S", min: 1, max: 2, step: 0.01, value: Sv, show: (x) => fmt(x, 3) }, (x) => { Sv = x; draw(); }).el, ro);
+          draw();
+        },
+        `<p class="aside">Constant-voltage scaling (the 5 V era, down to about 1 µm) gave quadratic speed-ups, but power density exploded and fields grew until velocity saturation and breakdown stopped it. Dennard scaling has been the rule since 0.5 µm, though voltage scaling slowed after 90 nm because of leakage.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "Dennard scaling with S = √2. By what factor does switching energy per gate change?", a: 0.354, tol: 0.01, why: "1/S³ = 1/2.83 = 0.354." },
+        { t: "mcq", q: "Under ideal Dennard scaling, the chip's power density…", opts: [["Stays constant: power per gate ÷ area per gate = (1/S²)/(1/S²)", true, "More gates per mm², each using less."], ["Halves", false, "Area shrinks as fast as power."], ["Doubles", false, "That's what happened when voltage didn't scale."]] },
+      ]},
+      { k: "learn", title: "Wires don't scale as nicely", b: [
+        `<p>Wires shrink in width <i>and</i> thickness: resistance per length goes up as S<sup>2</sup>, capacitance per length stays put (still ~0.2 fF/µm).</p>`,
+        `<div class="tbl"><table><tbody><tr><td><b>Local</b> wires (inside a unit)</td><td>get shorter too: keep pace with gates</td></tr><tr><td><b>Semiglobal</b> (across a block)</td><td>repeated: improve, but slower than gates</td></tr><tr><td><b>Global</b> (across the die)</td><td>don't get shorter: get slower. Crossing the chip takes several cycles.</td></tr></tbody></table></div>`,
+        `<p>Responses: more metal layers (TSMC: 3 at 500 nm, 10 at 65 nm), thick upper layers, repeaters, blocks of 50–100 thousand gates, and microarchitectures that budget cycles for long wires.</p>`,
+        seenV("Repeated wires.", "06-interconnect.html#p7", "Chapter 6, Part 7"),
+      ]},
+      { k: "learn", title: "What scaling did next", b: [
+        `<ul><li><b>Cost:</b> by 2008, 100,000 transistors for a cent.</li><li><b>Power:</b> deep pipelining pushed power density past the ~150 W cooling limit; leakage held V<sub>t</sub> near 300 mV, so V<sub>DD</sub> stopped falling much.</li><li><b>Variability:</b> grows as devices shrink.</li><li><b>Productivity:</b> transistor counts outgrew designers: synthesis, IP reuse, huge teams.</li><li><b>Limits:</b> a 32 nm transistor's channel is under 100 atoms long. The end of scaling has been predicted “a decade away” for decades.</li></ul>`,
+        `<p class="aside">Since the book (2010): Dennard scaling effectively ended around 2005; finfets, then gate-all-around transistors, and 3D stacking kept density rising, and node names (“5 nm”, “3 nm”) became labels rather than any physical length.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why did the industry abandon constant-voltage scaling?", model: "Keeping the voltage fixed while shrinking the transistors raised the electric fields, so carriers became velocity saturated and shrinking stopped buying more current, the oxides and junctions risked breakdown, and the power density grew rapidly. Scaling the voltage along with the dimensions keeps the fields and the power density constant." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 7 =============== */
+  const MAXT = [[1, 0, 1], [2, 0.56, 0.82], [10, 1.54, 0.59], [100, 2.5, 0.43], [1000, 3.24, 0.35], [10000, 3.85, 0.3]];
+  const p7 = {
+    id: "p7", title: "Statistics of variation", mins: 30,
+    blurb: "Sums add in quadrature. The worst of many paths is far from typical. Leakage is log-normal.",
+    takeaway: "PDF f(x): probability density; CDF F(x) = P(X < x), its integral; mean E[X]; standard deviation σ; variance σ². Focus on zero-mean variations X = mean + X_v. Uniform on ±a: σ² = a²/3. Standard normal: F(x) = ½(1 + erf(x/√2)); tail beyond 1σ 0.159, 2σ 0.0228, 3σ 1.35×10⁻³, 4σ 3.17×10⁻⁵, 5σ 2.87×10⁻⁷, 6σ 9.87×10⁻¹⁰. Sums of independent variables: means add, variances add (σ² = Σσ_i²; root-sum-square); central limit theorem lets you replace uniform with normal of equal variance. Maximum of N independent standard normals: E[M] = 0.56 (2), 1.54 (10), 2.50 (100), 3.24 (1000), 3.85 (10⁴), 4.40 (10⁵); σ(M) shrinks (0.82 → 0.28): many near-critical paths form a 'wall' well above nominal. Book example: 100 paths of 400 ± 20 ps → 450 ± 9 ps. e^Y of a normal Y is log-normal: mean e^(µ + σ²/2), a long tail (leakage is like this). Monte Carlo simulation: random samples of every variable, simulate, collect statistics, when no closed form exists.",
+    steps: [
+      { k: "learn", title: "Adding variations", b: [
+        `<p>A path's delay is a sum of gate delays. If each varies independently:</p>`,
+        `<div class="eq">mean = Σ means     σ<sup>2</sup> = Σ σ<sub>i</sub><sup>2</sup>   (root-sum-square)</div>`,
+        `<p>So independent variations partly cancel: 16 gates each ±4% give a path only ±1%. Fully correlated variations (all gates fast together) don't cancel.</p>`,
+        `<p class="aside">A uniform variation on ±a has σ = a/√3; with many terms you can treat it as normal with that σ (central limit theorem).</p>`,
+        mathLink("Random variables and their sums:", "34-probability.html", "Math 34"),
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "Two independent delay contributions have σ = 6 ps and 8 ps. Combined σ?", a: 10, tol: 0.01, unit: "ps", why: "√(36 + 64) = 10 ps." },
+      ]},
+      { k: "play", title: "The worst of many paths (Monte Carlo)", b: [
+        (host, id) => {
+          const f = el(`<div class="fig"></div>`), ro = el(`<div></div>`);
+          let lgN = 2, maxes = [];
+          const nom = 400, sg = 20, runs = 400;
+          function run() {
+            const N = Math.round(Math.pow(10, lgN)); maxes = [];
+            for (let r = 0; r < runs; r++) { let m = -1e9; for (let i = 0; i < N; i++) { const d = nom + sg * gauss(); if (d > m) m = d; } maxes.push(m); }
+            draw();
+          }
+          function draw() {
+            const bins = new Array(30).fill(0); maxes.forEach((m) => { const b = Math.floor((m - 340) / 7); if (b >= 0 && b < 30) bins[b]++; });
+            const pts = []; bins.forEach((c, i) => { pts.push([340 + i * 7, 0], [340 + i * 7, c / runs], [340 + (i + 1) * 7, c / runs], [340 + (i + 1) * 7, 0]); });
+            const mean = maxes.reduce((a, b) => a + b, 0) / runs, sd = Math.sqrt(maxes.reduce((a, b) => a + (b - mean) ** 2, 0) / runs);
+            const one = (x) => (Math.exp(-((x - nom) ** 2) / (2 * sg * sg)) / (sg * Math.sqrt(2 * Math.PI))) * 7;
+            f.innerHTML = plot({ x: [340, 550], y: [0, 0.4], xt: [350, 400, 450, 500, 550], yt: [0, 0.2, 0.4], xl: "longest path delay (ps)", yl: "fraction of chips", series: [{ f: one, cls: "s5" }, { pts, cls: "s1" }], label: "Monte Carlo distribution of the longest path" });
+            const N = Math.round(Math.pow(10, lgN)), row = MAXT.reduce((b, r) => (Math.abs(Math.log10(r[0]) - lgN) < Math.abs(Math.log10(b[0]) - lgN) ? r : b));
+            ro.innerHTML = readout([["Paths per chip", String(N)], ["Monte Carlo mean of the worst", fmt(mean, 3) + " ps"], ["Its spread σ", fmt(sd, 3) + " ps"], [`Table (N = ${row[0]})`, `${fmt(nom + row[1] * sg, 3)} ± ${fmt(row[2] * sg, 2)} ps`]]);
+          }
+          const go = btn("Run 400 chips again", "primary"); go.addEventListener("click", run);
+          host.append(f, slider({ id: id + "-n", label: "Near-critical paths per chip", min: 0, max: 3.5, step: 0.5, value: lgN, show: (x) => String(Math.round(Math.pow(10, x))) }, (x) => { lgN = x; run(); }).el, go, ro);
+          run();
+        },
+        `<p class="aside">Each path: 400 ps nominal, σ = 20 ps (dashed: one path's distribution). Each “chip” is as slow as its slowest path. With more near-critical paths the worst case moves right and gets <i>narrower</i>: a wall 2–3σ above nominal.</p>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "A chip has 1000 near-critical paths, each 300 ps nominal, σ = 15 ps. Expected critical path delay? (Use E[M] = 3.24.)", a: 348.6, tol: 0.01, unit: "ps", why: "300 + 3.24 × 15 = 348.6 ps, with σ only 0.35 × 15 = 5.3 ps." },
+      ]},
+      { k: "learn", title: "Leakage is log-normal", b: [
+        `<p>Leakage ∝ e<sup>−V<sub>t</sub>/(nv<sub>T</sub>)</sup>, and V<sub>t</sub> is roughly normal, so leakage is <b>log-normal</b>: a long tail of very leaky devices. Its mean is e<sup>µ + σ²/2</sup>, higher than the leakage of a typical device.</p>`,
+        `<p>When no formula exists, use <b>Monte Carlo</b>: draw random values for every parameter, simulate, repeat thousands of times, and look at the distribution, just like the widget above.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why does having many nearly critical paths make a chip slower than its nominal path delay?", model: "The chip's speed is set by its slowest path. Each path varies randomly, so with many of them it becomes very likely that at least one lands far out in the slow tail. The expected maximum grows roughly with the log of the number of paths, so the effective critical path ends up two or three standard deviations above nominal." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 8 =============== */
+  const p8 = {
+    id: "p8", title: "Where variation comes from, and what it costs", mins: 30,
+    blurb: "Pelgrom's law, channel length, random dopants. ON vs OFF current. Yield.",
+    takeaway: "Variation kinds: systematic (modelable: e.g. etch vs pattern density), random (true randomness or too costly to model), drift (aging, temperature: slow), jitter (supply noise, crosstalk: fast, hardest). Static ones can be calibrated out once; drift needs tracking. Functional yield (gross defects) vs parametric yield (too slow, too leaky, too little margin). Pelgrom: σ of random WID variation ∝ 1/√(WL). Channel length: across-chip linewidth variation (ACLV: lithography and pattern-dependent etch: nested vs isolated lines, orientation, topography) and line-edge roughness (∝ 1/√W; ~4 nm at 35 nm); draw gates one way, keep densities uniform, dummy rows at array edges; ITRS target σ/µ = 4%. Threshold: random dopant fluctuation σ_Vt = A_Vt/√(LW) (~10 mV at 90 nm, 30 mV at 50 nm, 40 mV at 25 nm for minimum devices; high-k metal gates better: A_Vt ≈ 1–2.5 mV·µm); V_t also tracks L via short-channel effect. Oxide thickness: tiny effect. Layout: well-edge proximity (up to 10%), STI stress. Sensitivities: ΔI_on/I_on ≈ ΔL/L·(−1) − αΔV_t/(V_DD − V_t); ΔI_off/I_off ≈ −ΔL/L − ΔV_t/(nv_T): 10 mV of V_t changes I_on ~1.8% but I_off ~23%. Path delay: correlated parts don't average, independent parts divide variance by the number of transistors. Combine D2D and WID by RSS; book example → 1.28T clock for 97.7% yield. Energy: dynamic barely affected; leakage up exponentially (systematic 3σ shift: e^(3σ/nv_T); random: mean factor e^(½(σ/nv_T)²)). Variation pushes best EDP to higher V_DD and V_t. Functionality: ratioed circuits, SRAM, keepers, subthreshold, sense amps, matched delays; bigger transistors help. Yield: Y_s = Y_c^N; defects: Y = e^(−DA) (Poisson). Matched delays need ~30% margin across corners; prefer replicas or clock-based timing.",
+    steps: [
+      { k: "learn", title: "Pelgrom's law", b: [
+        `<p>Random within-die variation averages out over area:</p>`,
+        `<div class="eq">σ ∝ 1/√(W L)     e.g. σ<sub>Vt</sub> = A<sub>Vt</sub>/√(WL)</div>`,
+        `<ul><li><b>Channel length:</b> lithography and etch (depends on nearby patterns and orientation), plus line-edge roughness. Draw all gates in one direction; keep pattern density uniform; add dummy rows around arrays.</li><li><b>Threshold:</b> random dopant fluctuation: a tiny channel has only tens of dopant atoms. Minimum devices: ~10 mV σ at 90 nm, ~30 mV at 50 nm.</li><li><b>Layout:</b> well-edge proximity, stress from trench isolation.</li></ul>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "A_Vt = 2 mV·µm. A transistor is 0.2 µm × 0.05 µm. σ_Vt?", a: 20, tol: 0.01, unit: "mV", hint: "√(WL) = √0.01 µm².", why: "2 / 0.1 = 20 mV. Quadruple the area to halve it." },
+      ]},
+      { k: "play", title: "ON current shrugs, OFF current jumps", b: [
+        (host, id) => {
+          const ro = el(`<div></div>`);
+          let dvt = 20, dl = 0;
+          function draw() { const a = 1.3, on = (1 - dl / 100) * Math.pow((1 - 0.3 - dvt / 1000) / 0.7, a), off = (1 - dl / 100) * Math.exp(-dvt / 1000 / (1.6 * 0.026)); ro.innerHTML = readout([["ON current", fmt((on - 1) * 100, 3) + "%"], ["OFF current", fmt((off - 1) * 100, 3) + "%"], ["OFF ÷ nominal", fmt(off, 3) + "×"]]); }
+          host.append(slider({ id: id + "-v", label: "Threshold shift ΔV_t", min: -60, max: 60, step: 1, value: dvt, show: (x) => x + " mV" }, (x) => { dvt = x; draw(); }).el,
+            slider({ id: id + "-l", label: "Channel length change ΔL", min: -10, max: 10, step: 0.5, value: dl, show: (x) => x + "%" }, (x) => { dl = x; draw(); }).el, ro);
+          draw();
+        },
+        `<p class="aside">V<sub>DD</sub> = 1 V, V<sub>t</sub> = 0.3 V, α = 1.3, n = 1.6 (S ≈ 96 mV/decade). Small V<sub>t</sub> shifts barely touch speed but swing leakage hugely, and since leakage is exponential, a −σ device adds more than a +σ device saves.</p>`,
+      ]},
+      { k: "learn", title: "From transistors to chips", b: [
+        `<ul><li><b>Path delay:</b> correlated variation (whole-region length shift) passes straight through; independent variation (dopants) averages over the transistors in the path. Fewer gates per pipeline stage = less averaging.</li><li><b>Leakage:</b> a systematic V<sub>t</sub> shift multiplies all leakage; random shifts raise the average because of the exponential's tail.</li><li><b>Function:</b> ratioed circuits, SRAM cells, keepers, sense amplifiers and matched delays can fail outright. Bigger transistors help.</li></ul>`,
+        `<div class="eq">Y<sub>system</sub> = Y<sub>component</sub><sup>N</sup>     Y = e<sup>−DA</sup> (random defects, density D, area A)</div>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "Defect density 0.5 per cm². Yield of a 1 cm² die?", a: 60.7, tol: 0.01, unit: "%", why: "e^(−0.5) = 0.607. Double the area: 36.8%." },
+        { t: "num", q: "A memory has 512 sense amplifiers; the whole memory must reach 99% yield. Each amplifier's offset is normal with σ = 10 mV. How many mV of offset must the design tolerate (two-sided)?", a: 42.7, tol: 0.03, unit: "mV", hint: "Each needs 0.99^(1/512) ≈ 0.99998; find the σ multiple whose two tails total 2×10⁻⁵.", why: "About 4.27σ → 43 mV." },
+      ]},
+      { k: "learn", title: "Matched delays are risky", b: [
+        `<p>Some circuits rely on one path being slower than another (e.g. a delayed clock that must arrive after the data). An inverter chain doesn't track a wire or a complex gate across corners: differences of up to ~30% appear. So matched delays need ~30% nominal margin, ideally adjustable after manufacture. Better: use a <b>replica</b> of the real circuit, or time things from the clock (failures can then be fixed by slowing the clock).</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "Why does random threshold variation affect a long path's delay much less than a single gate's?", model: "Each transistor's threshold varies independently, so in a path of many gates some are fast and some slow, and they partly cancel. The path's variance is the sum of the individual variances, so its standard deviation grows only with the square root of the number of transistors while the delay grows linearly. Correlated variations like a regional length shift don't cancel." },
+      ]},
+    ],
+  };
+
+  /* =============== PART 9 =============== */
+  const p9 = {
+    id: "p9", title: "Designing for variation, pitfalls, history", mins: 20,
+    blurb: "Measure and adapt. Spare parts. Triple redundancy. And the 4004 to Core i7.",
+    takeaway: "Margins for variation cost performance and power, so chips adapt. Adaptive control: measure conditions and adjust supply, body bias, frequency or activity: adaptive body bias corrects die-to-die V_t (leakage spread, speed); adaptive voltage scaling trades frequency and energy (needs ~20 mV resolution); per-block control; turbo modes when only some cores are busy; thermal sensors throttle (dual-core Itanium microcontroller every 20 ms). Fault tolerance: spare rows/columns in memories, spare cores (sell an 8-core part as 6-core); with up to r repairs, Y_s = Σ_{i≤r} C(N, i)Y_c^(N−i)(1 − Y_c)^i (or the Poisson form e^(−DA)Σ(DA)^i/i!); book: 16 cores at 90%: 18.5% → 78.9% with two spares. Error-correcting codes for memories and links. Logic: master-checker lockstep with checkpoints and rollback (IBM S/390 G5); triple-modular redundancy with voting: system failure P_s = 3P_m² − 2P_m³ (masks one failure without slowing). Pitfalls: quoting performance without corner/temperature ('colder than an ice cube'; FFFFF is the 'published paper' corner, ~2× a manufacturable part); too little matched-delay margin (a mask respin costs ~$1M); not planning for scaling (Pentium Pro's BiCMOS and wire-limited paths needed rework; Pentium 4 over-engineered wire paths). History: Intel 4004 (1971, 2300 transistors, hand-cut rubylith, diagonal wires) → 286, 386, 486 (cache, FPU), Pentium, P6 (micro-ops, out of order), Pentium 4 (deep pipeline, ~14 FO4, power downfall), Pentium M/Core (back to efficiency), multicore Core i7, Atom (simple in-order, low power).",
+    steps: [
+      { k: "learn", title: "Adapt instead of margining", b: [
+        `<p>Margining for the worst case wastes speed and power on every typical chip. Instead, measure and adjust:</p>`,
+        `<ul><li><b>Adaptive body bias:</b> shift V<sub>t</sub> to pull slow chips faster and leaky chips tighter.</li><li><b>Adaptive voltage:</b> give each chip (or block) just enough V<sub>DD</sub> for its speed, in ~20 mV steps.</li><li><b>Turbo:</b> run one core faster while the others sleep.</li><li><b>Thermal throttling:</b> sensors slow things down before hot spots overheat.</li></ul>`,
+        seenV("DVS and body bias.", "05-power.html#p5", "Chapter 5, Part 5"),
+      ]},
+      { k: "learn", title: "Spares and redundancy", b: [
+        `<p><b>Spares:</b> memories have spare rows and columns; an 8-core die with a dead core can be sold as a 6-core part. If up to r failures can be repaired among N components each with yield Y<sub>c</sub>, add the probabilities of 0, 1, …, r failures (binomial).</p>`,
+        `<p><b>Error-correcting codes</b> for memories and links. For logic: <b>master-checker</b> (two copies in lockstep; on disagreement, roll back to a checkpoint) or <b>triple-modular redundancy</b> (three copies vote):</p>`,
+        `<div class="eq">P<sub>TMR fails</sub> = 3P<sub>m</sub><sup>2</sup> − 2P<sub>m</sub><sup>3</sup></div>`,
+      ]},
+      { k: "check", title: "Your turn", b: [
+        { t: "num", q: "An 8-core die; each core works with probability 0.85. Yield if all 8 must work?", a: 27.2, tol: 0.02, unit: "%", why: "0.85⁸ = 0.272." },
+        { t: "num", q: "Same die, but it can still be sold as a 7-core part if one core fails. Sellable yield?", a: 65.7, tol: 0.02, unit: "%", hint: "Add P(exactly one bad) = 8 × 0.85⁷ × 0.15.", why: "0.272 + 0.385 = 0.657." },
+        { t: "num", q: "A module fails with probability 2% over a mission. A TMR system's failure probability?", a: 0.1184, tol: 0.02, unit: "%", why: "3(0.02)² − 2(0.02)³ = 0.0012 − 0.000016 = 0.118%." },
+      ]},
+      { k: "check", title: "Pitfalls", b: [
+        { t: "sort", q: "Sound or pitfall?", bins: ["Sound", "Pitfall"], items: [
+          ["Quoting a circuit's speed measured on a chilled chip without saying so", 1, "One famous processor demo was 'colder than an ice cube'."],
+          ["Reporting delays in FO4 at a stated corner", 0, "Comparable across processes."],
+          ["Giving a matched delay chain 5% margin over the path it tracks", 1, "Corners alone can shift it ~30%."],
+          ["Over-designing wire-heavy paths knowing wires won't speed up in future shrinks", 0, "What the Pentium 4 team did."],
+          ["Making a matched-delay margin adjustable with fuses after manufacture", 0, "Avoids extreme conservatism."],
+        ]},
+      ]},
+      { k: "why", title: "Four decades of Intel processors", b: [
+        `<p>The <b>4004</b> (1971): 2300 transistors, one metal layer, hand-cut rubylith masks with diagonal wires. The <b>286</b> and <b>386</b>: regular datapaths, PLAs, then synthesized control logic. The <b>486</b> brought the cache and floating-point unit on chip; the <b>Pentium</b> went superscalar; the <b>P6</b> translated x86 into micro-ops executed out of order, with caches eating more and more of the die. The <b>Pentium 4</b> chased clock rate with 20–30 pipeline stages and ~14 FO4 per cycle, and its power killed it in laptops. From the <b>Pentium M</b> on, efficiency returned: clocks levelled at 2–3 GHz and performance came from more cores. The <b>Atom</b> went back to a simple in-order Pentium-like pipeline for all-day netbooks.</p>`,
+      ]},
+      { k: "say", title: "Say it back", b: [
+        { t: "say", q: "How does triple-modular redundancy keep working when one module fails?", model: "Three identical modules compute the same result and a voter outputs the majority. If one module fails, the other two still agree, so the output stays correct with no delay or rollback. The system only fails if two or more modules fail, which is much less likely when each module is reliable." },
+      ]},
+    ],
+  };
+
+  window.CHAPTER = {
+    id: "vlsi7", eyebrow: "CMOS VLSI · Chapter 7", title: "Robustness",
+    intro: `<p>Nine parts: PVT variation, process corners, reliability and oxide wearout, wire wearout, soft errors and latchup, scaling, statistics of variation, its sources and costs, and variation-tolerant design.</p><p>You'll use normal distributions (Math 34–35), Chapter 2's leakage model and Chapter 5's DVS. Arrow keys ← → move between steps.</p>`,
+    after: `<p>Do the chapter's exercises in the book. Several are probability problems: write down which variations are correlated and which are independent before you add anything.</p><p>Stuck? Tell Claude which exercise and what you've tried. You'll get a guiding question first, not the answer.</p>`,
+    parts: [p1, p2, p3, p4, p5, p6, p7, p8, p9],
+    summary: `
+      <h3>Variation</h3>
+      <p>PVT. Normal tails: 1σ 15.9%, 2σ 2.28%, 3σ 0.135% per side. Lot/wafer/die/within-die. Corners nMOS-pMOS-wire-V-T; derating factors multiply.</p>
+      <h3>Reliability</h3>
+      <p>FIT = failures per 10⁹ h; they add. Bathtub; burn-in; accelerated tests. Hot carriers, NBTI (t<sup>0.25</sup>), TDDB (E<sub>ox</sub> &lt; 0.7 V/nm). Electromigration MTTF ∝ J<sup>−2</sup>e<sup>E<sub>a</sub>/kT</sup>; self-heating I<sub>rms</sub> ≈ 1.26CV√(αf/t<sub>r</sub>). Soft errors (Q<sub>crit</sub>, ECC); overvoltage; latchup (taps, guard rings).</p>
+      <h3>Scaling</h3>
+      <p>Dennard: delay 1/S, energy 1/S³, power/gate 1/S², density constant. Wires: R/length ×S², C/length constant; global wires slow down.</p>
+      <h3>Statistics</h3>
+      <p>Variances add. Max of N normals: 2.5σ (100), 3.24σ (1000). Pelgrom σ ∝ 1/√(WL). ΔV<sub>t</sub> hurts leakage far more than speed. Y = Y<sub>c</sub><sup>N</sup>, Y = e<sup>−DA</sup>.</p>
+      <h3>Tolerance</h3>
+      <p>Adaptive body bias and voltage, thermal throttling, spares (binomial), ECC, master-checker, TMR 3P<sup>2</sup> − 2P<sup>3</sup>. ~30% margin for matched delays.</p>`,
+  };
+  Course.start(window.CHAPTER);
+})();
+</script>
+</body>
+</html>

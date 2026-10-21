@@ -1,0 +1,613 @@
+<title>The Balance Scale</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one lesson card at a time on engineering graph paper; a step rail on top, Back/Next at the bottom. */
+:root {
+  --paper: #eaf0f4;
+  --grid: rgba(40, 90, 140, 0.08);
+  --card: #ffffff;
+  --ink: #142238;
+  --muted: #56677d;
+  --line: #d2dce6;
+  --accent: #e39a0b;
+  --accent-soft: #fdf1d8;
+  --accent-ink: #7a4d00;
+  --good: #1d8656;
+  --good-soft: #def4e9;
+  --bad: #c2412a;
+  --bad-soft: #fbe5e0;
+  --post: #9fb0c4;
+  --pan: #c9d5e2;
+  --block: #142238;
+  --block-ink: #ffffff;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1520; --grid: rgba(120, 170, 220, 0.07); --card: #16212f; --ink: #e5edf6; --muted: #98a8bc;
+    --line: #2a3a4e; --accent: #f3b53c; --accent-soft: #3a2d10; --accent-ink: #f8d68f; --good: #43c88d;
+    --good-soft: #123426; --bad: #f2735a; --bad-soft: #3d1c16; --post: #4b5d73; --pan: #33465c;
+    --block: #e5edf6; --block-ink: #0d1520; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1520; --grid: rgba(120, 170, 220, 0.07); --card: #16212f; --ink: #e5edf6; --muted: #98a8bc;
+  --line: #2a3a4e; --accent: #f3b53c; --accent-soft: #3a2d10; --accent-ink: #f8d68f; --good: #43c88d;
+  --good-soft: #123426; --bad: #f2735a; --bad-soft: #3d1c16; --post: #4b5d73; --pan: #33465c;
+  --block: #e5edf6; --block-ink: #0d1520; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+.wrap {
+  max-width: 660px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+  display: grid;
+  gap: 16px;
+}
+
+/* Header + step rail */
+header { display: grid; gap: 10px; }
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted);
+}
+h1 {
+  font-family: var(--display); font-weight: 800; font-size: clamp(30px, 7vw, 42px);
+  line-height: 1.05; margin: 0; text-wrap: balance;
+}
+.rail { display: flex; gap: 6px; align-items: center; }
+.rail button {
+  flex: 1; height: 8px; border-radius: 4px; border: 0; padding: 0; cursor: pointer;
+  background: var(--line);
+}
+.rail button.done { background: var(--accent); opacity: 0.55; }
+.rail button.now { background: var(--accent); }
+.rail button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.where { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.where b { color: var(--ink); }
+
+/* Card */
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 22px 20px; display: grid; gap: 16px; min-width: 0;
+}
+.card h2 {
+  font-family: var(--display); font-weight: 600; font-size: 25px; line-height: 1.15;
+  margin: 0; text-wrap: balance;
+}
+.card p { margin: 0; max-width: 60ch; }
+.tag {
+  justify-self: start; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent-ink);
+}
+.big-eq {
+  font-family: var(--mono); font-weight: 700; font-size: clamp(34px, 10vw, 52px);
+  text-align: center; padding: 18px 0; letter-spacing: 0.02em;
+}
+.big-eq .v { color: var(--accent); }
+.facts { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.facts li { display: flex; gap: 10px; align-items: baseline; }
+.facts .k { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 4.5em; }
+
+/* Scale */
+.scale-box { display: grid; gap: 6px; }
+.scale { width: 100%; max-width: 100%; height: auto; display: block; }
+.scale .pan-text { font-family: var(--mono); font-weight: 700; font-size: 17px; fill: var(--block-ink); }
+.scale .pan-val { font-family: var(--mono); font-size: 14px; fill: var(--muted); }
+.status {
+  justify-self: center; font-weight: 700; font-size: 15px; padding: 4px 14px; border-radius: 999px;
+}
+.status.ok { background: var(--good-soft); color: var(--good); }
+.status.tip { background: var(--bad-soft); color: var(--bad); }
+
+/* Controls */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; flex-wrap: wrap; }
+.seg button {
+  font: inherit; font-size: 15px; padding: 8px 14px; border: 0; background: transparent; color: var(--ink);
+  cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); font-weight: 700; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.label { font-size: 14px; color: var(--muted); }
+.btn {
+  font: inherit; font-size: 16px; padding: 10px 16px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+}
+.btn:hover { border-color: var(--ink); }
+.btn.op { font-family: var(--mono); font-weight: 700; min-width: 62px; }
+.btn.choice { text-align: left; width: 100%; }
+.btn.choice.right { border-color: var(--good); background: var(--good-soft); }
+.btn.choice.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #1b1300; font-weight: 700; }
+.btn.ghost { background: transparent; }
+.btn:focus-visible, .seg button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.choices { display: grid; gap: 8px; }
+.mono { font-family: var(--mono); font-weight: 700; }
+
+.feedback {
+  border-radius: 10px; padding: 12px 14px; font-size: 16px; background: var(--paper);
+  border: 1px solid var(--line);
+}
+.feedback.ok { background: var(--good-soft); border-color: var(--good); }
+.feedback.no { background: var(--bad-soft); border-color: var(--bad); }
+
+.missions { display: flex; flex-wrap: wrap; gap: 8px; }
+.mission {
+  font-size: 14px; padding: 5px 12px; border-radius: 999px; border: 1px dashed var(--muted); color: var(--muted);
+}
+.mission.got { border-style: solid; border-color: var(--good); color: var(--good); background: var(--good-soft); font-weight: 700; }
+
+.result {
+  border: 2px solid var(--accent); border-radius: 12px; padding: 14px; text-align: center; display: grid; gap: 4px;
+}
+.result .mono { font-size: 30px; }
+
+/* Triangle */
+.tri { width: 100%; max-width: 320px; height: auto; justify-self: center; display: block; }
+.tri .region { cursor: pointer; fill: var(--paper); stroke: var(--ink); stroke-width: 3; transition: fill 0.2s; }
+.tri .region:hover { fill: var(--accent-soft); }
+.tri .region.covered { fill: var(--accent); }
+.tri .region:focus-visible { outline: none; stroke: var(--accent); stroke-width: 5; }
+.tri text { font-family: var(--mono); font-weight: 700; font-size: 40px; fill: var(--ink); pointer-events: none; }
+.tri text.hid { fill: #1b1300; }
+
+.q-input { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.q-input input {
+  font: inherit; font-family: var(--mono); font-size: 20px; width: 7em; padding: 8px 12px;
+  border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+}
+.score { font-family: var(--mono); font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Nav */
+nav { display: flex; justify-content: space-between; gap: 8px; }
+nav .btn { min-width: 110px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">World 0 · Math warm-up · Lesson 1</div>
+    <h1>The Balance Scale</h1>
+    <div class="rail" id="rail" aria-label="Lesson steps"></div>
+    <div class="where" id="where"></div>
+  </header>
+
+  <main id="stage"></main>
+
+  <nav>
+    <button class="btn ghost" id="back" type="button">← Back</button>
+    <button class="btn primary" id="next" type="button">Next →</button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  const STEPS = ["Today", "Play", "Predict", "Letters", "Shortcut", "Check", "Done"];
+  const KEY = "w0l1-step";
+  let step = 0;
+  try { step = Math.min(STEPS.length - 1, Math.max(0, parseInt(localStorage.getItem(KEY) || "0", 10) || 0)); } catch (e) {}
+
+  const stage = document.getElementById("stage");
+  const rail = document.getElementById("rail");
+  const where = document.getElementById("where");
+  const back = document.getElementById("back");
+  const next = document.getElementById("next");
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const fmt = (n) => (Math.abs(n - Math.round(n)) < 1e-9 ? String(Math.round(n)) : String(+n.toFixed(2)));
+  const level = (a, b) => Math.abs(a - b) < 1e-9;
+  const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+  /* ---------- Balance scale ---------- */
+  function makeScale(host) {
+    const NS = "http://www.w3.org/2000/svg";
+    host.innerHTML = `
+      <svg class="scale" viewBox="0 0 400 240" role="img" aria-label="A balance scale with two pans">
+        <path d="M200 84 L176 222 L224 222 Z" fill="var(--post)"></path>
+        <rect x="140" y="220" width="120" height="10" rx="4" fill="var(--post)"></rect>
+        <line class="beam" stroke="var(--ink)" stroke-width="7" stroke-linecap="round"></line>
+        ${["l", "r"].map((s) => `
+        <g class="pan" data-side="${s}">
+          <line x1="0" y1="0" x2="-54" y2="62" stroke="var(--muted)" stroke-width="2"></line>
+          <line x1="0" y1="0" x2="54" y2="62" stroke="var(--muted)" stroke-width="2"></line>
+          <rect x="-54" y="28" width="108" height="32" rx="6" fill="var(--block)"></rect>
+          <text class="pan-text" x="0" y="50" text-anchor="middle"></text>
+          <path d="M-60 62 Q0 92 60 62 Z" fill="var(--pan)" stroke="var(--post)" stroke-width="2"></path>
+          <text class="pan-val" x="0" y="104" text-anchor="middle"></text>
+        </g>`).join("")}
+        <circle cx="200" cy="80" r="8" fill="var(--accent)"></circle>
+      </svg>
+      <div class="status ok" aria-live="polite">Level ✓</div>`;
+    const beam = host.querySelector(".beam");
+    const pans = { l: host.querySelector('[data-side="l"]'), r: host.querySelector('[data-side="r"]') };
+    const status = host.querySelector(".status");
+    let angle = 0, target = 0, raf = 0;
+    const PX = 200, PY = 80, L = 135;
+
+    function draw(a) {
+      const rad = (a * Math.PI) / 180, c = Math.cos(rad), s = Math.sin(rad);
+      const lx = PX - L * c, ly = PY - L * s, rx = PX + L * c, ry = PY + L * s;
+      beam.setAttribute("x1", lx); beam.setAttribute("y1", ly);
+      beam.setAttribute("x2", rx); beam.setAttribute("y2", ry);
+      pans.l.setAttribute("transform", `translate(${lx} ${ly})`);
+      pans.r.setAttribute("transform", `translate(${rx} ${ry})`);
+    }
+    function tick() {
+      angle += (target - angle) * 0.14;
+      if (Math.abs(target - angle) < 0.05) { angle = target; draw(angle); raf = 0; return; }
+      draw(angle); raf = requestAnimationFrame(tick);
+    }
+    draw(0);
+    return {
+      set(lt, lv, rt, rv, vals) {
+        pans.l.querySelector(".pan-text").textContent = lt;
+        pans.r.querySelector(".pan-text").textContent = rt;
+        pans.l.querySelector(".pan-val").textContent = vals && vals.l != null ? vals.l : "";
+        pans.r.querySelector(".pan-val").textContent = vals && vals.r != null ? vals.r : "";
+        const diff = rv - lv;
+        if (level(lv, rv)) target = 0;
+        else target = Math.sign(diff) * (6 + 8 * Math.min(1, Math.abs(diff) / Math.max(Math.abs(lv), Math.abs(rv), 1)));
+        const ok = target === 0;
+        status.className = "status " + (ok ? "ok" : "tip");
+        status.textContent = ok ? "Level ✓" : (diff < 0 ? "Tipped! Left side is heavier" : "Tipped! Right side is heavier");
+        beam.setAttribute("stroke", ok ? "var(--ink)" : "var(--bad)");
+        if (reduce) { angle = target; draw(angle); return; }
+        if (!raf) raf = requestAnimationFrame(tick);
+      },
+    };
+  }
+
+  /* ---------- Steps ---------- */
+  const views = {};
+
+  views.Today = () => el(`
+    <section class="card">
+      <span class="tag">Today's one idea</span>
+      <h2>One tiny equation shows up all through this book</h2>
+      <div class="big-eq"><span class="v">V</span> = I × R</div>
+      <p>You don't need to understand it yet. Today you'll learn one skill: <b>flipping it around without breaking it.</b></p>
+      <ul class="facts">
+        <li><span class="k">TIME</span><span>About 12 minutes here, then 10 minutes of practice in the chat.</span></li>
+        <li><span class="k">HOW</span><span>Tap things, guess, watch what happens. Nothing to memorize.</span></li>
+      </ul>
+    </section>`);
+
+  views.Play = () => {
+    const node = el(`
+      <section class="card">
+        <span class="tag">Play</span>
+        <h2>An equation is a balance scale</h2>
+        <p>The <span class="mono">=</span> sign means both sides weigh the same. Try the buttons and watch.</p>
+        <div class="scale-box"></div>
+        <div class="row"><span class="label">Do it to:</span>
+          <div class="seg" role="group" aria-label="Which side">
+            <button type="button" data-w="l" aria-pressed="false">Left only</button>
+            <button type="button" data-w="both" aria-pressed="true">Both sides</button>
+            <button type="button" data-w="r" aria-pressed="false">Right only</button>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn op" type="button" data-op="+5">+ 5</button>
+          <button class="btn op" type="button" data-op="-5">− 5</button>
+          <button class="btn op" type="button" data-op="*2">× 2</button>
+          <button class="btn op" type="button" data-op="/2">÷ 2</button>
+          <button class="btn ghost" type="button" data-reset>Reset</button>
+        </div>
+        <div class="missions">
+          <span class="mission" data-m="tip">Mission 1: tip it on purpose</span>
+          <span class="mission" data-m="fix">Mission 2: make it level again</span>
+        </div>
+        <div class="feedback" aria-live="polite">Start: left holds <b>12</b>, right holds <b>3 × 4</b>, which is also 12. Level.</div>
+      </section>`);
+    const sc = makeScale(node.querySelector(".scale-box"));
+    const fb = node.querySelector(".feedback");
+    let l = 12, r = 12, fresh = true, w = "both", tipped = false, fixed = false;
+    const render = () => sc.set(fmt(l), l, fresh ? "3 × 4" : fmt(r), r, fresh ? { r: "= 12" } : null);
+    render();
+    node.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
+      w = b.dataset.w;
+      node.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    }));
+    const apply = (v, op) => op === "+5" ? v + 5 : op === "-5" ? v - 5 : op === "*2" ? v * 2 : v / 2;
+    const opText = { "+5": "+ 5", "-5": "− 5", "*2": "× 2", "/2": "÷ 2" };
+    node.querySelectorAll("[data-op]").forEach((b) => b.addEventListener("click", () => {
+      const op = b.dataset.op;
+      if (w !== "r") l = apply(l, op);
+      if (w !== "l") r = apply(r, op);
+      fresh = false;
+      render();
+      const where = w === "both" ? "both sides" : w === "l" ? "the left only" : "the right only";
+      if (level(l, r)) {
+        fb.className = "feedback ok";
+        fb.innerHTML = `You did <b>${opText[op]}</b> to ${where}. Now <b>${fmt(l)}</b> and <b>${fmt(r)}</b>. Still level.`;
+        if (tipped && !fixed) { fixed = true; node.querySelector('[data-m="fix"]').classList.add("got"); fb.innerHTML += " <b>Mission 2 done.</b>"; }
+      } else {
+        fb.className = "feedback no";
+        fb.innerHTML = `You did <b>${opText[op]}</b> to ${where}. Now <b>${fmt(l)}</b> and <b>${fmt(r)}</b>. Not equal, so it tipped.`;
+        if (!tipped) { tipped = true; node.querySelector('[data-m="tip"]').classList.add("got"); fb.innerHTML += " <b>Mission 1 done.</b> Can you get it level again?"; }
+      }
+      if (fixed) fb.innerHTML += `<br><br><b>The golden rule:</b> whatever you do to one side, do to the other.`;
+    }));
+    node.querySelector("[data-reset]").addEventListener("click", () => {
+      l = 12; r = 12; fresh = true; render();
+      fb.className = "feedback"; fb.innerHTML = "Back to the start: <b>12</b> and <b>3 × 4</b>. Level.";
+    });
+    return node;
+  };
+
+  views.Predict = () => {
+    const node = el(`
+      <section class="card">
+        <span class="tag">Predict first</span>
+        <h2>Both pans hold 8. You double only the left. What happens?</h2>
+        <div class="scale-box"></div>
+        <div class="choices">
+          <button class="btn choice" type="button" data-c="l">The left side goes down</button>
+          <button class="btn choice" type="button" data-c="r">The right side goes down</button>
+          <button class="btn choice" type="button" data-c="s">It stays level</button>
+        </div>
+        <div class="feedback" aria-live="polite" hidden></div>
+      </section>`);
+    const sc = makeScale(node.querySelector(".scale-box"));
+    const fb = node.querySelector(".feedback");
+    sc.set("8", 8, "8", 8);
+    node.querySelectorAll("[data-c]").forEach((b) => b.addEventListener("click", () => {
+      node.querySelectorAll("[data-c]").forEach((x) => x.classList.remove("right", "wrong"));
+      const ok = b.dataset.c === "l";
+      b.classList.add(ok ? "right" : "wrong");
+      sc.set("8 × 2", 16, "8", 8, { l: "= 16", r: "= 8" });
+      fb.hidden = false;
+      fb.className = "feedback " + (ok ? "ok" : "no");
+      fb.innerHTML = ok
+        ? "Right. The left is now 16 and the right is still 8. Heavier side goes down. <b>The equation is broken.</b>"
+        : "Watch the scale. The left became 16 and the right stayed 8, so the <b>left</b> goes down. Changing one side breaks the balance.";
+      if (!ok) node.querySelector('[data-c="l"]').classList.add("right");
+    }));
+    return node;
+  };
+
+  views.Letters = () => {
+    const node = el(`
+      <section class="card">
+        <span class="tag">Same trick, with letters</span>
+        <h2>Letters are just numbers in a box</h2>
+        <p>Here is <span class="mono">V = I × R</span> on the scale. Your job: get <b class="mono">I</b> alone on its pan.</p>
+        <div class="scale-box"></div>
+        <div class="row">
+          <div class="seg" role="group" aria-label="Show numbers">
+            <button type="button" data-n="off" aria-pressed="true">Letters</button>
+            <button type="button" data-n="on" aria-pressed="false">Show numbers</button>
+          </div>
+          <span class="label">V = 12, I = 3, R = 4</span>
+        </div>
+        <p class="label">Which move gets I by itself?</p>
+        <div class="choices">
+          <button class="btn choice" type="button" data-m="div">÷ R on both sides</button>
+          <button class="btn choice" type="button" data-m="mul">× R on both sides</button>
+          <button class="btn choice" type="button" data-m="one">÷ R on the right side only</button>
+        </div>
+        <div class="feedback" aria-live="polite" hidden></div>
+        <div class="result" hidden>
+          <span class="label">You just turned V = I × R into</span>
+          <span class="mono">I = V ÷ R</span>
+          <span class="label">Check: 12 ÷ 4 = 3, and I really is 3 ✓</span>
+        </div>
+      </section>`);
+    const sc = makeScale(node.querySelector(".scale-box"));
+    const fb = node.querySelector(".feedback");
+    const res = node.querySelector(".result");
+    let nums = false, cur = { lt: "V", lv: 12, rt: "I × R", rv: 12, ln: "= 12", rn: "= 3 × 4 = 12" }, timer = 0;
+    const show = () => sc.set(cur.lt, cur.lv, cur.rt, cur.rv, nums ? { l: cur.ln, r: cur.rn } : null);
+    show();
+    node.querySelectorAll("[data-n]").forEach((b) => b.addEventListener("click", () => {
+      nums = b.dataset.n === "on";
+      node.querySelectorAll("[data-n]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      show();
+    }));
+    node.querySelectorAll("[data-m]").forEach((b) => b.addEventListener("click", () => {
+      clearTimeout(timer);
+      node.querySelectorAll("[data-m]").forEach((x) => x.classList.remove("right", "wrong"));
+      fb.hidden = false; res.hidden = true;
+      const m = b.dataset.m;
+      if (m === "div") {
+        b.classList.add("right");
+        cur = { lt: "V ÷ R", lv: 3, rt: "I × R ÷ R", rv: 3, ln: "= 12 ÷ 4 = 3", rn: "= 3 × 4 ÷ 4 = 3" };
+        show();
+        fb.className = "feedback ok";
+        fb.innerHTML = "Level ✓. On the right, <b class='mono'>R ÷ R</b> is 1, so the two R's cancel out…";
+        timer = setTimeout(() => {
+          cur = { lt: "V ÷ R", lv: 3, rt: "I", rv: 3, ln: "= 3", rn: "= 3" };
+          show();
+          fb.innerHTML = "…and <b class='mono'>I</b> is left on its own. Done!";
+          res.hidden = false;
+        }, reduce ? 0 : 1400);
+      } else if (m === "mul") {
+        b.classList.add("wrong");
+        cur = { lt: "V × R", lv: 48, rt: "I × R × R", rv: 48, ln: "= 48", rn: "= 48" };
+        show();
+        fb.className = "feedback no";
+        fb.innerHTML = "Still level, so it's a legal move. But now there are <b>two</b> R's stuck to I. We want to undo the × R, and the opposite of × is ÷.";
+      } else {
+        b.classList.add("wrong");
+        cur = { lt: "V", lv: 12, rt: "I × R ÷ R", rv: 3, ln: "= 12", rn: "= 3" };
+        show();
+        fb.className = "feedback no";
+        fb.innerHTML = "It tipped. You changed only one side, so the equation isn't true anymore. Remember the golden rule.";
+      }
+    }));
+    return node;
+  };
+
+  views.Shortcut = () => {
+    const forms = {
+      V: { eq: "V = I × R", why: "I and R sit side by side, so <b>multiply</b>." },
+      I: { eq: "I = V ÷ R", why: "V sits on top of R, so <b>divide</b>." },
+      R: { eq: "R = V ÷ I", why: "V sits on top of I, so <b>divide</b>." },
+    };
+    const node = el(`
+      <section class="card">
+        <span class="tag">Shortcut</span>
+        <h2>The V-I-R triangle</h2>
+        <p>Tap the letter you want to find. Cover it with your thumb and read what's left.</p>
+        <svg class="tri" viewBox="0 0 300 260" role="group" aria-label="V I R triangle">
+          <polygon class="region" data-k="V" tabindex="0" role="button" aria-label="Find V" points="150,20 79,140 221,140"></polygon>
+          <polygon class="region" data-k="I" tabindex="0" role="button" aria-label="Find I" points="79,140 150,140 150,240 20,240"></polygon>
+          <polygon class="region" data-k="R" tabindex="0" role="button" aria-label="Find R" points="150,140 221,140 280,240 150,240"></polygon>
+          <text data-t="V" x="150" y="118" text-anchor="middle">V</text>
+          <text data-t="I" x="104" y="206" text-anchor="middle">I</text>
+          <text data-t="R" x="196" y="206" text-anchor="middle">R</text>
+        </svg>
+        <div class="result" aria-live="polite">
+          <span class="mono">Tap a letter</span>
+          <span class="label">Next to each other means ×. One over the other means ÷.</span>
+        </div>
+        <ul class="facts">
+          <li><span class="k">V · volts</span><span>the push</span></li>
+          <li><span class="k">I · amps</span><span>the flow</span></li>
+          <li><span class="k">R · ohms Ω</span><span>how much the path resists the flow</span></li>
+        </ul>
+        <p class="label">This is just a shortcut. The balance scale is the reason it works.</p>
+      </section>`);
+    const res = node.querySelector(".result");
+    const pick = (k) => {
+      node.querySelectorAll(".region").forEach((p) => p.classList.toggle("covered", p.dataset.k === k));
+      node.querySelectorAll(".tri text").forEach((t) => {
+        const on = t.dataset.t === k;
+        t.textContent = on ? "?" : t.dataset.t;
+        t.classList.toggle("hid", on);
+      });
+      res.innerHTML = `<span class="mono">${forms[k].eq}</span><span class="label">${forms[k].why}</span>`;
+    };
+    node.querySelectorAll(".region").forEach((p) => {
+      p.addEventListener("click", () => pick(p.dataset.k));
+      p.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(p.dataset.k); } });
+    });
+    return node;
+  };
+
+  const quiz = { i: 0, firstTry: 0, tried: false };
+  const QS = [
+    { type: "num", q: "A <b>6 V</b> battery pushes current through a <b>3 Ω</b> heater. How many amps flow?", a: 2, unit: "A",
+      hint: "Cover I on the triangle: I = V ÷ R = 6 ÷ 3." },
+    { type: "pick", q: "You know V and I. Which one gives you R?", opts: ["V × I", "V ÷ I", "I ÷ V"], a: 1,
+      hint: "Cover R on the triangle. V sits on top of I." },
+    { type: "num", q: "<b>2 A</b> flows through a <b>5 Ω</b> resistor. How many volts are across it?", a: 10, unit: "V",
+      hint: "Cover V: I and R sit side by side, so multiply. 2 × 5." },
+  ];
+
+  views.Check = () => {
+    const node = el(`<section class="card"><span class="tag">Quick check</span><div class="qhost" style="display:grid;gap:16px"></div></section>`);
+    const host = node.querySelector(".qhost");
+    function drawQ() {
+      if (quiz.i >= QS.length) {
+        host.innerHTML = `<h2>All 3 done</h2><p>You got <b>${quiz.firstTry} of 3</b> on the first try. Tap Next.</p>
+          <div><button class="btn ghost" type="button" data-redo>Do them again</button></div>`;
+        host.querySelector("[data-redo]").addEventListener("click", () => { quiz.i = 0; quiz.firstTry = 0; quiz.tried = false; drawQ(); });
+        return;
+      }
+      const Q = QS[quiz.i];
+      host.innerHTML = `<div class="score">Question ${quiz.i + 1} of 3</div><h2>${Q.q}</h2>` +
+        (Q.type === "num"
+          ? `<form class="q-input" novalidate><input id="q${quiz.i}" inputmode="decimal" autocomplete="off" aria-label="Your answer"><span class="mono">${Q.unit}</span><button class="btn primary" type="submit">Check</button></form>`
+          : `<div class="choices">${Q.opts.map((o, j) => `<button class="btn choice mono" type="button" data-j="${j}">R = ${o}</button>`).join("")}</div>`) +
+        `<div class="feedback" aria-live="polite" hidden></div><div class="row" data-go hidden><button class="btn primary" type="button">Next question →</button></div>`;
+      const fb = host.querySelector(".feedback");
+      const go = host.querySelector("[data-go]");
+      go.querySelector("button").addEventListener("click", () => { quiz.i++; quiz.tried = false; drawQ(); });
+      const judge = (ok, chosenBtn) => {
+        fb.hidden = false;
+        if (ok) {
+          if (!quiz.tried) quiz.firstTry++;
+          fb.className = "feedback ok"; fb.innerHTML = "Yes ✓";
+          if (chosenBtn) chosenBtn.classList.add("right");
+          go.hidden = false; go.querySelector("button").focus();
+        } else {
+          quiz.tried = true;
+          fb.className = "feedback no"; fb.innerHTML = "Not quite. Hint: " + Q.hint;
+          if (chosenBtn) chosenBtn.classList.add("wrong");
+        }
+      };
+      if (Q.type === "num") {
+        const input = host.querySelector("input");
+        host.querySelector("form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const v = parseFloat(String(input.value).replace(",", "."));
+          if (isNaN(v)) { fb.hidden = false; fb.className = "feedback"; fb.textContent = "Type a number first."; return; }
+          judge(Math.abs(v - Q.a) < 1e-6);
+        });
+        setTimeout(() => input.focus(), 0);
+      } else {
+        host.querySelectorAll("[data-j]").forEach((b) => b.addEventListener("click", () => {
+          host.querySelectorAll("[data-j]").forEach((x) => x.classList.remove("wrong"));
+          judge(+b.dataset.j === Q.a, b);
+        }));
+      }
+    }
+    drawQ();
+    return node;
+  };
+
+  views.Done = () => {
+    const node = el(`
+      <section class="card">
+        <span class="tag">Lesson 1 complete</span>
+        <h2>Your one sentence for today</h2>
+        <div class="result"><span style="font-family:var(--display);font-weight:600;font-size:22px;text-wrap:balance">Do the same thing to both sides, and the equation stays true.</span></div>
+        <ul class="facts">
+          <li><span class="k">NOW</span><span>Go back to the chat and type <b class="mono">lesson 1 done</b>. You'll get about 10 minutes of practice.</span></li>
+          <li><span class="k">NEXT</span><span>Lesson 2: fractions, shown as pizza slices and pipes.</span></li>
+        </ul>
+        <div><button class="btn ghost" type="button" data-restart>Start the lesson over</button></div>
+      </section>`);
+    node.querySelector("[data-restart]").addEventListener("click", () => { quiz.i = 0; quiz.firstTry = 0; quiz.tried = false; go(0); });
+    return node;
+  };
+
+  /* ---------- Navigation ---------- */
+  function go(n) {
+    step = Math.max(0, Math.min(STEPS.length - 1, n));
+    try { localStorage.setItem(KEY, String(step)); } catch (e) {}
+    stage.replaceChildren(views[STEPS[step]]());
+    rail.innerHTML = STEPS.map((s, i) =>
+      `<button type="button" class="${i < step ? "done" : i === step ? "now" : ""}" aria-label="Step ${i + 1}: ${s}" ${i === step ? 'aria-current="step"' : ""} data-i="${i}"></button>`).join("");
+    rail.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => go(+b.dataset.i)));
+    where.innerHTML = `Step <b>${step + 1}</b> of ${STEPS.length} · ${STEPS[step]}`;
+    back.disabled = step === 0;
+    next.hidden = step === STEPS.length - 1;
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  }
+  back.addEventListener("click", () => go(step - 1));
+  next.addEventListener("click", () => go(step + 1));
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("input, textarea")) return;
+    if (e.key === "ArrowRight") go(step + 1);
+    if (e.key === "ArrowLeft") go(step - 1);
+  });
+  go(step);
+})();
+</script>
